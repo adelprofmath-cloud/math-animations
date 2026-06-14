@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inverse d'une Matrice (Ordre 2) - Animation</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Math notation renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <style>
+        /* Matrix element transitions for adjointe swapping */
+        .swap-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .matrix-container-inverse {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .animated-element {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Retour au menu
+        </a>
+
+        <header style="margin-bottom: 2rem;">
+            <div class="subtitle">Animation interactive</div>
+            <h1>Inverse d'une Matrice d'Ordre 2</h1>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">
+                Une matrice carrée $M$ d'ordre 2 possède une matrice inverse $M^{-1}$ si et seulement si son déterminant est non nul.
+            </p>
+        </header>
+
+        <div class="card">
+            <!-- Inputs and visualizer -->
+            <div class="swap-container">
+                <!-- Initial Matrix M -->
+                <div class="matrix-wrapper">
+                    <div class="matrix-label">Matrice M</div>
+                    <div class="matrix dim-2" id="matrixM">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <div class="matrix-operator" id="middleArrow">&rarr;</div>
+
+                <!-- Animated Target Matrix (Adjugate or Inverse) -->
+                <div class="matrix-wrapper" id="targetWrapper">
+                    <div class="matrix-label" id="targetLabel">Adjointe de M</div>
+                    <div class="matrix dim-2" id="matrixTarget">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel explanation -->
+            <div class="explanation">
+                <div class="explanation-title" id="explanationTitle">Introduction</div>
+                <div class="explanation-text" id="explanationText">
+                    Saisissez des nombres dans la matrice $M$, puis cliquez sur <strong>Suivant</strong> pour démarrer le processus d'inversion.
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button id="btnRandom" onclick="fillRandom()">Aléatoire</button>
+                <button id="btnPrev" onclick="prevStep()" disabled>Précédent</button>
+                <button id="btnPlay" class="accent" onclick="togglePlay()">Lecture Automatique</button>
+                <button id="btnNext" onclick="nextStep()">Suivant</button>
+                <button id="btnReset" onclick="resetAnimation()">Réinitialiser</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = -1;
+        let playInterval = null;
+        const totalSteps = 3;
+
+        // Default Matrix M values
+        const defaultM = [
+            [3, 2],
+            [1, 2]
+        ];
+
+        function init() {
+            createMatrixInputs('matrixM', 'm', defaultM);
+            createMatrixDisplay('matrixTarget', 't');
+            resetAnimation();
+        }
+
+        function createMatrixInputs(containerId, prefix, defaults) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for (let r = 0; r < 2; r++) {
+                for (let c = 0; c < 2; c++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.value = defaults[r][c];
+                    input.id = `${prefix}_${r}_${c}`;
+                    input.oninput = () => {
+                        resetAnimation();
+                    };
+                    container.appendChild(input);
+                }
+            }
+        }
+
+        function createMatrixDisplay(containerId, prefix) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for (let r = 0; r < 2; r++) {
+                for (let c = 0; c < 2; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'matrix-cell animated-element';
+                    cell.id = `${prefix}_${r}_${c}`;
+                    cell.innerText = '?';
+                    container.appendChild(cell);
+                }
+            }
+        }
+
+        function fillRandom() {
+            resetAnimation();
+            let isInvertible = false;
+            while (!isInvertible) {
+                const a = Math.floor(Math.random() * 9) - 4; // -4 to 4
+                const b = Math.floor(Math.random() * 9) - 4;
+                const c = Math.floor(Math.random() * 9) - 4;
+                const d = Math.floor(Math.random() * 9) - 4;
+                
+                if (a * d - b * c !== 0) {
+                    document.getElementById('m_0_0').value = a;
+                    document.getElementById('m_0_1').value = b;
+                    document.getElementById('m_1_0').value = c;
+                    document.getElementById('m_1_1').value = d;
+                    isInvertible = true;
+                }
+            }
+            updatePlaceholder();
+        }
+
+        function updatePlaceholder() {
+            for (let r = 0; r < 2; r++) {
+                for (let c = 0; c < 2; c++) {
+                    document.getElementById(`t_${r}_${c}`).innerText = '?';
+                }
+            }
+            document.getElementById('targetLabel').innerText = 'Adjointe de M';
+            document.getElementById('middleArrow').innerHTML = '&rarr;';
+        }
+
+        function getVal(r, c) {
+            return parseInt(document.getElementById(`m_${r}_${c}`).value) || 0;
+        }
+
+        function resetAnimation() {
+            stopPlay();
+            currentStep = -1;
+            updatePlaceholder();
+            document.querySelectorAll('.matrix input, .matrix-cell').forEach(el => {
+                el.classList.remove('highlight-turquoise', 'highlight-rose', 'active-result');
+                el.style.transform = '';
+            });
+            document.getElementById('btnPrev').disabled = true;
+            document.getElementById('btnNext').disabled = false;
+            document.getElementById('btnRandom').disabled = false;
+            
+            document.getElementById('explanationTitle').innerText = 'Introduction';
+            document.getElementById('explanationText').innerHTML = 
+                'Saisissez des nombres dans la matrice $M$, puis cliquez sur <strong>Suivant</strong> pour commencer.';
+        }
+
+        function updateUI() {
+            // Reset styles
+            document.querySelectorAll('.matrix input, .matrix-cell').forEach(el => {
+                el.classList.remove('highlight-turquoise', 'highlight-rose', 'active-result');
+                el.style.transform = '';
+            });
+
+            document.getElementById('btnPrev').disabled = (currentStep <= -1);
+            document.getElementById('btnNext').disabled = (currentStep >= totalSteps - 1);
+            document.getElementById('btnRandom').disabled = (currentStep !== -1);
+
+            const a = getVal(0, 0);
+            const b = getVal(0, 1);
+            const c = getVal(1, 0);
+            const d = getVal(1, 1);
+            const det = a * d - b * c;
+
+            if (currentStep === 0) {
+                // Step 1: Determinant
+                document.getElementById('m_0_0').classList.add('highlight-turquoise');
+                document.getElementById('m_1_1').classList.add('highlight-turquoise');
+                document.getElementById('m_0_1').classList.add('highlight-rose');
+                document.getElementById('m_1_0').classList.add('highlight-rose');
+
+                document.getElementById('explanationTitle').innerText = "Étape 1 : Calcul du Déterminant det(M)";
+                
+                let detailText = `On multiplie les termes de la diagonale principale et on soustrait le produit de la diagonale secondaire :<br><div style="font-size:1.4rem; margin-top:0.5rem; text-align:center;" id="mathFormula"></div>`;
+                
+                if (det === 0) {
+                    detailText += `<br><span style="color:var(--rose); font-weight:700;">Le déterminant est nul, la matrice M n'est pas inversible !</span>`;
+                    stopPlay();
+                    document.getElementById('btnNext').disabled = true;
+                } else {
+                    detailText += `<br><span style="color:var(--turquoise); font-weight:600;">det(M) ≠ 0, la matrice M est inversible.</span>`;
+                }
+                
+                document.getElementById('explanationText').innerHTML = detailText;
+                
+                const mathExp = `\\det(M) = ad - bc = ${a} \\times ${d} - ${b} \\times ${c} = ${a*d} - ${b*c} = ${det}`;
+                if (window.katex) {
+                    window.katex.render(mathExp, document.getElementById('mathFormula'), { throwOnError: false });
+                } else {
+                    document.getElementById('mathFormula').innerText = mathExp;
+                }
+            } 
+            else if (currentStep === 1) {
+                // Step 2: Adjugate (Adjointe)
+                document.getElementById('targetLabel').innerText = 'Adjointe de M';
+                document.getElementById('middleArrow').innerHTML = '&rarr;';
+
+                // Swap A and D visually
+                const t00 = document.getElementById('t_0_0');
+                const t11 = document.getElementById('t_1_1');
+                const t01 = document.getElementById('t_0_1');
+                const t12 = document.getElementById('t_1_0');
+
+                t00.innerText = d;
+                t11.innerText = a;
+                t01.innerText = -b;
+                t12.innerText = -c;
+
+                t00.classList.add('highlight-turquoise');
+                t11.classList.add('highlight-turquoise');
+                t01.classList.add('highlight-rose');
+                t12.classList.add('highlight-rose');
+
+                // Animate element movements (small visual pop)
+                t00.style.transform = 'scale(1.1)';
+                t11.style.transform = 'scale(1.1)';
+
+                document.getElementById('explanationTitle').innerText = "Étape 2 : Construction de l'Adjointe";
+                const mathExp = `Adj(M) = \\begin{pmatrix} d & -b \\\\ -c & a \\end{pmatrix} = \\begin{pmatrix} ${d} & ${-b} \\\\ ${-c} & ${a} \\end{pmatrix}`;
+                document.getElementById('explanationText').innerHTML = `
+                    Pour construire l'adjointe d'une matrice 2x2 :
+                    <ul>
+                        <li>On **échange** les éléments de la diagonale principale ($a$ et $d$ deviennent $d$ et $a$).</li>
+                        <li>On **change le signe** des éléments de la diagonale secondaire ($b$ et $c$ deviennent $-b$ et $-c$).</li>
+                    </ul>
+                    <div style="font-size:1.4rem; margin-top:0.8rem; text-align:center;" id="mathFormula"></div>
+                `;
+
+                if (window.katex) {
+                    window.katex.render(mathExp, document.getElementById('mathFormula'), { throwOnError: false });
+                } else {
+                    document.getElementById('mathFormula').innerText = mathExp;
+                }
+            } 
+            else if (currentStep === 2) {
+                // Step 3: Final Matrix Inverse
+                document.getElementById('targetLabel').innerText = 'Matrice Inverse M⁻¹';
+                document.getElementById('middleArrow').innerHTML = '&times; 1/' + det + ' &rarr;';
+
+                const t00 = document.getElementById('t_0_0');
+                const t11 = document.getElementById('t_1_1');
+                const t01 = document.getElementById('t_0_1');
+                const t12 = document.getElementById('t_1_0');
+
+                // Format values nicely
+                const f00 = formatFraction(d, det);
+                const f01 = formatFraction(-b, det);
+                const f10 = formatFraction(-c, det);
+                const f11 = formatFraction(a, det);
+
+                t00.innerText = f00;
+                t01.innerText = f01;
+                t12.innerText = f10;
+                t11.innerText = f11;
+
+                t00.classList.add('highlight-turquoise');
+                t01.classList.add('highlight-turquoise');
+                t12.classList.add('highlight-turquoise');
+                t11.classList.add('highlight-turquoise');
+
+                document.getElementById('explanationTitle').innerText = "Étape 3 : Multiplication par 1/det(M)";
+                
+                const mathExp = `M^{-1} = \\frac{1}{\\det(M)} \\times Adj(M) = \\frac{1}{${det}} \\begin{pmatrix} ${d} & ${-b} \\\\ ${-c} & ${a} \\end{pmatrix} = \\begin{pmatrix} ${f00} & ${f01} \\\\ ${f10} & ${f11} \\end{pmatrix}`;
+                
+                document.getElementById('explanationText').innerHTML = `
+                    On divise chaque élément de la matrice adjointe par le déterminant calculé à l'étape 1 :
+                    <div style="font-size:1.3rem; margin-top:0.8rem; text-align:center;" id="mathFormula"></div>
+                `;
+
+                if (window.katex) {
+                    window.katex.render(mathExp, document.getElementById('mathFormula'), { throwOnError: false });
+                } else {
+                    document.getElementById('mathFormula').innerText = mathExp;
+                }
+            }
+        }
+
+        // Help format simple fractions
+        function formatFraction(num, den) {
+            if (num === 0) return '0';
+            
+            // Simplify signs
+            let n = num;
+            let d = den;
+            if (d < 0) {
+                n = -n;
+                d = -d;
+            }
+
+            // GCD
+            const gcdVal = gcd(Math.abs(n), Math.abs(d));
+            n = n / gcdVal;
+            d = d / gcdVal;
+
+            if (d === 1) return `${n}`;
+            return `${n}/${d}`;
+        }
+
+        function gcd(x, y) {
+            return y === 0 ? x : gcd(y, x % y);
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps - 1) {
+                currentStep++;
+                updateUI();
+            } else {
+                stopPlay();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep >= 0) {
+                currentStep--;
+                if (currentStep === -1) {
+                    resetAnimation();
+                } else {
+                    updateUI();
+                }
+            }
+        }
+
+        function togglePlay() {
+            if (playInterval) {
+                stopPlay();
+            } else {
+                if (currentStep >= totalSteps - 1) {
+                    resetAnimation();
+                }
+                document.getElementById('btnPlay').innerText = 'Pause';
+                document.getElementById('btnPlay').classList.remove('accent');
+                playInterval = setInterval(() => {
+                    if (currentStep < totalSteps - 1) {
+                        nextStep();
+                    } else {
+                        stopPlay();
+                    }
+                }, 3000);
+            }
+        }
+
+        function stopPlay() {
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+            document.getElementById('btnPlay').innerText = 'Lecture Automatique';
+            document.getElementById('btnPlay').classList.add('accent');
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

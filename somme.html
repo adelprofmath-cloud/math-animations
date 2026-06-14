@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Somme Matricielle (Ordre 3) - Animation</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Math notation renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Retour au menu
+        </a>
+
+        <header style="margin-bottom: 2rem;">
+            <div class="subtitle">Animation interactive</div>
+            <h1>Somme de Deux Matrices d'Ordre 3</h1>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">
+                La somme de deux matrices s'obtient en additionnant les éléments situés à la même position.
+            </p>
+        </header>
+
+        <div class="card">
+            <!-- Matrix inputs -->
+            <div class="matrices-container">
+                <!-- Matrix A -->
+                <div class="matrix-wrapper">
+                    <div class="matrix-label">Matrice A</div>
+                    <div class="matrix dim-3" id="matrixA">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <div class="matrix-operator">+</div>
+
+                <!-- Matrix B -->
+                <div class="matrix-wrapper">
+                    <div class="matrix-label">Matrice B</div>
+                    <div class="matrix dim-3" id="matrixB">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <div class="matrix-operator">=</div>
+
+                <!-- Matrix C (Result) -->
+                <div class="matrix-wrapper">
+                    <div class="matrix-label" style="color: var(--rose);">Matrice A + B</div>
+                    <div class="matrix dim-3" id="matrixC">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel explanation -->
+            <div class="explanation">
+                <div class="explanation-title" id="explanationTitle">Introduction</div>
+                <div class="explanation-text" id="explanationText">
+                    Saisissez des nombres dans les matrices ci-dessus ou cliquez sur <strong>Aléatoire</strong>, puis cliquez sur <strong>Suivant</strong> pour démarrer l'animation pas-à-pas.
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button id="btnRandom" onclick="fillRandom()">Aléatoire</button>
+                <button id="btnPrev" onclick="prevStep()" disabled>Précédent</button>
+                <button id="btnPlay" class="accent" onclick="togglePlay()">Lecture Automatique</button>
+                <button id="btnNext" onclick="nextStep()">Suivant</button>
+                <button id="btnReset" onclick="resetAnimation()">Réinitialiser</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = -1;
+        let playInterval = null;
+        const matrixSize = 3;
+
+        // Default matrices
+        const defaultA = [
+            [2, -1, 3],
+            [0, 4, 1],
+            [-2, 5, 2]
+        ];
+
+        const defaultB = [
+            [1, 3, -2],
+            [5, -2, 0],
+            [4, 1, -3]
+        ];
+
+        // Init UI
+        function init() {
+            createMatrixInputs('matrixA', 'a', defaultA);
+            createMatrixInputs('matrixB', 'b', defaultB);
+            createMatrixDisplay('matrixC', 'c');
+            resetAnimation();
+        }
+
+        function createMatrixInputs(containerId, prefix, defaults) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for (let r = 0; r < matrixSize; r++) {
+                for (let c = 0; c < matrixSize; c++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.value = defaults[r][c];
+                    input.id = `${prefix}_${r}_${c}`;
+                    input.oninput = () => {
+                        resetAnimation();
+                        updateResultPlaceholder();
+                    };
+                    container.appendChild(input);
+                }
+            }
+        }
+
+        function createMatrixDisplay(containerId, prefix) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for (let r = 0; r < matrixSize; r++) {
+                for (let c = 0; c < matrixSize; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'matrix-cell';
+                    cell.id = `${prefix}_${r}_${c}`;
+                    cell.innerText = '?';
+                    container.appendChild(cell);
+                }
+            }
+        }
+
+        function updateResultPlaceholder() {
+            for (let r = 0; r < matrixSize; r++) {
+                for (let c = 0; c < matrixSize; c++) {
+                    document.getElementById(`c_${r}_${c}`).innerText = '?';
+                }
+            }
+        }
+
+        function fillRandom() {
+            resetAnimation();
+            for (let r = 0; r < matrixSize; r++) {
+                for (let c = 0; c < matrixSize; c++) {
+                    const valA = Math.floor(Math.random() * 19) - 9; // -9 to 9
+                    const valB = Math.floor(Math.random() * 19) - 9;
+                    document.getElementById(`a_${r}_${c}`).value = valA;
+                    document.getElementById(`b_${r}_${c}`).value = valB;
+                }
+            }
+            updateResultPlaceholder();
+        }
+
+        function getMatrixValue(prefix, r, c) {
+            const el = document.getElementById(`${prefix}_${r}_${c}`);
+            return el ? parseInt(el.value) || 0 : 0;
+        }
+
+        function resetAnimation() {
+            stopPlay();
+            currentStep = -1;
+            updateUI();
+            updateResultPlaceholder();
+            document.getElementById('explanationTitle').innerText = 'Introduction';
+            document.getElementById('explanationText').innerHTML = 
+                'Saisissez des nombres dans les matrices ci-dessus ou cliquez sur <strong>Aléatoire</strong>, puis cliquez sur <strong>Suivant</strong> pour démarrer.';
+        }
+
+        function updateUI() {
+            // Remove highlights
+            document.querySelectorAll('.matrix input, .matrix-cell').forEach(el => {
+                el.classList.remove('highlight-turquoise', 'highlight-rose', 'active-result');
+            });
+
+            // Enable/disable navigation buttons
+            document.getElementById('btnPrev').disabled = (currentStep <= -1);
+            document.getElementById('btnNext').disabled = (currentStep >= matrixSize * matrixSize - 1);
+            document.getElementById('btnRandom').disabled = (currentStep !== -1);
+
+            if (currentStep >= 0 && currentStep < matrixSize * matrixSize) {
+                const r = Math.floor(currentStep / matrixSize);
+                const c = currentStep % matrixSize;
+
+                const inputA = document.getElementById(`a_${r}_${c}`);
+                const inputB = document.getElementById(`b_${r}_${c}`);
+                const cellC = document.getElementById(`c_${r}_${c}`);
+
+                inputA.classList.add('highlight-turquoise');
+                inputB.classList.add('highlight-rose');
+                cellC.classList.add('active-result');
+
+                const valA = getMatrixValue('a', r, c);
+                const valB = getMatrixValue('b', r, c);
+                const sum = valA + valB;
+
+                cellC.innerText = sum;
+                cellC.classList.add('highlight-turquoise');
+
+                // LaTeX explanation
+                const titleStr = `Calcul de l'élément à la position (ligne ${r + 1}, colonne ${c + 1})`;
+                document.getElementById('explanationTitle').innerText = titleStr;
+
+                const mathExp = `c_{${r + 1},${c + 1}} = a_{${r + 1},${c + 1}} + b_{${r + 1},${c + 1}} = ${valA} + (${valB < 0 ? valB : valB}) = ${sum}`;
+                const textHTML = `Nous additionnons le terme de la ligne ${r + 1} et colonne ${c + 1} de la matrice $A$ avec celui de la matrice $B$ :<br><div style="font-size:1.4rem; margin-top:0.5rem; text-align:center;" id="mathFormula"></div>`;
+                document.getElementById('explanationText').innerHTML = textHTML;
+
+                // Render math using KaTeX
+                if (window.katex) {
+                    window.katex.render(mathExp, document.getElementById('mathFormula'), { throwOnError: false });
+                } else {
+                    document.getElementById('mathFormula').innerText = mathExp;
+                }
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < matrixSize * matrixSize - 1) {
+                currentStep++;
+                updateUI();
+            } else {
+                stopPlay();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep >= 0) {
+                // Clear the current result cell before going back
+                if (currentStep < matrixSize * matrixSize) {
+                    const r = Math.floor(currentStep / matrixSize);
+                    const c = currentStep % matrixSize;
+                    document.getElementById(`c_${r}_${c}`).innerText = '?';
+                }
+                currentStep--;
+                updateUI();
+                if (currentStep === -1) {
+                    resetAnimation();
+                }
+            }
+        }
+
+        function togglePlay() {
+            if (playInterval) {
+                stopPlay();
+            } else {
+                if (currentStep >= matrixSize * matrixSize - 1) {
+                    resetAnimation();
+                }
+                document.getElementById('btnPlay').innerText = 'Pause';
+                document.getElementById('btnPlay').classList.remove('accent');
+                playInterval = setInterval(() => {
+                    if (currentStep < matrixSize * matrixSize - 1) {
+                        nextStep();
+                    } else {
+                        stopPlay();
+                    }
+                }, 2000);
+            }
+        }
+
+        function stopPlay() {
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+            document.getElementById('btnPlay').innerText = 'Lecture Automatique';
+            document.getElementById('btnPlay').classList.add('accent');
+        }
+
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html>

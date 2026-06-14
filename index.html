@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animations Mathématiques Interactives - Soltani Books</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="subtitle">Soltani Books</div>
+            <h1>Animations Mathématiques Interactives</h1>
+            <p style="color: var(--turquoise); max-width: 600px; margin: 1rem auto 0 auto; opacity: 0.8; font-weight: 500;">
+                Outils de visualisation dynamiques pour la classe de 4ème Économie & Gestion.
+            </p>
+        </header>
+
+        <!-- Animations Cards -->
+        <main class="card">
+            <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--turquoise); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.5rem;">
+                Choisissez une Animation
+            </h2>
+            <div class="dashboard">
+                <!-- Somme -->
+                <div class="dashboard-card">
+                    <div>
+                        <h3>Somme Matricielle</h3>
+                        <p>Addition interactive pas-à-pas de deux matrices d'ordre 3, avec mise en surbrillance dynamique des termes homologues.</p>
+                    </div>
+                    <a href="somme.html" class="btn-primary">Lancer l'animation</a>
+                </div>
+
+                <!-- Produit -->
+                <div class="dashboard-card">
+                    <div>
+                        <h3>Produit Matriciel</h3>
+                        <p>Visualisation détaillée du produit de deux matrices 3x3 (ligne par colonne) avec calculs intermédiaires pas-à-pas.</p>
+                    </div>
+                    <a href="produit.html" class="btn-primary">Lancer l'animation</a>
+                </div>
+
+                <!-- Déterminant -->
+                <div class="dashboard-card">
+                    <div>
+                        <h3>Déterminant d'Ordre 3</h3>
+                        <p>Calcul animé du déterminant d'une matrice 3x3 en utilisant la règle de Sarrus ou le développement par rapport à une ligne.</p>
+                    </div>
+                    <a href="determinant.html" class="btn-primary">Lancer l'animation</a>
+                </div>
+
+                <!-- Inverse 2 -->
+                <div class="dashboard-card">
+                    <div>
+                        <h3>Inverse d'Ordre 2</h3>
+                        <p>Calcul et construction de l'inverse d'une matrice 2x2 : calcul du déterminant, matrice adjointe et formule finale.</p>
+                    </div>
+                    <a href="inverse2.html" class="btn-primary">Lancer l'animation</a>
+                </div>
+
+                <!-- Pliage -->
+                <div class="dashboard-card">
+                    <div>
+                        <h3>Courbe de f⁻¹ par Pliage</h3>
+                        <p>Animation géométrique simulant le pliage de la feuille le long de l'axe y=x pour tracer la courbe représentative de la réciproque f⁻¹.</p>
+                    </div>
+                    <a href="pliage.html" class="btn-primary">Lancer l'animation</a>
+                </div>
+            </div>
+        </main>
+
+        <!-- QR Code Section -->
+        <section class="card qr-section">
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--turquoise);">Générateur de Codes QR pour la Classe</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                Imprimez ou affichez ces codes QR dans vos devoirs ou au tableau pour permettre aux élèves d'y accéder instantanément avec leur smartphone.
+            </p>
+            <div class="qr-grid" id="qrGrid">
+                <!-- Generated dynamically via JS -->
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const animations = [
+            { name: "Somme Matricielle", file: "somme.html" },
+            { name: "Produit Matriciel", file: "produit.html" },
+            { name: "Déterminant 3x3", file: "determinant.html" },
+            { name: "Inverse 2x2", file: "inverse2.html" },
+            { name: "Courbe f⁻¹ par Pliage", file: "pliage.html" }
+        ];
+
+        const qrGrid = document.getElementById("qrGrid");
+        const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+
+        animations.forEach(anim => {
+            const fullUrl = currentPath + anim.file;
+            const qrCard = document.createElement("div");
+            qrCard.className = "qr-card";
+
+            // Using standard public Google Chart API or QR Server API to generate QR Code
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(fullUrl)}&color=1a2d59&bgcolor=ffffff`;
+
+            qrCard.innerHTML = `
+                <img src="${qrUrl}" alt="Code QR pour ${anim.name}">
+                <h4>${anim.name}</h4>
+                <a href="${fullUrl}" target="_blank">Lien direct</a>
+            `;
+            qrGrid.appendChild(qrCard);
+        });
+    </script>
+</body>
+</html>

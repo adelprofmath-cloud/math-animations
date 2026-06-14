@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcul de Déterminant (Ordre 3) - Animation</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Math notation renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <style>
+        .container-det {
+            position: relative;
+            display: inline-block;
+            margin: 2rem auto;
+        }
+
+        .matrix-sarrus {
+            display: grid;
+            grid-template-columns: repeat(5, 60px);
+            gap: 0.5rem;
+            position: relative;
+            padding: 0.5rem 1rem;
+        }
+
+        /* Bracket styling for Sarrus */
+        .matrix-sarrus::before, .matrix-sarrus::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            border: 2px solid var(--white);
+        }
+
+        .matrix-sarrus::before {
+            left: 0;
+            border-right: none;
+        }
+
+        /* The vertical bar of the 3x3 matrix right border */
+        .matrix-sarrus-bar {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: calc(180px + 1.25rem); /* Just after 3rd column */
+            width: 2px;
+            background: rgba(255, 255, 255, 0.4);
+            pointer-events: none;
+        }
+
+        .matrix-sarrus::after {
+            display: none; /* We use the bar instead of brackets for Sarrus */
+        }
+
+        .cell-sarrus {
+            width: 60px;
+            height: 50px;
+            background: rgba(26, 45, 89, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .cell-sarrus.sarrus-duplicate {
+            background: rgba(26, 45, 89, 0.35);
+            border: 1px dashed rgba(57, 214, 195, 0.4);
+            color: rgba(255, 255, 255, 0.5);
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* SVG overlay for Sarrus arrows */
+        .sarrus-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Expansion styling */
+        .matrix-expansion {
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            gap: 0.5rem;
+            position: relative;
+            padding: 0.5rem 1rem;
+        }
+
+        .matrix-expansion::before, .matrix-expansion::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            border: 2px solid var(--white);
+        }
+
+        .matrix-expansion::before { left: 0; border-right: none; }
+        .matrix-expansion::after { right: 0; border-left: none; }
+
+        .cell-expansion {
+            width: 60px;
+            height: 50px;
+            background: rgba(26, 45, 89, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .cell-expansion.crossed-out {
+            opacity: 0.2;
+            background: rgba(245, 30, 101, 0.1) !important;
+            border-color: rgba(245, 30, 101, 0.2);
+        }
+
+        .cell-expansion.crossed-out::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--rose);
+            top: 50%;
+            left: 0;
+        }
+
+        .cell-expansion.crossed-out.col-crossed::before {
+            content: '';
+            position: absolute;
+            height: 100%;
+            width: 2px;
+            background: var(--rose);
+            left: 50%;
+            top: 0;
+        }
+
+        .sub-det-display {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 1.1rem;
+        }
+
+        .sub-det-matrix {
+            position: relative;
+            padding: 0.2rem 0.5rem;
+            display: grid;
+            grid-template-columns: repeat(2, 40px);
+            gap: 0.25rem;
+        }
+
+        .sub-det-matrix::before, .sub-det-matrix::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            border: 1.5px solid var(--turquoise);
+        }
+        .sub-det-matrix::before { left: 0; border-right: none; }
+        .sub-det-matrix::after { right: 0; border-left: none; }
+
+        .sub-det-cell {
+            width: 40px;
+            height: 35px;
+            background: rgba(57, 214, 195, 0.15);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Retour au menu
+        </a>
+
+        <header style="margin-bottom: 1rem;">
+            <div class="subtitle">Animation interactive</div>
+            <h1>Déterminant d'une Matrice 3&times;3</h1>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">
+                Le déterminant est une valeur numérique associée à une matrice carrée, essentielle pour étudier son inversibilité.
+            </p>
+        </header>
+
+        <!-- Method selection -->
+        <div class="toggle-container">
+            <button id="methodSarrus" class="btn-primary" onclick="setMethod('sarrus')">Règle de Sarrus</button>
+            <button id="methodExpansion" class="btn-primary" onclick="setMethod('expansion')">Développement Ligne 1</button>
+        </div>
+
+        <div class="card">
+            <!-- Edit Matrix inputs -->
+            <div style="text-align: center; margin-bottom: 1.5rem;" id="editSection">
+                <p style="font-weight: 600; margin-bottom: 0.5rem; color: var(--turquoise);">Saisie de la Matrice A :</p>
+                <div class="matrix dim-3" id="inputMatrix" style="margin: 0 auto;">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <!-- Visualization area -->
+            <div style="text-align: center; min-height: 220px;">
+                <div class="container-det" id="visualizationContainer">
+                    <!-- Dynamic rendering area -->
+                </div>
+            </div>
+
+            <!-- Panel explanation -->
+            <div class="explanation">
+                <div class="explanation-title" id="explanationTitle">Introduction</div>
+                <div class="explanation-text" id="explanationText">
+                    Saisissez des nombres puis cliquez sur <strong>Suivant</strong> pour commencer.
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button id="btnRandom" onclick="fillRandom()">Aléatoire</button>
+                <button id="btnPrev" onclick="prevStep()" disabled>Précédent</button>
+                <button id="btnPlay" class="accent" onclick="togglePlay()">Lecture Automatique</button>
+                <button id="btnNext" onclick="nextStep()">Suivant</button>
+                <button id="btnReset" onclick="resetAnimation()">Réinitialiser</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = -1;
+        let playInterval = null;
+        let method = 'sarrus'; // 'sarrus' or 'expansion'
+
+        const defaultMatrix = [
+            [2, 1, -1],
+            [3, 0, 2],
+            [1, -2, 1]
+        ];
+
+        // Steps count:
+        // Sarrus:
+        // - Step 0: show duplicate columns
+        // - Step 1, 2, 3: desc diagonals (pos)
+        // - Step 4, 5, 6: asc diagonals (neg)
+        // - Step 7: final sum
+        const sarrusSteps = 8;
+
+        // Expansion Ligne 1:
+        // - Step 0: element a11 * subdet
+        // - Step 1: element a12 * subdet (with minus)
+        // - Step 2: element a13 * subdet
+        // - Step 3: final sum
+        const expansionSteps = 4;
+
+        function init() {
+            createMatrixInputs('inputMatrix', 'a', defaultMatrix);
+            setMethod('sarrus');
+        }
+
+        function createMatrixInputs(containerId, prefix, defaults) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.value = defaults[r][c];
+                    input.id = `${prefix}_${r}_${c}`;
+                    input.oninput = () => {
+                        resetAnimation();
+                    };
+                    container.appendChild(input);
+                }
+            }
+        }
+
+        function fillRandom() {
+            resetAnimation();
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    const val = Math.floor(Math.random() * 9) - 4; // -4 to 4
+                    document.getElementById(`a_${r}_${c}`).value = val;
+                }
+            }
+        }
+
+        function getVal(r, c) {
+            return parseInt(document.getElementById(`a_${r}_${c}`).value) || 0;
+        }
+
+        function setMethod(newMethod) {
+            resetAnimation();
+            method = newMethod;
+            
+            const btnSarrus = document.getElementById('methodSarrus');
+            const btnExpansion = document.getElementById('methodExpansion');
+
+            if (method === 'sarrus') {
+                btnSarrus.style.background = 'var(--turquoise)';
+                btnSarrus.style.color = 'var(--navy-dark)';
+                btnExpansion.style.background = '';
+                btnExpansion.style.color = '';
+            } else {
+                btnExpansion.style.background = 'var(--turquoise)';
+                btnExpansion.style.color = 'var(--navy-dark)';
+                btnSarrus.style.background = '';
+                btnSarrus.style.color = '';
+            }
+            renderInitialVisualization();
+        }
+
+        function resetAnimation() {
+            stopPlay();
+            currentStep = -1;
+            renderInitialVisualization();
+            document.getElementById('btnPrev').disabled = true;
+            document.getElementById('btnNext').disabled = false;
+            document.getElementById('btnRandom').disabled = false;
+            
+            document.getElementById('explanationTitle').innerText = 'Introduction';
+            if (method === 'sarrus') {
+                document.getElementById('explanationText').innerHTML = 
+                    "La règle de Sarrus est une méthode pratique pour calculer le déterminant d'une matrice 3x3. Cliquez sur <strong>Suivant</strong> pour démarrer.";
+            } else {
+                document.getElementById('explanationText').innerHTML = 
+                    "Le développement par rapport à la première ligne consiste à décomposer le déterminant 3x3 en trois déterminants 2x2. Cliquez sur <strong>Suivant</strong>.";
+            }
+        }
+
+        function renderInitialVisualization() {
+            const container = document.getElementById('visualizationContainer');
+            container.innerHTML = '';
+
+            if (method === 'sarrus') {
+                // Render a 3x3 grid (no duplicates yet)
+                const grid = document.createElement('div');
+                grid.className = 'matrix-expansion';
+                for (let r = 0; r < 3; r++) {
+                    for (let c = 0; c < 3; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell-expansion';
+                        cell.id = `vis_${r}_${c}`;
+                        cell.innerText = getVal(r, c);
+                        grid.appendChild(cell);
+                    }
+                }
+                container.appendChild(grid);
+            } else {
+                // Render a 3x3 grid for expansion
+                const grid = document.createElement('div');
+                grid.className = 'matrix-expansion';
+                for (let r = 0; r < 3; r++) {
+                    for (let c = 0; c < 3; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell-expansion';
+                        cell.id = `vis_${r}_${c}`;
+                        cell.innerText = getVal(r, c);
+                        grid.appendChild(cell);
+                    }
+                }
+                container.appendChild(grid);
+            }
+        }
+
+        function updateUI() {
+            renderInitialVisualization(); // Redraw baseline grid
+
+            const maxSteps = method === 'sarrus' ? sarrusSteps : expansionSteps;
+            document.getElementById('btnPrev').disabled = (currentStep <= -1);
+            document.getElementById('btnNext').disabled = (currentStep >= maxSteps - 1);
+            document.getElementById('btnRandom').disabled = (currentStep !== -1);
+
+            if (currentStep === -1) {
+                return;
+            }
+
+            if (method === 'sarrus') {
+                runSarrusUI();
+            } else {
+                runExpansionUI();
+            }
+        }
+
+        // --- SARRUS LOGIC ---
+        function runSarrusUI() {
+            const container = document.getElementById('visualizationContainer');
+            container.innerHTML = '';
+
+            // 1. Create Sarrus 5-column layout
+            const grid = document.createElement('div');
+            grid.className = 'matrix-sarrus';
+
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 5; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell-sarrus';
+                    
+                    if (c < 3) {
+                        cell.id = `vis_${r}_${c}`;
+                        cell.innerText = getVal(r, c);
+                    } else {
+                        // Duplicate columns 1 and 2
+                        cell.id = `vis_${r}_${c}`;
+                        cell.innerText = getVal(r, c - 3);
+                        cell.classList.add('sarrus-duplicate');
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+
+            // Vertical separating line between 3rd and 4th column
+            const bar = document.createElement('div');
+            bar.className = 'matrix-sarrus-bar';
+            grid.appendChild(bar);
+
+            // SVG overlay for arrows
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute('class', 'sarrus-svg');
+            grid.appendChild(svg);
+
+            container.appendChild(grid);
+
+            // Add SVG arrow markers
+            svg.innerHTML = `
+                <defs>
+                    <marker id="arrow-turquoise" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#39d6c3"/>
+                    </marker>
+                    <marker id="arrow-rose" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#f51e65"/>
+                    </marker>
+                </defs>
+            `;
+
+            // Values
+            const a00 = getVal(0, 0), a01 = getVal(0, 1), a02 = getVal(0, 2);
+            const a10 = getVal(1, 0), a11 = getVal(1, 1), a12 = getVal(1, 2);
+            const a20 = getVal(2, 0), a21 = getVal(2, 1), a22 = getVal(2, 2);
+
+            // Sarrus products
+            const d1 = a00 * a11 * a22;
+            const d2 = a01 * a12 * a20;
+            const d3 = a02 * a10 * a21;
+
+            const u1 = a20 * a11 * a02;
+            const u2 = a21 * a12 * a00;
+            const u3 = a22 * a10 * a01;
+
+            const finalDet = (d1 + d2 + d3) - (u1 + u2 + u3);
+
+            let title = '';
+            let textHTML = '';
+            let mathExp = '';
+
+            // Draw diagonals based on step
+            if (currentStep === 0) {
+                title = "Étape 1 : Écriture des colonnes supplémentaires";
+                textHTML = "Pour appliquer la règle de Sarrus, on recopie les deux premières colonnes à droite de la matrice.";
+                mathExp = "\\text{Recopier les colonnes 1 et 2 à droite}";
+            } 
+            else if (currentStep >= 1 && currentStep <= 3) {
+                // Descending Diagonals (positive)
+                const diagIndex = currentStep - 1; // 0, 1, 2
+                highlightSarrusDiagonal(diagIndex, true);
+                drawSarrusArrow(svg, diagIndex, true);
+
+                if (diagIndex === 0) {
+                    title = "Diagonale descendante 1 (Signe +)";
+                    mathExp = `P_1 = a_{1,1} \\times a_{2,2} \\times a_{3,3} = ${a00} \\times ${a11} \\times ${a22} = ${d1}`;
+                } else if (diagIndex === 1) {
+                    title = "Diagonale descendante 2 (Signe +)";
+                    mathExp = `P_2 = a_{1,2} \\times a_{2,3} \\times a_{3,1} = ${a01} \\times ${a12} \\times ${a20} = ${d2}`;
+                } else {
+                    title = "Diagonale descendante 3 (Signe +)";
+                    mathExp = `P_3 = a_{1,3} \\times a_{2,1} \\times a_{3,2} = ${a02} \\times ${a10} \\times ${a21} = ${d3}`;
+                }
+                textHTML = `On calcule le produit des éléments de la diagonale descendante en conservant leur signe :<br><div style="font-size:1.4rem; margin-top:0.5rem; text-align:center;" id="mathFormula"></div>`;
+            }
+            else if (currentStep >= 4 && currentStep <= 6) {
+                // Ascending Diagonals (negative)
+                const diagIndex = currentStep - 4; // 0, 1, 2
+                highlightSarrusDiagonal(diagIndex, false);
+                drawSarrusArrow(svg, diagIndex, false);
+
+                if (diagIndex === 0) {
+                    title = "Diagonale montante 1 (Signe -)";
+                    mathExp = `P_4 = a_{3,1} \\times a_{2,2} \\times a_{1,3} = ${a20} \\times ${a11} \\times ${a02} = ${u1}`;
+                } else if (diagIndex === 1) {
+                    title = "Diagonale montante 2 (Signe -)";
+                    mathExp = `P_5 = a_{3,2} \\times a_{2,3} \\times a_{1,1} = ${a21} \\times ${a12} \\times ${a00} = ${u2}`;
+                } else {
+                    title = "Diagonale montante 3 (Signe -)";
+                    mathExp = `P_6 = a_{3,3} \\times a_{2,1} \\times a_{1,2} = ${a22} \\times ${a10} \\times ${a01} = ${u3}`;
+                }
+                textHTML = `On calcule le produit des éléments de la diagonale montante. <strong>Attention :</strong> On soustrait ces produits dans la somme finale :<br><div style="font-size:1.4rem; margin-top:0.5rem; text-align:center;" id="mathFormula"></div>`;
+            }
+            else if (currentStep === 7) {
+                // Final sum
+                title = "Étape finale : Somme des termes";
+                mathExp = `\\det(A) = (P_1 + P_2 + P_3) - (P_4 + P_5 + P_6) = (${d1} + ${d2} + ${d3}) - (${u1} + ${u2} + ${u3}) = ${d1+d2+d3} - (${u1+u2+u3}) = ${finalDet}`;
+                textHTML = `Le déterminant est égal à la somme des produits descendants moins la somme des produits montants :<br><div style="font-size:1.3rem; margin-top:0.5rem; text-align:center;" id="mathFormula"></div>`;
+            }
+
+            document.getElementById('explanationTitle').innerText = title;
+            document.getElementById('explanationText').innerHTML = textHTML;
+            if (window.katex) {
+                window.katex.render(mathExp, document.getElementById('mathFormula'), { throwOnError: false });
+            } else {
+                document.getElementById('mathFormula').innerText = mathExp;
+            }
+        }
+
+        function highlightSarrusDiagonal(index, isDescending) {
+            for (let i = 0; i < 3; i++) {
+                let r, c;
+                if (isDescending) {
+                    r = i;
+                    c = index + i;
+                    document.getElementById(`vis_${r}_${c}`).classList.add('highlight-turquoise');
+                } else {
+                    r = 2 - i;
+                    c = index + i;
+                    document.getElementById(`vis_${r}_${c}`).classList.add('highlight-rose');
+                }
+            }
+        }
+
+        function drawSarrusArrow(svg, index, isDescending) {
+            setTimeout(() => {
+                let startCell, endCell;
+                if (isDescending) {
+                    startCell = document.getElementById(`vis_0_${index}`);
+                    endCell = document.getElementById(`vis_2_${index + 2}`);
+                } else {
+                    startCell = document.getElementById(`vis_2_${index}`);
+                    endCell = document.getElementById(`vis_0_${index + 2}`);
+                }
+
+                if (!startCell || !endCell) return;
+
+                const parentRect = svg.getBoundingClientRect();
+                const startRect = startCell.getBoundingClientRect();
+                const endRect = endCell.getBoundingClientRect();
+
+                // Compute relative coordinates
+                const x1 = startRect.left - parentRect.left + startRect.width / 2;
+                const y1 = startRect.top - parentRect.top + startRect.height / 2;
+                const x2 = endRect.left - parentRect.left + endRect.width / 2;
+                const y2 = endRect.top - parentRect.top + endRect.height / 2;
+
+                // Extend line slightly for styling
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const len = Math.sqrt(dx*dx + dy*dy);
+                const extX = x2 + (dx / len) * 20;
+                const extY = y2 + (dy / len) * 20;
+
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", x1);
+                line.setAttribute("y1", y1);
+                line.setAttribute("x2", extX);
+                line.setAttribute("y2", extY);
+                line.setAttribute("stroke", isDescending ? "#39d6c3" : "#f51e65");
+                line.setAttribute("stroke-width", "3");
+                line.setAttribute("marker-end", isDescending ? "url(#arrow-turquoise)" : "url(#arrow-rose)");
+
+                svg.appendChild(line);
+            }, 50);
+        }
+
+        // --- EXPANSION LOGIC ---
+        function runExpansionUI() {
+            // Highlights cells crossed out in row 1 and column j
+            const col = currentStep; // 0, 1, 2 corresponding to sub-determinants
+            
+            if (col >= 3) {
+                // Final sum step
+                const finalDet = getVal(0,0)*(getVal(1,1)*getVal(2,2)-getVal(1,2)*getVal(2,1)) - 
+                                 getVal(0,1)*(getVal(1,0)*getVal(2,2)-getVal(1,2)*getVal(2,0)) + 
+                                 getVal(0,2)*(getVal(1,0)*getVal(2,1)-getVal(1,1)*getVal(2,0));
+                
+                document.getElementById('explanationTitle').innerText = "Étape finale : Somme alternée";
+                const mathExp = `\\det(A) = a_{1,1}\\Delta_{1,1} - a_{1,2}\\Delta_{1,2} + a_{1,3}\\Delta_{1,3} = ${finalDet}`;
+                document.getElementById('explanationText').innerHTML = `On fait la somme alternée des résultats (attention au signe $-$ devant le second terme) :<br><div style="font-size:1.3rem; margin-top:0.5rem; text-align:center;" id="mathFormula"></div>`;
+                if (window.katex) {
+                    window.katex.render(mathExp, document.getElementById('mathFormula'), { throwOnError: false });
+                } else {
+                    document.getElementById('mathFormula').innerText = mathExp;
+                }
+                return;
+            }
+
+            // Step 0, 1, 2: Highlight pivot cell and cross out row 1 and column col
+            const pivotCell = document.getElementById(`vis_0_${col}`);
+            pivotCell.classList.add('highlight-turquoise');
+
+            // Cross out row 0
+            for (let c = 0; c < 3; c++) {
+                if (c !== col) {
+                    document.getElementById(`vis_0_${c}`).classList.add('crossed-out');
+                }
+            }
+
+            // Cross out column `col`
+            for (let r = 1; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    if (c === col) {
+                        const cell = document.getElementById(`vis_${r}_${c}`);
+                        cell.classList.add('crossed-out', 'col-crossed');
+                    }
+                }
+            }
+
+            // Highlight remaining 2x2 sub-matrix cells
+            const subRows = [1, 2];
+            const subCols = [0, 1, 2].filter(c => c !== col);
+
+            const m00 = getVal(subRows[0], subCols[0]);
+            const m01 = getVal(subRows[0], subCols[1]);
+            const m10 = getVal(subRows[1], subCols[0]);
+            const m11 = getVal(subRows[1], subCols[1]);
+
+            for (let r of subRows) {
+                for (let c of subCols) {
+                    document.getElementById(`vis_${r}_${c}`).classList.add('highlight-rose');
+                }
+            }
+
+            // Show explanation with Sub-Matrix display
+            const pivotVal = getVal(0, col);
+            const subDetVal = m00 * m11 - m01 * m10;
+            const sign = col === 1 ? -1 : 1;
+            const stepResult = sign * pivotVal * subDetVal;
+
+            const title = `Développement par rapport au terme a_{1,${col+1}} = ${pivotVal}`;
+            document.getElementById('explanationTitle').innerText = title;
+
+            // Build html for sub-matrix rendering
+            const textHTML = `
+                On choisit le pivot <strong>${pivotVal}</strong>. On élimine sa ligne et sa colonne pour obtenir le sous-déterminant 2x2 restant :
+                <div style="display:flex; justify-content:center; align-items:center; gap:0.5rem; margin:1rem 0; font-size:1.3rem;">
+                    <span>${col === 1 ? '-' : '+'} (${pivotVal}) &times; </span>
+                    <div class="sub-det-display">
+                        <div class="sub-det-matrix">
+                            <div class="sub-det-cell">${m00}</div>
+                            <div class="sub-det-cell">${m01}</div>
+                            <div class="sub-det-cell">${m10}</div>
+                            <div class="sub-det-cell">${m11}</div>
+                        </div>
+                    </div>
+                    <span> = ${col === 1 ? '-' : ''}${pivotVal} &times; [(${m00} &times; ${m11}) - (${m01} &times; ${m10})]</span>
+                </div>
+                <div style="font-size:1.3rem; text-align:center;" id="mathFormula"></div>
+            `;
+            document.getElementById('explanationText').innerHTML = textHTML;
+
+            const mathFormulaText = `\\text{Résultat de cette étape} = ${col === 1 ? '-' : '+'}(${pivotVal}) \\times (${subDetVal}) = ${stepResult}`;
+            if (window.katex) {
+                window.katex.render(mathFormulaText, document.getElementById('mathFormula'), { throwOnError: false });
+            } else {
+                document.getElementById('mathFormula').innerText = mathFormulaText;
+            }
+        }
+
+        function nextStep() {
+            const maxSteps = method === 'sarrus' ? sarrusSteps : expansionSteps;
+            if (currentStep < maxSteps - 1) {
+                currentStep++;
+                updateUI();
+            } else {
+                stopPlay();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep >= 0) {
+                currentStep--;
+                updateUI();
+                if (currentStep === -1) {
+                    resetAnimation();
+                }
+            }
+        }
+
+        function togglePlay() {
+            const maxSteps = method === 'sarrus' ? sarrusSteps : expansionSteps;
+            if (playInterval) {
+                stopPlay();
+            } else {
+                if (currentStep >= maxSteps - 1) {
+                    resetAnimation();
+                }
+                document.getElementById('btnPlay').innerText = 'Pause';
+                document.getElementById('btnPlay').classList.remove('accent');
+                playInterval = setInterval(() => {
+                    if (currentStep < maxSteps - 1) {
+                        nextStep();
+                    } else {
+                        stopPlay();
+                    }
+                }, 3000);
+            }
+        }
+
+        function stopPlay() {
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+            document.getElementById('btnPlay').innerText = 'Lecture Automatique';
+            document.getElementById('btnPlay').classList.add('accent');
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

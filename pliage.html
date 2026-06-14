@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symétrie de f⁻¹ par Pliage (y=x) - Animation</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Math notation renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <style>
+        .graph-wrapper {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        
+        canvas {
+            display: block;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .tooltip-canvas {
+            position: absolute;
+            background: rgba(8, 11, 17, 0.9);
+            border: 1px solid var(--turquoise);
+            border-radius: 4px;
+            padding: 0.5rem;
+            pointer-events: none;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .select-func {
+            width: 100%;
+            background: var(--navy-dark);
+            border: 1px solid var(--card-border);
+            color: var(--white);
+            padding: 0.75rem;
+            border-radius: 8px;
+            outline: none;
+            font-size: 1rem;
+            font-family: var(--font-main);
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+        }
+
+        .select-func:focus {
+            border-color: var(--turquoise);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Retour au menu
+        </a>
+
+        <header style="margin-bottom: 1.5rem;">
+            <div class="subtitle">Animation interactive</div>
+            <h1>Tracé de la Courbe de f⁻¹ par Pliage</h1>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">
+                Les courbes représentatives d'une fonction $f$ et de sa réciproque $f^{-1}$ sont symétriques par rapport à la droite d'équation $y=x$.
+            </p>
+        </header>
+
+        <div class="card">
+            <div class="pliage-container">
+                <!-- Visualizer -->
+                <div class="pliage-graph">
+                    <div class="graph-wrapper">
+                        <canvas id="graphCanvas" width="550" height="550"></canvas>
+                        <div class="tooltip-canvas" id="canvasTooltip"></div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="pliage-controls">
+                    <h3 style="color: var(--turquoise); margin-bottom: 1rem; font-size: 1.25rem;">Paramètres</h3>
+                    
+                    <label for="funcSelect" style="display:block; margin-bottom:0.5rem; font-weight:600;">Sélectionner la Fonction :</label>
+                    <select id="funcSelect" class="select-func" onchange="changeFunction()">
+                        <option value="exp">f(x) = e^x - 2  (Exponentielle)</option>
+                        <option value="ln">f(x) = ln(x) + 1  (Logarithme)</option>
+                        <option value="sq">f(x) = x² - 1, x ≥ 0  (Carré)</option>
+                    </select>
+
+                    <div class="slider-group">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                            <label for="sliderFold" style="font-weight:600; margin:0;">Pliage de la feuille :</label>
+                            <span id="foldVal" style="color:var(--rose); font-weight:700;">0 %</span>
+                        </div>
+                        <input type="range" id="sliderFold" min="0" max="100" value="0" oninput="updateFold(this.value)">
+                    </div>
+
+                    <div class="slider-group">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                            <label for="sliderPoint" style="font-weight:600; margin:0;">Position du point M :</label>
+                            <span id="pointVal" style="color:var(--turquoise); font-weight:700;">x = 1.0</span>
+                        </div>
+                        <input type="range" id="sliderPoint" min="-40" max="40" value="10" oninput="updatePoint(this.value)">
+                    </div>
+
+                    <!-- Panel explanation -->
+                    <div class="explanation" style="margin-top: 1.5rem; min-height: 140px;">
+                        <div class="explanation-title" id="explanationTitle">Principe de symétrie</div>
+                        <div class="explanation-text" id="explanationText">
+                            Faites glisser le curseur de <strong>Pliage</strong> pour plier virtuellement la feuille le long de la droite d'équation $y=x$.
+                        </div>
+                    </div>
+
+                    <div class="controls" style="margin-top: 1rem;">
+                        <button class="btn-primary" onclick="animateFold()">Lancer le pliage</button>
+                        <button onclick="resetSliders()">Réinitialiser</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        const tooltip = document.getElementById('canvasTooltip');
+
+        // Scale factors
+        const width = canvas.width;
+        const height = canvas.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const scale = 35; // Pixels per unit
+
+        let foldProgress = 0; // 0 to 100
+        let pointX = 1.0;     // current x value of point M
+        let selectedFunc = 'exp';
+        let animId = null;
+
+        // Functions and their derivatives/inverses
+        const functions = {
+            exp: {
+                f: x => Math.exp(x) - 2,
+                fInv: x => Math.log(x + 2),
+                domainMin: -5,
+                domainMax: 2.1,
+                invDomainMin: -1.95,
+                invDomainMax: 7,
+                latex: "f(x) = e^x - 2",
+                latexInv: "f^{-1}(x) = \\ln(x + 2)",
+                label: "e^x - 2"
+            },
+            ln: {
+                f: x => Math.log(x) + 1,
+                fInv: x => Math.exp(x - 1),
+                domainMin: 0.1,
+                domainMax: 7,
+                invDomainMin: -4,
+                invDomainMax: 2.8,
+                latex: "f(x) = \\ln(x) + 1",
+                latexInv: "f^{-1}(x) = e^{x - 1}",
+                label: "ln(x) + 1"
+            },
+            sq: {
+                f: x => x * x - 1,
+                fInv: x => Math.sqrt(x + 1),
+                domainMin: 0,
+                domainMax: 2.8,
+                invDomainMin: -1,
+                invDomainMax: 7,
+                latex: "f(x) = x^2 - 1 \\quad (x \\ge 0)",
+                latexInv: "f^{-1}(x) = \\sqrt{x + 1}",
+                label: "x^2 - 1"
+            }
+        };
+
+        function changeFunction() {
+            selectedFunc = document.getElementById('funcSelect').value;
+            const info = functions[selectedFunc];
+            
+            // Adjust sliderPoint limits based on domain
+            const slider = document.getElementById('sliderPoint');
+            if (selectedFunc === 'exp') {
+                slider.min = -40;
+                slider.max = 20;
+                slider.value = 10;
+                pointX = 1.0;
+            } else if (selectedFunc === 'ln') {
+                slider.min = 5;
+                slider.max = 50;
+                slider.value = 20;
+                pointX = 2.0;
+            } else if (selectedFunc === 'sq') {
+                slider.min = 0;
+                slider.max = 25;
+                slider.value = 12;
+                pointX = 1.2;
+            }
+
+            resetSliders();
+        }
+
+        function updateFold(val) {
+            foldProgress = parseInt(val);
+            document.getElementById('foldVal').innerText = `${foldProgress} %`;
+            draw();
+            updateExplanation();
+        }
+
+        function updatePoint(val) {
+            pointX = parseFloat(val) / 10;
+            document.getElementById('pointVal').innerText = `x = ${pointX.toFixed(1)}`;
+            draw();
+            updateExplanation();
+        }
+
+        function resetSliders() {
+            cancelAnimationFrame(animId);
+            document.getElementById('sliderFold').value = 0;
+            foldProgress = 0;
+            document.getElementById('foldVal').innerText = '0 %';
+            
+            // Reset position slider
+            const slider = document.getElementById('sliderPoint');
+            pointX = parseFloat(slider.value) / 10;
+            document.getElementById('pointVal').innerText = `x = ${pointX.toFixed(1)}`;
+            
+            draw();
+            updateExplanation();
+        }
+
+        function updateExplanation() {
+            const info = functions[selectedFunc];
+            const yVal = info.f(pointX);
+            
+            document.getElementById('explanationTitle').innerText = `Analyse du point M sur la courbe de f`;
+
+            let mathExp = '';
+            let text = '';
+
+            if (foldProgress === 0) {
+                mathExp = `M(${pointX.toFixed(2)}\\;;\\;${yVal.toFixed(2)})`;
+                text = `Le point $M$ appartient à la courbe de $f$. Ses coordonnées vérifient $y = f(x)$. La droite d'équation $y=x$ (en rose) servira d'axe de pliage.<br><div style="font-size:1.4rem; margin-top:0.5rem; text-align:center;" id="mathFormula"></div>`;
+            } else if (foldProgress > 0 && foldProgress < 100) {
+                text = `La feuille se plie autour de la droite $y=x$. La courbe bleue ($f$) commence à se superposer et à se projeter de l'autre côté par symétrie axiale orthogonale.`;
+                mathExp = `\\text{Pliage en cours : } ${foldProgress}\\%`;
+            } else {
+                mathExp = `M'(${yVal.toFixed(2)}\\;;\\;${pointX.toFixed(2)}) \\in \\mathscr{C}_{f^{-1}}`;
+                text = `Une fois la feuille complètement pliée, le point $M(x, y)$ se superpose exactement avec son symétrique $M'(y, x)$. Les coordonnées sont inversées ! C'est le point de la fonction réciproque $f^{-1}$ :<br><div style="font-size:1.3rem; margin-top:0.5rem; text-align:center;" id="mathFormula"></div>`;
+            }
+
+            document.getElementById('explanationText').innerHTML = text;
+            if (window.katex) {
+                window.katex.render(mathExp, document.getElementById('mathFormula'), { throwOnError: false });
+            } else {
+                document.getElementById('mathFormula').innerText = mathExp;
+            }
+        }
+
+        // --- MATH GEOMETRY TRANSFORMATION FOR 3D FOLDING EFFECT ---
+        // Project a point (x, y) along the line y=x folded by angle theta
+        function transformPoint(x, y, theta) {
+            // H is the orthogonal projection of (x,y) on the line y=x
+            // H = ( (x+y)/2, (x+y)/2 )
+            const hX = (x + y) / 2;
+            const hY = (x + y) / 2;
+
+            // u is the vector from H to the point (x,y)
+            const uX = x - hX;
+            const uY = y - hY;
+
+            // Coordinate in plane scaled by cos(theta)
+            const cosT = Math.cos(theta);
+            let pX = hX + uX * cosT;
+            let pY = hY + uY * cosT;
+
+            // Add a small 3D perspective height offset in the direction perpendicular to the fold
+            // Perpendicular unit vector pointing "up-right" or "down-left"
+            const sinT = Math.sin(theta);
+            const dist = Math.abs(x - y) / Math.sqrt(2);
+            
+            // 3D displacement vector
+            const liftX = -dist * sinT * 0.15;
+            const liftY = -dist * sinT * 0.15;
+
+            return { x: pX + liftX, y: pY + liftY };
+        }
+
+        // Convert Math coords to Pixel coords
+        function toPixel(x, y) {
+            return {
+                x: centerX + x * scale,
+                y: centerY - y * scale
+            };
+        }
+
+        // Draw grid, axes, curves, folding paper lines
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            const theta = (foldProgress / 100) * Math.PI; // 0 to PI
+
+            // 1. Draw Grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            
+            for (let i = -10; i <= 10; i++) {
+                // Vertical grid lines
+                const p1 = toPixel(i, -10);
+                const p2 = toPixel(i, 10);
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+
+                // Horizontal grid lines
+                const p3 = toPixel(-10, i);
+                const p4 = toPixel(10, i);
+                ctx.beginPath();
+                ctx.moveTo(p3.x, p3.y);
+                ctx.lineTo(p4.x, p4.y);
+                ctx.stroke();
+            }
+
+            // 2. Draw Axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 1.5;
+            
+            // X-Axis
+            const axisX1 = toPixel(-10, 0);
+            const axisX2 = toPixel(10, 0);
+            ctx.beginPath();
+            ctx.moveTo(axisX1.x, axisX1.y);
+            ctx.lineTo(axisX2.x, axisX2.y);
+            ctx.stroke();
+
+            // Y-Axis
+            const axisY1 = toPixel(0, -10);
+            const axisY2 = toPixel(0, 10);
+            ctx.beginPath();
+            ctx.moveTo(axisY1.x, axisY1.y);
+            ctx.lineTo(axisY2.x, axisY2.y);
+            ctx.stroke();
+
+            // Axis labels
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.font = '12px Outfit';
+            ctx.fillText('x', width - 15, centerY - 8);
+            ctx.fillText('y', centerX + 8, 15);
+
+            // 3. Draw Axis of Symmetry y=x
+            ctx.strokeStyle = '#f51e65'; // Rose color for axis of fold
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 6]);
+            const startDiag = toPixel(-8, -8);
+            const endDiag = toPixel(8, 8);
+            ctx.beginPath();
+            ctx.moveTo(startDiag.x, startDiag.y);
+            ctx.lineTo(endDiag.x, endDiag.y);
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset dashed style
+
+            // Label for y=x
+            ctx.fillStyle = '#f51e65';
+            ctx.fillText('y = x', endDiag.x - 40, endDiag.y + 20);
+
+            // 4. Draw Stationary original curve f (dashed/faded helper)
+            const info = functions[selectedFunc];
+            ctx.strokeStyle = 'rgba(57, 214, 195, 0.2)';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            let firstPoint = true;
+            for (let x = info.domainMin; x <= info.domainMax; x += 0.05) {
+                const y = info.f(x);
+                const pix = toPixel(x, y);
+                if (firstPoint) {
+                    ctx.moveTo(pix.x, pix.y);
+                    firstPoint = false;
+                } else {
+                    ctx.lineTo(pix.x, pix.y);
+                }
+            }
+            ctx.stroke();
+
+            // 5. Draw Stationary Target curve f^-1 (faded helper)
+            ctx.strokeStyle = 'rgba(245, 30, 101, 0.15)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            firstPoint = true;
+            for (let x = info.invDomainMin; x <= info.invDomainMax; x += 0.05) {
+                const y = info.fInv(x);
+                const pix = toPixel(x, y);
+                if (firstPoint) {
+                    ctx.moveTo(pix.x, pix.y);
+                    firstPoint = false;
+                } else {
+                    ctx.lineTo(pix.x, pix.y);
+                }
+            }
+            ctx.stroke();
+
+            // 6. Draw Folding grid lines to visually simulate 3D paper folding!
+            // We fold the grid lines of the bottom-right half-plane (x > y)
+            ctx.strokeStyle = 'rgba(57, 214, 195, 0.08)';
+            ctx.lineWidth = 1;
+            
+            // Draw folded vertical segments
+            for (let i = -7; i <= 7; i += 2) {
+                ctx.beginPath();
+                let started = false;
+                for (let y = -7; y <= 7; y += 0.2) {
+                    // Only points below y=x are folded
+                    if (i > y) {
+                        const pt = transformPoint(i, y, theta);
+                        const pix = toPixel(pt.x, pt.y);
+                        if (!started) {
+                            ctx.moveTo(pix.x, pix.y);
+                            started = true;
+                        } else {
+                            ctx.lineTo(pix.x, pix.y);
+                        }
+                    }
+                }
+                ctx.stroke();
+            }
+
+            // Draw folded horizontal segments
+            for (let j = -7; j <= 7; j += 2) {
+                ctx.beginPath();
+                let started = false;
+                for (let x = -7; x <= 7; x += 0.2) {
+                    // Only points below y=x are folded
+                    if (x > j) {
+                        const pt = transformPoint(x, j, theta);
+                        const pix = toPixel(pt.x, pt.y);
+                        if (!started) {
+                            ctx.moveTo(pix.x, pix.y);
+                            started = true;
+                        } else {
+                            ctx.lineTo(pix.x, pix.y);
+                        }
+                    }
+                }
+                ctx.stroke();
+            }
+
+            // 7. Draw the actual Folding curve of f
+            ctx.strokeStyle = '#39d6c3'; // Bright turquoise for the active folding curve
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            firstPoint = true;
+            for (let x = info.domainMin; x <= info.domainMax; x += 0.05) {
+                const y = info.f(x);
+                // Transform the point dynamically
+                const pt = transformPoint(x, y, theta);
+                const pix = toPixel(pt.x, pt.y);
+                if (firstPoint) {
+                    ctx.moveTo(pix.x, pix.y);
+                    firstPoint = false;
+                } else {
+                    ctx.lineTo(pix.x, pix.y);
+                }
+            }
+            ctx.stroke();
+            
+            // Label for Cf
+            const endX = info.domainMax;
+            const endY = info.f(endX);
+            const ptCf = transformPoint(endX, endY, theta);
+            const pixCf = toPixel(ptCf.x, ptCf.y);
+            ctx.fillStyle = '#39d6c3';
+            ctx.fillText(foldProgress < 90 ? 'Cf' : 'Cf⁻¹', pixCf.x + 8, pixCf.y + 4);
+
+            // 8. Animate the active point M on the folding curve
+            const yM = info.f(pointX);
+            const ptM = transformPoint(pointX, yM, theta);
+            const pixM = toPixel(ptM.x, ptM.y);
+
+            // Draw shadow of M (orthogonal projection to fold axis)
+            const hX = (pointX + yM) / 2;
+            const hY = (pointX + yM) / 2;
+            const pixH = toPixel(hX, hY);
+
+            // Draw connecting lines showing trajectory
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(pixM.x, pixM.y);
+            ctx.lineTo(pixH.x, pixH.y);
+            ctx.stroke();
+
+            // Original target path if fully folded
+            if (foldProgress > 0) {
+                const pixTarget = toPixel(yM, pointX);
+                ctx.beginPath();
+                ctx.moveTo(pixH.x, pixH.y);
+                ctx.lineTo(pixTarget.x, pixTarget.y);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            // Draw center projection point H
+            ctx.fillStyle = '#f51e65';
+            ctx.beginPath();
+            ctx.arc(pixH.x, pixH.y, 4, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Draw active moving point M
+            ctx.fillStyle = '#39d6c3';
+            ctx.beginPath();
+            ctx.arc(pixM.x, pixM.y, 7, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Border around M
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(pixM.x, pixM.y, 7, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            // Label for M
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px Outfit';
+            
+            if (foldProgress === 0) {
+                ctx.fillText(`M (${pointX.toFixed(1)}, ${yM.toFixed(1)})`, pixM.x + 10, pixM.y - 8);
+            } else if (foldProgress >= 99) {
+                ctx.fillText(`M' (${yM.toFixed(1)}, ${pointX.toFixed(1)})`, pixM.x + 10, pixM.y - 8);
+            } else {
+                ctx.fillText('M', pixM.x + 10, pixM.y - 8);
+            }
+        }
+
+        // Animation loop for folding
+        function animateFold() {
+            cancelAnimationFrame(animId);
+            const start = foldProgress;
+            const target = foldProgress >= 50 ? 0 : 100; // Toggle between folded and unfolded
+            const duration = 2000; // 2 seconds
+            let startTime = null;
+
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                
+                // Easing curve
+                const easeProgress = easeInOutQuad(progress);
+                const currentVal = start + (target - start) * easeProgress;
+                
+                document.getElementById('sliderFold').value = currentVal;
+                updateFold(currentVal);
+
+                if (progress < 1) {
+                    animId = requestAnimationFrame(step);
+                }
+            }
+            animId = requestAnimationFrame(step);
+        }
+
+        function easeInOutQuad(t) {
+            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        }
+
+        // Canvas hover coordinates tooltip
+        canvas.addEventListener('mousemove', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const xPixel = e.clientX - rect.left;
+            const yPixel = e.clientY - rect.top;
+
+            // Convert to math units
+            const mathX = (xPixel - centerX) / scale;
+            const mathY = (centerY - yPixel) / scale;
+
+            tooltip.style.left = `${e.offsetX + 15}px`;
+            tooltip.style.top = `${e.offsetY - 15}px`;
+            tooltip.style.display = 'block';
+            tooltip.innerHTML = `x: ${mathX.toFixed(1)}<br>y: ${mathY.toFixed(1)}`;
+        });
+
+        canvas.addEventListener('mouseleave', function() {
+            tooltip.style.display = 'none';
+        });
+
+        // Initialize on load
+        window.onload = () => {
+            changeFunction();
+        };
+    </script>
+</body>
+</html>

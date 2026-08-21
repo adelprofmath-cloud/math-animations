@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <!-- ResponsiveVoice TTS — Voix masculine française naturelle -->
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=free"></script>
     <style>
         :root {
             --casio-bg: #c5cbd3;
@@ -1870,26 +1872,17 @@
         let animSpeedMs = 2800;
 
         function initTeacherVoice() {
+            // ResponsiveVoice is loaded via CDN in <head>
+            // Web Speech API fallback: select best male French voice
             if ('speechSynthesis' in window) {
                 function pickBestFrenchVoice() {
                     try {
                         const voices = window.speechSynthesis.getVoices();
                         const frVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
-
-                        // 1st priority: well-known deep male French voices
-                        const maleNames = /thomas|paul|henri|pierre|guy|nicolas|jean|arnaud|mathieu|yannick|oliver|david|raphael/i;
-                        // 2nd priority: avoid known female voices
+                        const maleNames = /thomas|paul|henri|pierre|guy|nicolas|jean|arnaud|mathieu|yannick|david|raphael/i;
                         const femaleNames = /marie|claire|julie|hortense|virginie|amelie|lea|lucie|juliette|female|femme/i;
-
-                        // Try to find a male voice
                         let male = frVoices.find(v => maleNames.test(v.name) && !femaleNames.test(v.name));
-
-                        // Fallback: pick first non-female voice
-                        if (!male) {
-                            male = frVoices.find(v => !femaleNames.test(v.name));
-                        }
-
-                        // Fallback: any french voice
+                        if (!male) male = frVoices.find(v => !femaleNames.test(v.name));
                         teacherVoice = male || (frVoices.length > 0 ? frVoices[0] : null);
                     } catch(e) {}
                 }
@@ -1901,11 +1894,6 @@
         }
 
         function speakTeacher(text) {
-            if (!('speechSynthesis' in window)) return;
-            try {
-                window.speechSynthesis.cancel();
-            } catch(e) {}
-
             const indicator = document.getElementById('voiceStatusIndicator');
             const statusText = document.getElementById('voiceStatusText');
 
@@ -1918,42 +1906,58 @@
             if (indicator) indicator.classList.add('speaking');
             if (statusText) statusText.innerText = "Le prof vous explique...";
 
+            const onDone = () => {
+                if (indicator) indicator.classList.remove('speaking');
+                if (statusText) statusText.innerText = "Prêt à expliquer";
+            };
+
+            // ── Priorité 1 : ResponsiveVoice (voix masculine française de qualité) ──
+            if (typeof responsiveVoice !== 'undefined' && responsiveVoice.voiceSupport()) {
+                try {
+                    responsiveVoice.cancel();
+                    responsiveVoice.speak(text, "French Male", {
+                        rate: 0.9,      // Débit naturel, prof qui explique
+                        pitch: 0.85,    // Ton grave masculin
+                        volume: 1,
+                        onend: onDone,
+                        onerror: onDone
+                    });
+                    return;
+                } catch(e) {
+                    console.warn('ResponsiveVoice error, falling back:', e);
+                }
+            }
+
+            // ── Fallback : Web Speech API ──
+            if (!('speechSynthesis' in window)) { onDone(); return; }
+            try { window.speechSynthesis.cancel(); } catch(e) {}
+
             const u = new SpeechSynthesisUtterance(text);
             u.lang = 'fr-FR';
-            // Natural human male delivery: slightly slower, deeper pitch, clear pacing
-            u.rate = 0.92;    // Légèrement plus lent → plus posé, prof qui explique
-            u.pitch = 0.78;   // Voix grave masculine
+            u.rate = 0.92;
+            u.pitch = 0.78;
             u.volume = 1.0;
             if (teacherVoice) u.voice = teacherVoice;
-
-            u.onend = () => {
-                if (indicator) indicator.classList.remove('speaking');
-                if (statusText) statusText.innerText = "Prêt à expliquer";
-            };
-
-            u.onerror = () => {
-                if (indicator) indicator.classList.remove('speaking');
-                if (statusText) statusText.innerText = "Prêt à expliquer";
-            };
-
+            u.onend = onDone;
+            u.onerror = onDone;
             window._activeUtterance = u;
-
             try {
-                if (window.speechSynthesis.paused) {
-                    window.speechSynthesis.resume();
-                }
+                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
                 window.speechSynthesis.speak(u);
             } catch(err) {
                 console.warn('Speech error:', err);
-                if (indicator) indicator.classList.remove('speaking');
+                onDone();
             }
         }
 
         function stopTeacherVoice() {
+            // Arrêter ResponsiveVoice
             try {
-                if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
-                }
+                if (typeof responsiveVoice !== 'undefined') responsiveVoice.cancel();
+            } catch(e) {}
+            // Arrêter Web Speech API
+            try {
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
             } catch(e) {}
             const indicator = document.getElementById('voiceStatusIndicator');
             const statusText = document.getElementById('voiceStatusText');

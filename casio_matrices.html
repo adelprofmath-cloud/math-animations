@@ -897,6 +897,29 @@
             box-shadow: 0 0 10px rgba(57, 214, 195, 0.5);
         }
 
+    
+        /* Autoplay Progress Bar */
+        .autoplay-progress-track {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 0.85rem;
+            display: none;
+        }
+
+        .autoplay-progress-track.active {
+            display: block;
+        }
+
+        .autoplay-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--turquoise), #ff175e);
+            transition: width linear;
+        }
+
     </style>
 </head>
 <body>
@@ -986,6 +1009,9 @@
 
                 <!-- Step-by-Step Animation Player -->
                 <div class="tutorial-card">
+                    <div class="autoplay-progress-track" id="autoProgressTrack">
+                        <div class="autoplay-progress-fill" id="autoProgressFill"></div>
+                    </div>
                     <div class="tutorial-header">
                         <span class="step-tag" id="stepIndicator">Étape 1 / 6</span>
                         <div class="speed-box">
@@ -1826,7 +1852,7 @@
         
         /* ------------------------------------------------------------- */
         /* ------------------------------------------------------------- */
-        /* TEACHER VOICE ENGINE (Web Speech API) & ANIMATION PLAYER      */
+        /* TEACHER VOICE & ULTRA-RESPONSIVE ANIMATION PLAYER             */
         /* ------------------------------------------------------------- */
         let isVoiceEnabled = true;
         let teacherVoice = null;
@@ -1835,16 +1861,18 @@
         let currentScenarioKey = 'saisieA';
         let currentStepIndex = 0;
         let isPlaying = false;
-        let animSpeedMs = 2000;
+        let animSpeedMs = 2800; // Comfortable 2.8s per step in normal mode
 
         function initTeacherVoice() {
             if ('speechSynthesis' in window) {
                 function pickBestFrenchVoice() {
-                    const voices = window.speechSynthesis.getVoices();
-                    const frVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
-                    if (frVoices.length > 0) {
-                        teacherVoice = frVoices.find(v => /paul|thomas|henri|natural|google|guy|hortense|julie/i.test(v.name)) || frVoices[0];
-                    }
+                    try {
+                        const voices = window.speechSynthesis.getVoices();
+                        const frVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
+                        if (frVoices.length > 0) {
+                            teacherVoice = frVoices.find(v => /paul|thomas|henri|natural|google|guy|hortense|julie/i.test(v.name)) || frVoices[0];
+                        }
+                    } catch(e) {}
                 }
                 pickBestFrenchVoice();
                 if (window.speechSynthesis.onvoiceschanged !== undefined) {
@@ -1853,12 +1881,8 @@
             }
         }
 
-        function speakTeacher(text, onEnd) {
-            if (!('speechSynthesis' in window)) {
-                if (onEnd) onEnd();
-                return;
-            }
-
+        function speakTeacher(text) {
+            if (!('speechSynthesis' in window)) return;
             try {
                 window.speechSynthesis.cancel();
             } catch(e) {}
@@ -1869,7 +1893,6 @@
             if (!isVoiceEnabled || !text) {
                 if (indicator) indicator.classList.remove('speaking');
                 if (statusText) statusText.innerText = isVoiceEnabled ? "Prêt à expliquer" : "Voix coupée";
-                if (onEnd) onEnd();
                 return;
             }
 
@@ -1878,32 +1901,22 @@
 
             const u = new SpeechSynthesisUtterance(text);
             u.lang = 'fr-FR';
-            u.rate = 0.98;
+            u.rate = 1.05;
             u.pitch = 1.0;
             if (teacherVoice) u.voice = teacherVoice;
 
-            let finished = false;
-            const finish = () => {
-                if (finished) return;
-                finished = true;
+            u.onend = () => {
                 if (indicator) indicator.classList.remove('speaking');
                 if (statusText) statusText.innerText = "Prêt à expliquer";
-                if (onEnd) onEnd();
             };
 
-            u.onend = finish;
-            u.onerror = finish;
+            u.onerror = () => {
+                if (indicator) indicator.classList.remove('speaking');
+                if (statusText) statusText.innerText = "Prêt à expliquer";
+            };
 
-            // Retain reference globally to prevent Chromium GC bug
+            // Global reference prevents garbage collection bug
             window._activeUtterance = u;
-
-            // Safe fallback timer so voice failure never blocks player
-            const maxDuration = Math.max(2500, (text.length * 80) + 1500);
-            setTimeout(() => {
-                if (!finished) {
-                    finish();
-                }
-            }, maxDuration);
 
             try {
                 if (window.speechSynthesis.paused) {
@@ -1912,7 +1925,7 @@
                 window.speechSynthesis.speak(u);
             } catch(err) {
                 console.warn('Speech error:', err);
-                finish();
+                if (indicator) indicator.classList.remove('speaking');
             }
         }
 
@@ -1968,20 +1981,7 @@
             const activeBtn = document.getElementById('btnScen-' + key);
             if (activeBtn) activeBtn.classList.add('active');
 
-            renderCurrentStep(true);
-        }
-
-        function advanceAutoPlay() {
-            clearTimeout(autoPlayTimer);
-            if (!isPlaying) return;
-
-            const scenario = scenarios[currentScenarioKey];
-            if (currentStepIndex < scenario.steps.length - 1) {
-                currentStepIndex++;
-                renderCurrentStep(true);
-            } else {
-                pauseAutoPlay();
-            }
+            renderCurrentStep(false);
         }
 
         function renderCurrentStep(shouldSpeak = true) {
@@ -1998,7 +1998,7 @@
             document.getElementById('stepDesc').innerHTML = step.desc;
             document.getElementById('pedagogicTip').innerHTML = "💡 <strong>Astuce Bac :</strong> " + step.tip;
 
-            // Render Keys sequence
+            // Render Keys sequence badges
             const keysContainer = document.getElementById('keysSequenceContainer');
             keysContainer.innerHTML = '';
             if (step.keys && step.keys.length > 0) {
@@ -2023,7 +2023,7 @@
             if (btnPrev) btnPrev.disabled = (currentStepIndex === 0);
             if (btnNext) btnNext.disabled = (currentStepIndex === totalSteps - 1);
 
-            // Highlight active key or key sequence
+            // Animate keys and red pointer
             if (step.keys && step.keys.length > 0) {
                 animateKeySequence(step.keys);
             } else {
@@ -2031,6 +2031,7 @@
                 hideVirtualFinger();
             }
 
+            // Render Screen & KaTeX
             renderLcd(step.screenState);
             renderMath();
             playCasioBeep();
@@ -2042,25 +2043,51 @@
                 voiceTextEl.innerText = '"' + textToSpeak + '"';
             }
 
-            if (isPlaying) {
-                // Guaranteed safety timer to ensure auto-play NEVER stalls
-                const estimatedDurationMs = isVoiceEnabled ? Math.max(animSpeedMs, (textToSpeak.length * 68) + 1100) : animSpeedMs;
-                autoPlayTimer = setTimeout(advanceAutoPlay, estimatedDurationMs);
+            if (shouldSpeak && isVoiceEnabled) {
+                speakTeacher(textToSpeak);
+            }
 
-                if (isVoiceEnabled && shouldSpeak) {
-                    speakTeacher(textToSpeak, () => {
-                        if (isPlaying) {
-                            clearTimeout(autoPlayTimer);
-                            autoPlayTimer = setTimeout(advanceAutoPlay, 850);
+            // Handle Auto-Play Progress and Next Step Timer
+            if (isPlaying) {
+                animateProgressBar(animSpeedMs);
+                autoPlayTimer = setTimeout(() => {
+                    if (isPlaying) {
+                        const scen = scenarios[currentScenarioKey];
+                        if (currentStepIndex < scen.steps.length - 1) {
+                            currentStepIndex++;
+                            renderCurrentStep(true);
+                        } else {
+                            pauseAutoPlay();
                         }
-                    });
-                }
+                    }
+                }, animSpeedMs);
             } else {
-                if (shouldSpeak && isVoiceEnabled) {
-                    speakTeacher(textToSpeak);
-                } else {
-                    stopTeacherVoice();
-                }
+                resetProgressBar();
+            }
+        }
+
+        function animateProgressBar(durationMs) {
+            const track = document.getElementById('autoProgressTrack');
+            const fill = document.getElementById('autoProgressFill');
+            if (!track || !fill) return;
+
+            track.classList.add('active');
+            fill.style.transition = 'none';
+            fill.style.width = '0%';
+
+            setTimeout(() => {
+                fill.style.transition = 'width ' + (durationMs / 1000) + 's linear';
+                fill.style.width = '100%';
+            }, 20);
+        }
+
+        function resetProgressBar() {
+            const track = document.getElementById('autoProgressTrack');
+            const fill = document.getElementById('autoProgressFill');
+            if (track) track.classList.remove('active');
+            if (fill) {
+                fill.style.transition = 'none';
+                fill.style.width = '0%';
             }
         }
 
@@ -2085,13 +2112,14 @@
                     const targetKeyEl = document.getElementById(kObj.id);
                     if (targetKeyEl) {
                         targetKeyEl.classList.add('highlight', 'pressed');
-                        setTimeout(() => targetKeyEl.classList.remove('pressed'), 220);
+                        playCasioBeep();
+                        setTimeout(() => targetKeyEl.classList.remove('pressed'), 250);
                         moveVirtualFingerTo(targetKeyEl);
                     }
                 }
                 kIdx++;
                 if (kIdx < keys.length) {
-                    keySequenceTimer = setTimeout(highlightNext, 550);
+                    keySequenceTimer = setTimeout(highlightNext, 450);
                 }
             }
             highlightNext();
@@ -2226,6 +2254,7 @@
         function pauseAutoPlay() {
             isPlaying = false;
             clearTimeout(autoPlayTimer);
+            resetProgressBar();
             stopTeacherVoice();
             const btn = document.getElementById('btnPlayPause');
             if (btn) {
@@ -2236,10 +2265,18 @@
         }
 
         function updateSpeed() {
-            animSpeedMs = parseInt(document.getElementById('animSpeed').value) || 2000;
+            animSpeedMs = parseInt(document.getElementById('animSpeed').value) || 2800;
             if (isPlaying) {
                 clearTimeout(autoPlayTimer);
-                autoPlayTimer = setTimeout(advanceAutoPlay, animSpeedMs);
+                autoPlayTimer = setTimeout(() => {
+                    const scen = scenarios[currentScenarioKey];
+                    if (currentStepIndex < scen.steps.length - 1) {
+                        currentStepIndex++;
+                        renderCurrentStep(true);
+                    } else {
+                        pauseAutoPlay();
+                    }
+                }, animSpeedMs);
             }
         }
 
@@ -2248,7 +2285,7 @@
             nextStep();
         }
 
-        // Initialize immediately without auto-audio to prevent browser blockage
+        // Initialize immediately
         document.addEventListener('DOMContentLoaded', () => {
             initTeacherVoice();
             renderCurrentStep(false);
@@ -2258,7 +2295,7 @@
         });
         setTimeout(() => {
             renderCurrentStep(false);
-        }, 60);
+        }, 80);
     </script>
 </body>
 </html>

@@ -1068,7 +1068,7 @@
                     <div class="teacher-speech-bubble" id="teacherSpeechBubble">
                         <div class="teacher-avatar">👨‍🏫</div>
                         <div class="speech-content">
-                            <div class="speech-speaker">🎙️ Explication Vocale du Professeur :</div>
+                            <div class="speech-speaker">🎙️ Prof. Soltani — Explication :</div>
                             <div class="speech-text" id="teacherVoiceText">Écoutez attentivement l'explication...</div>
                         </div>
                         <button class="speech-replay-btn" title="Réécouter l'explication du professeur" onclick="replayTeacherVoice()">
@@ -1875,9 +1875,22 @@
                     try {
                         const voices = window.speechSynthesis.getVoices();
                         const frVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
-                        if (frVoices.length > 0) {
-                            teacherVoice = frVoices.find(v => /paul|thomas|henri|natural|google|guy|hortense|julie/i.test(v.name)) || frVoices[0];
+
+                        // 1st priority: well-known deep male French voices
+                        const maleNames = /thomas|paul|henri|pierre|guy|nicolas|jean|arnaud|mathieu|yannick|oliver|david|raphael/i;
+                        // 2nd priority: avoid known female voices
+                        const femaleNames = /marie|claire|julie|hortense|virginie|amelie|lea|lucie|juliette|female|femme/i;
+
+                        // Try to find a male voice
+                        let male = frVoices.find(v => maleNames.test(v.name) && !femaleNames.test(v.name));
+
+                        // Fallback: pick first non-female voice
+                        if (!male) {
+                            male = frVoices.find(v => !femaleNames.test(v.name));
                         }
+
+                        // Fallback: any french voice
+                        teacherVoice = male || (frVoices.length > 0 ? frVoices[0] : null);
                     } catch(e) {}
                 }
                 pickBestFrenchVoice();
@@ -1907,8 +1920,10 @@
 
             const u = new SpeechSynthesisUtterance(text);
             u.lang = 'fr-FR';
-            u.rate = 1.05;
-            u.pitch = 1.0;
+            // Natural human male delivery: slightly slower, deeper pitch, clear pacing
+            u.rate = 0.92;    // Légèrement plus lent → plus posé, prof qui explique
+            u.pitch = 0.78;   // Voix grave masculine
+            u.volume = 1.0;
             if (teacherVoice) u.voice = teacherVoice;
 
             u.onend = () => {

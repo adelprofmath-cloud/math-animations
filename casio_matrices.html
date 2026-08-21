@@ -1007,7 +1007,18 @@
                     </div>
                 </div>
 
-                <!-- Step-by-Step Animation Player -->
+                <!-- Teacher Voice Narration Panel -->
+                    <div class="teacher-voice-panel">
+                        <button class="voice-toggle-btn" id="btnVoiceToggle" onclick="toggleTeacherVoice()">
+                            <span id="voiceToggleIcon">🔊</span>
+                            <span id="voiceToggleLabel">Voix du Professeur : ACTIVÉE</span>
+                        </button>
+                        <div class="voice-status-indicator" id="voiceStatusIndicator">
+                            <span class="pulse-dot"></span> <span id="voiceStatusText">Prêt à expliquer</span>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Animation Player -->
                 <div class="tutorial-card">
                     <div class="autoplay-progress-track" id="autoProgressTrack">
                         <div class="autoplay-progress-fill" id="autoProgressFill"></div>
@@ -1473,17 +1484,20 @@
                     delimiters: [
                         { left: "$$", right: "$$", display: true },
                         { left: "$", right: "$", display: false },
-                        { left: "\\(", right: "\\)", display: false },
-                        { left: "\\[", right: "\\]", display: true }
+                        { left: "\(", right: "\)", display: false },
+                        { left: "\[", right: "\]", display: true }
                     ],
                     throwOnError: false
                 });
             }
         }
 
-        const audioCtx = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext || window.webkitAudioContext)() : null;
+        let audioCtx = null;
         function playCasioBeep() {
             try {
+                if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
                 if (!audioCtx) return;
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 const osc = audioCtx.createOscillator();
@@ -1511,46 +1525,46 @@
             [0, 2, 1]
         ];
 
-                const scenarios = {
+        const scenarios = {
             saisieA: {
                 title: "Saisie de la Matrice A (3×3)",
                 steps: [
                     {
                         stepTitle: "1. Activer le menu MODE",
-                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[MODE SETUP]</strong> pour afficher la liste des modes de calcul.",
-                        voiceText: "Bonjour ! Pour commencer, appuyez sur la touche Mode Setup pour afficher les différents modes de calcul de votre calculatrice.",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[MODE SETUP]</strong> pour afficher la liste des modes de calcul.",
+                        voiceText: "Bonjour ! Pour commencer, appuyez sur la touche Mode Setup pour afficher les modes de calcul.",
                         keys: [{ name: "MODE", type: "mode", id: "key-mode" }],
                         tip: "Le mode normal de base est COMP (1). Pour les matrices, il faut choisir MATRIX (6).",
                         screenState: { view: "mode" }
                     },
                     {
                         stepTitle: "2. Choisir le Mode 6 : MATRIX",
-                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[6]</strong> pour entrer dans le mode de calcul matriciel.",
-                        voiceText: "Appuyez maintenant sur le chiffre 6 pour sélectionner le mode Matrice. Remarquez l'indicateur MAT qui s'allume en haut de l'écran.",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[6]</strong> pour entrer dans le mode de calcul matriciel.",
+                        voiceText: "Appuyez sur la touche 6 pour activer le mode Matrice. Remarquez l'indicateur MAT en haut de l'écran.",
                         keys: [{ name: "6", type: "num", id: "key-6" }],
                         tip: "L'indicateur 'MAT' s'affiche en haut de l'écran LCD pour indiquer que vous êtes en mode Matrice.",
                         screenState: { view: "matSelect" }
                     },
                     {
                         stepTitle: "3. Sélectionner la Matrice A (1: MatA)",
-                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[1]</strong> pour définir les dimensions et les coefficients de MatA.",
-                        voiceText: "Choisissez la matrice A en appuyant sur la touche 1. C'est ici que nous allons configurer notre première matrice.",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour définir les dimensions et les coefficients de MatA.",
+                        voiceText: "Sélectionnez la matrice A en appuyant sur 1 pour définir ses dimensions.",
                         keys: [{ name: "1", type: "num", id: "key-1" }],
                         tip: "Vous pouvez choisir entre MatA (1), MatB (2) ou MatC (3).",
                         screenState: { view: "dimSelect", title: "MatA(m×n)" }
                     },
                     {
                         stepTitle: "4. Choisir la dimension 3×3 (Touche 1)",
-                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[1]</strong> pour sélectionner une matrice carrée d'ordre 3 (3 lignes, 3 colonnes).",
-                        voiceText: "Appuyez sur 1 pour définir le format 3 lignes par 3 colonnes. La grille d'édition s'ouvre alors à l'écran.",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour sélectionner une matrice carrée d'ordre 3 (3 lignes, 3 colonnes).",
+                        voiceText: "Appuyez sur 1 pour choisir une matrice carrée 3 par 3. La grille d'édition s'ouvre à l'écran.",
                         keys: [{ name: "1", type: "num", id: "key-1" }],
                         tip: "Pour une matrice d'ordre 2 (2×2), on aurait appuyé sur [5].",
                         screenState: { view: "matrixEditor", matName: "MatA 3×3", cellIdx: 0, val: 1 }
                     },
                     {
                         stepTitle: "5. Remplir les coefficients avec [ = ]",
-                        desc: "Tapez chaque coefficient puis validez avec la touche <strong style="color:var(--turquoise);">[ = ]</strong>. Entrez successivement : 1= 2= 1= 0= 1= 3= 2= 1= 1=",
-                        voiceText: "Entrez un à un les coefficients de la matrice A en appuyant sur la touche égale après chaque nombre. La calculatrice passe automatiquement à la case suivante.",
+                        desc: "Tapez chaque coefficient puis validez avec la touche <strong style=\"color:var(--turquoise);\">[ = ]</strong>. Entrez successivement : 1= 2= 1= 0= 1= 3= 2= 1= 1=",
+                        voiceText: "Entrez les coefficients un par un en validant chaque nombre avec la touche égale.",
                         keys: [
                             { name: "1", type: "num", id: "key-1" }, { name: "=", type: "equal", id: "key-equal" },
                             { name: "2", type: "num", id: "key-2" }, { name: "=", type: "equal", id: "key-equal" },
@@ -1561,8 +1575,8 @@
                     },
                     {
                         stepTitle: "6. Mémoriser et Quitter l'éditeur avec [AC]",
-                        desc: "Appuyez sur la touche orange <strong style="color:var(--rose);">[AC]</strong>. Vos données sont enregistrées dans la mémoire MatA !",
-                        voiceText: "Appuyez sur la touche A C pour valider. Rassurez-vous, la touche A C ne supprime rien, votre matrice A est parfaitement enregistrée en mémoire.",
+                        desc: "Appuyez sur la touche orange <strong style=\"color:var(--rose);\">[AC]</strong>. Vos données sont enregistrées dans la mémoire MatA !",
+                        voiceText: "Appuyez sur la touche A C. Votre matrice A est enregistrée en mémoire et prête pour le calcul.",
                         keys: [{ name: "AC", type: "ac", id: "key-ac" }],
                         tip: "Ne vous inquiétez pas, appuyer sur [AC] n'efface pas la matrice ! Elle reste bien en mémoire dans MatA.",
                         screenState: { view: "normal", input: "", result: "0" }
@@ -1575,8 +1589,8 @@
                 steps: [
                     {
                         stepTitle: "1. Ouvrir le Menu MATRIX (SHIFT + 4)",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis sur la touche <strong style="color:var(--turquoise);">[4]</strong> (au-dessus de laquelle est inscrit MATRIX en jaune).",
-                        voiceText: "Pour saisir la deuxième matrice, ouvrez le menu Matrix en appuyant sur Shift puis sur la touche 4.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[4]</strong> (au-dessus de laquelle est inscrit MATRIX en jaune).",
+                        voiceText: "Pour configurer la matrice B, ouvrez le menu Matrix en faisant Shift puis 4.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" }
@@ -1586,32 +1600,32 @@
                     },
                     {
                         stepTitle: "2. Choisir 1 : Dim (Dimension)",
-                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[1]</strong> pour définir la dimension d'une nouvelle matrice.",
-                        voiceText: "Appuyez sur 1 pour accéder au réglage de la dimension.",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour définir la dimension d'une nouvelle matrice.",
+                        voiceText: "Appuyez sur 1 pour définir la dimension.",
                         keys: [{ name: "1", type: "num", id: "key-1" }],
                         tip: "Si vous vouliez juste modifier une valeur existante sans changer la dimension, vous auriez choisi [2:Data].",
                         screenState: { view: "matSelect" }
                     },
                     {
                         stepTitle: "3. Sélectionner 2 : MatB",
-                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[2]</strong> pour configurer la Matrice B.",
-                        voiceText: "Appuyez sur 2 pour sélectionner la Matrice B.",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[2]</strong> pour configurer la Matrice B.",
+                        voiceText: "Appuyez sur 2 pour sélectionner la matrice B.",
                         keys: [{ name: "2", type: "num", id: "key-2" }],
                         tip: "MatB est la 2ème matrice mémoire disponible.",
                         screenState: { view: "dimSelect", title: "MatB(m×n)" }
                     },
                     {
                         stepTitle: "4. Choisir la dimension 3×3 (Touche 1)",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[1]</strong> pour choisir le format 3×3 pour la Matrice B.",
-                        voiceText: "Appuyez sur 1 pour choisir la dimension 3 par 3.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[1]</strong> pour choisir le format 3×3 pour la Matrice B.",
+                        voiceText: "Appuyez sur 1 pour choisir la dimension 3 par 3 pour la matrice B.",
                         keys: [{ name: "1", type: "num", id: "key-1" }],
                         tip: "La grille d'édition de MatB apparaît à l'écran.",
                         screenState: { view: "matrixEditorB", matName: "MatB 3×3", cellIdx: 0, val: 2 }
                     },
                     {
                         stepTitle: "5. Saisir les valeurs de MatB",
-                        desc: "Entrez les coefficients de B suivis de <strong style="color:var(--turquoise);">[ = ]</strong> : 2= 0= 1= 1= 3= 0= 0= 2= 1=",
-                        voiceText: "Entrez les 9 valeurs de la matrice B en validant chaque case avec la touche égale.",
+                        desc: "Entrez les coefficients de B suivis de <strong style=\"color:var(--turquoise);\">[ = ]</strong> : 2= 0= 1= 1= 3= 0= 0= 2= 1=",
+                        voiceText: "Saisissez les coefficients de la matrice B en validant chaque case avec la touche égale.",
                         keys: [
                             { name: "2", type: "num", id: "key-2" }, { name: "=", type: "equal", id: "key-equal" },
                             { name: "0", type: "num", id: "key-0" }, { name: "=", type: "equal", id: "key-equal" },
@@ -1622,8 +1636,8 @@
                     },
                     {
                         stepTitle: "6. Sauvegarder dans MatB avec [AC]",
-                        desc: "Appuyez sur la touche <strong style="color:var(--rose);">[AC]</strong> pour valider et revenir à l'écran principal.",
-                        voiceText: "Appuyez sur A C. Vos deux matrices A et B sont maintenant mémorisées et prêtes pour les calculs.",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--rose);\">[AC]</strong> pour valider et revenir à l'écran principal.",
+                        voiceText: "Appuyez sur la touche A C pour valider. Vos deux matrices A et B sont prêtes.",
                         keys: [{ name: "AC", type: "ac", id: "key-ac" }],
                         tip: "MatA et MatB sont désormais prêtes pour toutes vos opérations !",
                         screenState: { view: "normal", input: "", result: "0" }
@@ -1636,8 +1650,8 @@
                 steps: [
                     {
                         stepTitle: "1. Ouvrir le Menu MATRIX",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis sur la touche <strong style="color:var(--turquoise);">[4]</strong> (MATRIX).",
-                        voiceText: "Pour calculer le déterminant, ouvrez le menu Matrix en faisant Shift puis 4.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[4]</strong> (MATRIX).",
+                        voiceText: "Pour calculer le déterminant, ouvrez le menu Matrix avec Shift puis 4.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" }
@@ -1647,16 +1661,16 @@
                     },
                     {
                         stepTitle: "2. Sélectionner la fonction 7 : Det",
-                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[7]</strong>. L'écran affiche l'instruction 'det(' en attente de la matrice.",
-                        voiceText: "Appuyez sur la touche 7 pour choisir la fonction Déterminant.",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[7]</strong>. L'écran affiche l'instruction 'det(' en attente de la matrice.",
+                        voiceText: "Appuyez sur 7 pour choisir la fonction Déterminant.",
                         keys: [{ name: "7", type: "num", id: "key-7" }],
                         tip: "Det calcule le déterminant d'une matrice carrée 2×2 ou 3×3.",
                         screenState: { view: "normal", input: "det(", result: "" }
                     },
                     {
                         stepTitle: "3. Insérer la Matrice A : SHIFT + 4 puis 3",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong>, puis choisissez <strong style="color:var(--turquoise);">[3]</strong> pour insérer MatA.",
-                        voiceText: "Insérez la matrice A en faisant la combinaison Shift, 4, puis en appuyant sur 3.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong>, puis choisissez <strong style=\"color:var(--turquoise);\">[3]</strong> pour insérer MatA.",
+                        voiceText: "Insérez la matrice A en faisant Shift, 4, puis 3.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1667,8 +1681,8 @@
                     },
                     {
                         stepTitle: "4. Fermer la parenthèse et Calculer avec [ = ]",
-                        desc: "Appuyez sur la parenthèse fermante <strong style="color:var(--turquoise);">[ ) ]</strong> puis sur la touche <strong style="color:var(--turquoise);">[ = ]</strong>.",
-                        voiceText: "Fermez la parenthèse et appuyez sur égale. Le déterminant vaut moins 8. Comme il est non nul, la matrice A est bien inversible.",
+                        desc: "Appuyez sur la parenthèse fermante <strong style=\"color:var(--turquoise);\">[ ) ]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[ = ]</strong>.",
+                        voiceText: "Fermez la parenthèse et appuyez sur égale. Le déterminant vaut moins 8, la matrice est inversible.",
                         keys: [
                             { name: ")", type: "fn", id: "key-rpar" },
                             { name: "=", type: "equal", id: "key-equal" }
@@ -1684,8 +1698,8 @@
                 steps: [
                     {
                         stepTitle: "1. Taper le coefficient réel (Exemple : 3)",
-                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[3]</strong> puis sur la touche de multiplication <strong style="color:var(--turquoise);">[ × ]</strong>.",
-                        voiceText: "Pour multiplier une matrice par un réel, tapez d'abord le nombre 3, puis appuyez sur la touche de multiplication.",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[3]</strong> puis sur la touche de multiplication <strong style=\"color:var(--turquoise);\">[ × ]</strong>.",
+                        voiceText: "Pour multiplier par un réel, tapez d'abord 3 suivi de la touche de multiplication.",
                         keys: [
                             { name: "3", type: "num", id: "key-3" },
                             { name: "×", type: "op", id: "key-mul" }
@@ -1695,7 +1709,7 @@
                     },
                     {
                         stepTitle: "2. Insérer MatA : SHIFT + 4 puis 3",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong>, et tapez <strong style="color:var(--turquoise);">[3]</strong> pour appeler MatA.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong>, et tapez <strong style=\"color:var(--turquoise);\">[3]</strong> pour appeler MatA.",
                         voiceText: "Appelez la matrice A en faisant Shift, 4, puis 3.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
@@ -1707,8 +1721,8 @@
                     },
                     {
                         stepTitle: "3. Calculer avec [ = ] et Naviguer dans MatAns",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[ = ]</strong>. Le résultat est stocké dans la matrice réponse 'MatAns'. Chaque terme est multiplié par 3 !",
-                        voiceText: "Appuyez sur la touche égale. La calculatrice affiche la matrice résultat où chaque coefficient est multiplié par 3. Vous pouvez naviguer dans la matrice avec les flèches du pavé directionnel.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. Le résultat est stocké dans la matrice réponse 'MatAns'. Chaque terme est multiplié par 3 !",
+                        voiceText: "Appuyez sur égale. La Casio affiche la matrice résultat avec chaque coefficient multiplié par 3.",
                         keys: [{ name: "=", type: "equal", id: "key-equal" }],
                         tip: "Utilisez le pavé directionnel circulaire (flèches droite/gauche/haut/bas) pour faire défiler tous les coefficients.",
                         screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[3,6,3],[0,3,9],[6,3,3]] }
@@ -1721,8 +1735,8 @@
                 steps: [
                     {
                         stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> puis <strong style="color:var(--turquoise);">[3]</strong> pour écrire MatA.",
-                        voiceText: "Pour additionner deux matrices, appelez d'abord la matrice A avec Shift, 4, puis 3.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour écrire MatA.",
+                        voiceText: "Pour la somme, insérez d'abord la matrice A avec Shift, 4, puis 3.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1733,7 +1747,7 @@
                     },
                     {
                         stepTitle: "2. Ajouter le signe [ + ]",
-                        desc: "Appuyez sur la touche d'addition <strong style="color:var(--turquoise);">[ + ]</strong>.",
+                        desc: "Appuyez sur la touche d'addition <strong style=\"color:var(--turquoise);\">[ + ]</strong>.",
                         voiceText: "Appuyez sur la touche plus.",
                         keys: [{ name: "+", type: "op", id: "key-plus" }],
                         tip: "L'écran affiche : MatA+",
@@ -1741,8 +1755,8 @@
                     },
                     {
                         stepTitle: "3. Insérer MatB (SHIFT + 4 puis 4)",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> pour insérer MatB.",
-                        voiceText: "Appelez maintenant la matrice B en faisant Shift, 4, puis 4.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> pour insérer MatB.",
+                        voiceText: "Insérez la matrice B en faisant Shift, 4, puis 4.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1753,8 +1767,8 @@
                     },
                     {
                         stepTitle: "4. Afficher la Matrice Somme avec [ = ]",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[ = ]</strong>. La Casio calcule terme à terme la somme des deux matrices dans MatAns.",
-                        voiceText: "Appuyez sur la touche égale. La calculatrice effectue l'addition terme à terme et affiche la matrice somme résultante.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La Casio calcule terme à terme la somme des deux matrices dans MatAns.",
+                        voiceText: "Appuyez sur égale. La Casio additionne terme à terme les deux matrices.",
                         keys: [{ name: "=", type: "equal", id: "key-equal" }],
                         tip: "Terme (1,1) = 1 + 2 = 3. Naviguez avec les flèches pour voir tous les termes.",
                         screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[3,2,2],[1,4,3],[2,3,2]] }
@@ -1767,8 +1781,8 @@
                 steps: [
                     {
                         stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> puis <strong style="color:var(--turquoise);">[3]</strong> pour afficher MatA.",
-                        voiceText: "Pour multiplier deux matrices, insérez d'abord la matrice A avec Shift, 4, puis 3.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour afficher MatA.",
+                        voiceText: "Pour le produit matriciel, insérez la matrice A avec Shift, 4, puis 3.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1779,7 +1793,7 @@
                     },
                     {
                         stepTitle: "2. Ajouter le signe de Multiplication [ × ]",
-                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[ × ]</strong>.",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[ × ]</strong>.",
                         voiceText: "Appuyez sur le signe de multiplication.",
                         keys: [{ name: "×", type: "op", id: "key-mul" }],
                         tip: "L'écran affiche : MatA×",
@@ -1787,8 +1801,8 @@
                     },
                     {
                         stepTitle: "3. Insérer MatB (SHIFT + 4 puis 4)",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> pour sélectionner MatB.",
-                        voiceText: "Insérez la matrice B en faisant Shift, 4, puis 4.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> pour sélectionner MatB.",
+                        voiceText: "Insérez la matrice B avec Shift, 4, puis 4.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1799,8 +1813,8 @@
                     },
                     {
                         stepTitle: "4. Exécuter le Produit Matriciel avec [ = ]",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[ = ]</strong>. La Casio effectue le produit scalaire (ligne par colonne) et donne la matrice résultante MatAns.",
-                        voiceText: "Appuyez sur la touche égale. La Casio calcule le produit matriciel ligne par colonne et affiche la matrice résultat. Rappelez-vous que le produit matriciel n'est pas commutatif.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La Casio effectue le produit scalaire (ligne par colonne) et donne la matrice résultante MatAns.",
+                        voiceText: "Appuyez sur égale. La Casio effectue le calcul ligne par colonne et affiche la matrice résultat.",
                         keys: [{ name: "=", type: "equal", id: "key-equal" }],
                         tip: "Attention : Le produit matriciel n'est généralement PAS commutatif : MatA × MatB ≠ MatB × MatA !",
                         screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[4,8,2],[1,9,3],[5,5,3]] }
@@ -1813,8 +1827,8 @@
                 steps: [
                     {
                         stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> puis <strong style="color:var(--turquoise);">[3]</strong> pour appeler MatA.",
-                        voiceText: "Pour calculer la matrice inverse, commencez par insérer la matrice A en faisant Shift, 4, puis 3.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour appeler MatA.",
+                        voiceText: "Pour calculer l'inverse, commencez par insérer la matrice A avec Shift, 4, puis 3.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1825,16 +1839,16 @@
                     },
                     {
                         stepTitle: "2. Appuyer sur la Touche [ x⁻¹ ]",
-                        desc: "Appuyez directement sur la touche <strong style="color:var(--turquoise);">[ x⁻¹ ]</strong> située juste en dessous de la touche de mise sous tension.",
-                        voiceText: "Appuyez sur la touche x puissance moins un, située juste en dessous de la touche marche arrêt.",
+                        desc: "Appuyez directement sur la touche <strong style=\"color:var(--turquoise);\">[ x⁻¹ ]</strong> située juste en dessous de la touche de mise sous tension.",
+                        voiceText: "Appuyez directement sur la touche x puissance moins un.",
                         keys: [{ name: "x⁻¹", type: "fn", id: "key-xinv" }],
                         tip: "Ne faites PAS de puissance ^(-1), utilisez toujours la touche dédiée [ x⁻¹ ] !",
                         screenState: { view: "normal", input: "MatA⁻¹", result: "" }
                     },
                     {
                         stepTitle: "3. Calculer l'Inverse avec [ = ]",
-                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[ = ]</strong>. La calculatrice affiche les coefficients de la matrice inverse A⁻¹.",
-                        voiceText: "Appuyez sur la touche égale. Les coefficients de la matrice inverse apparaissent. Vous pouvez appuyer sur la touche S D pour basculer chaque coefficient entre écriture décimale et fraction exacte.",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La calculatrice affiche les coefficients de la matrice inverse A⁻¹.",
+                        voiceText: "Appuyez sur égale. Les coefficients de la matrice inverse s'affichent. Vous pouvez basculer l'écriture en fraction avec la touche S D.",
                         keys: [{ name: "=", type: "equal", id: "key-equal" }],
                         tip: "Appuyez sur la touche [S⇔D] pour basculer l'affichage d'un coefficient entre fraction et nombre décimal !",
                         screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [["-0.25","0.125","0.625"],["-0.75","0.125","-0.375"],["0.25","-0.375","-0.125"]] }
@@ -1843,17 +1857,6 @@
             }
         };
 
-        let currentScenarioKey = 'saisieA';
-        let currentStepIndex = 0;
-        let isPlaying = false;
-        let playInterval = null;
-        let animSpeedMs = 1800;
-
-        
-        /* ------------------------------------------------------------- */
-        /* ------------------------------------------------------------- */
-        /* TEACHER VOICE & ULTRA-RESPONSIVE ANIMATION PLAYER             */
-        /* ------------------------------------------------------------- */
         let isVoiceEnabled = true;
         let teacherVoice = null;
         let autoPlayTimer = null;
@@ -1861,7 +1864,7 @@
         let currentScenarioKey = 'saisieA';
         let currentStepIndex = 0;
         let isPlaying = false;
-        let animSpeedMs = 2800; // Comfortable 2.8s per step in normal mode
+        let animSpeedMs = 2800;
 
         function initTeacherVoice() {
             if ('speechSynthesis' in window) {
@@ -1915,7 +1918,6 @@
                 if (statusText) statusText.innerText = "Prêt à expliquer";
             };
 
-            // Global reference prevents garbage collection bug
             window._activeUtterance = u;
 
             try {
@@ -1949,15 +1951,15 @@
             const statusText = document.getElementById('voiceStatusText');
 
             if (isVoiceEnabled) {
-                btn.className = "voice-toggle-btn";
-                icon.innerText = "🔊";
-                label.innerText = "Voix du Professeur : ACTIVÉE";
+                if (btn) btn.className = "voice-toggle-btn";
+                if (icon) icon.innerText = "🔊";
+                if (label) label.innerText = "Voix du Professeur : ACTIVÉE";
                 if (statusText) statusText.innerText = "Prêt à expliquer";
                 replayTeacherVoice();
             } else {
-                btn.className = "voice-toggle-btn muted";
-                icon.innerText = "🔇";
-                label.innerText = "Voix du Professeur : COUPÉE";
+                if (btn) btn.className = "voice-toggle-btn muted";
+                if (icon) icon.innerText = "🔇";
+                if (label) label.innerText = "Voix du Professeur : COUPÉE";
                 stopTeacherVoice();
             }
         }
@@ -1993,28 +1995,35 @@
             if (!step) return;
 
             // Step Counter and texts
-            document.getElementById('stepIndicator').innerText = "Étape " + (currentStepIndex + 1) + " / " + totalSteps;
-            document.getElementById('stepTitle').innerText = step.stepTitle;
-            document.getElementById('stepDesc').innerHTML = step.desc;
-            document.getElementById('pedagogicTip').innerHTML = "💡 <strong>Astuce Bac :</strong> " + step.tip;
+            const stepInd = document.getElementById('stepIndicator');
+            const stepTit = document.getElementById('stepTitle');
+            const stepD = document.getElementById('stepDesc');
+            const pedTip = document.getElementById('pedagogicTip');
+
+            if (stepInd) stepInd.innerText = "Étape " + (currentStepIndex + 1) + " / " + totalSteps;
+            if (stepTit) stepTit.innerText = step.stepTitle;
+            if (stepD) stepD.innerHTML = step.desc;
+            if (pedTip) pedTip.innerHTML = "💡 <strong>Astuce Bac :</strong> " + step.tip;
 
             // Render Keys sequence badges
             const keysContainer = document.getElementById('keysSequenceContainer');
-            keysContainer.innerHTML = '';
-            if (step.keys && step.keys.length > 0) {
-                step.keys.forEach((k, idx) => {
-                    const badge = document.createElement('span');
-                    badge.className = "key-badge " + (k.type || 'fn');
-                    badge.innerText = k.name;
-                    keysContainer.appendChild(badge);
+            if (keysContainer) {
+                keysContainer.innerHTML = '';
+                if (step.keys && step.keys.length > 0) {
+                    step.keys.forEach((k, idx) => {
+                        const badge = document.createElement('span');
+                        badge.className = "key-badge " + (k.type || 'fn');
+                        badge.innerText = k.name;
+                        keysContainer.appendChild(badge);
 
-                    if (idx < step.keys.length - 1) {
-                        const arrow = document.createElement('span');
-                        arrow.className = 'key-arrow';
-                        arrow.innerText = '➔';
-                        keysContainer.appendChild(arrow);
-                    }
-                });
+                        if (idx < step.keys.length - 1) {
+                            const arrow = document.createElement('span');
+                            arrow.className = 'key-arrow';
+                            arrow.innerText = '➔';
+                            keysContainer.appendChild(arrow);
+                        }
+                    });
+                }
             }
 
             // Update Previous/Next buttons state
@@ -2150,58 +2159,74 @@
         }
 
         function renderLcd(state) {
-            document.getElementById('viewNormal').style.display = 'none';
-            document.getElementById('viewModeMenu').style.display = 'none';
-            document.getElementById('viewMatSelect').style.display = 'none';
-            document.getElementById('viewDimSelect').style.display = 'none';
-            document.getElementById('viewMatrixEditor').style.display = 'none';
-            document.getElementById('viewMatShiftMenu').style.display = 'none';
+            const vNorm = document.getElementById('viewNormal');
+            const vMode = document.getElementById('viewModeMenu');
+            const vMat = document.getElementById('viewMatSelect');
+            const vDim = document.getElementById('viewDimSelect');
+            const vEditor = document.getElementById('viewMatrixEditor');
+            const vShift = document.getElementById('viewMatShiftMenu');
+
+            if (vNorm) vNorm.style.display = 'none';
+            if (vMode) vMode.style.display = 'none';
+            if (vMat) vMat.style.display = 'none';
+            if (vDim) vDim.style.display = 'none';
+            if (vEditor) vEditor.style.display = 'none';
+            if (vShift) vShift.style.display = 'none';
 
             if (!state) return;
 
             if (state.view === 'mode') {
-                document.getElementById('viewModeMenu').style.display = 'block';
+                if (vMode) vMode.style.display = 'block';
             } else if (state.view === 'matSelect') {
-                document.getElementById('viewMatSelect').style.display = 'block';
+                if (vMat) vMat.style.display = 'block';
             } else if (state.view === 'dimSelect') {
-                document.getElementById('viewDimSelect').style.display = 'block';
-                document.getElementById('dimTitle').innerText = state.title || 'Matrix(m×n)';
+                if (vDim) vDim.style.display = 'block';
+                const dTitle = document.getElementById('dimSelectTitle');
+                if (dTitle) dTitle.innerText = state.title || 'MatA(m×n)';
             } else if (state.view === 'matrixEditor' || state.view === 'matrixEditorFilled') {
-                document.getElementById('viewMatrixEditor').style.display = 'block';
-                document.getElementById('editorMatName').innerText = state.matName || 'MatA 3×3';
-                const cells = document.querySelectorAll('#matrixEditorGrid .lcd-cell');
+                if (vEditor) vEditor.style.display = 'block';
+                const mName = document.getElementById('editorMatName');
+                if (mName) mName.innerText = state.matName || 'MatA 3×3';
+                const cells = document.querySelectorAll('#lcdGridBox .lcd-cell');
                 const vals = state.view === 'matrixEditorFilled' ? [1,2,1,0,1,3,2,1,1] : [1,0,0,0,0,0,0,0,0];
                 cells.forEach((c, idx) => {
-                    c.innerText = vals[idx];
+                    c.innerText = vals[idx] !== undefined ? vals[idx] : '0';
                     c.classList.toggle('cursor', idx === (state.cellIdx || 0));
                 });
-                document.getElementById('editorBottomVal').innerText = state.val !== undefined ? state.val : '1';
+                const botVal = document.getElementById('lcdEditorBottomVal');
+                if (botVal) botVal.innerText = state.val !== undefined ? state.val : '1';
             } else if (state.view === 'matrixEditorB' || state.view === 'matrixEditorBFilled') {
-                document.getElementById('viewMatrixEditor').style.display = 'block';
-                document.getElementById('editorMatName').innerText = state.matName || 'MatB 3×3';
-                const cells = document.querySelectorAll('#matrixEditorGrid .lcd-cell');
+                if (vEditor) vEditor.style.display = 'block';
+                const mName = document.getElementById('editorMatName');
+                if (mName) mName.innerText = state.matName || 'MatB 3×3';
+                const cells = document.querySelectorAll('#lcdGridBox .lcd-cell');
                 const vals = state.view === 'matrixEditorBFilled' ? [2,0,1,1,3,0,0,2,1] : [2,0,0,0,0,0,0,0,0];
                 cells.forEach((c, idx) => {
-                    c.innerText = vals[idx];
+                    c.innerText = vals[idx] !== undefined ? vals[idx] : '0';
                     c.classList.toggle('cursor', idx === (state.cellIdx || 0));
                 });
-                document.getElementById('editorBottomVal').innerText = state.val !== undefined ? state.val : '2';
+                const botVal = document.getElementById('lcdEditorBottomVal');
+                if (botVal) botVal.innerText = state.val !== undefined ? state.val : '2';
             } else if (state.view === 'matrixResult') {
-                document.getElementById('viewMatrixEditor').style.display = 'block';
-                document.getElementById('editorMatName').innerText = state.title || 'MatAns 3×3';
-                const cells = document.querySelectorAll('#matrixEditorGrid .lcd-cell');
+                if (vEditor) vEditor.style.display = 'block';
+                const mName = document.getElementById('editorMatName');
+                if (mName) mName.innerText = state.title || 'MatAns 3×3';
+                const cells = document.querySelectorAll('#lcdGridBox .lcd-cell');
                 const vals = state.vals ? state.vals.flat() : [0,0,0,0,0,0,0,0,0];
                 cells.forEach((c, idx) => {
                     c.innerText = vals[idx] !== undefined ? vals[idx] : '0';
                     c.classList.remove('cursor');
                 });
-                document.getElementById('editorBottomVal').innerText = vals[0] !== undefined ? vals[0] : '';
+                const botVal = document.getElementById('lcdEditorBottomVal');
+                if (botVal) botVal.innerText = vals[0] !== undefined ? vals[0] : '';
             } else if (state.view === 'shift4Menu') {
-                document.getElementById('viewMatShiftMenu').style.display = 'block';
+                if (vShift) vShift.style.display = 'block';
             } else {
-                document.getElementById('viewNormal').style.display = 'block';
-                document.getElementById('lcdInput').innerText = state.input || '';
-                document.getElementById('lcdResult').innerText = state.result || '';
+                if (vNorm) vNorm.style.display = 'block';
+                const lInp = document.getElementById('lcdInput');
+                const lRes = document.getElementById('lcdResult');
+                if (lInp) lInp.innerText = state.input || '';
+                if (lRes) lRes.innerText = state.result || '';
             }
         }
 

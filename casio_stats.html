@@ -1,729 +1,1341 @@
-<!DOCTYPE html>
+const fs = require('fs');
+
+const html = `<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrices Casio & Sharp - Guide Interactif Statistiques | Soltani Books</title>
+    <title>Calculatrice Casio Réelle - Guide Interactif & Voix Statistiques | Lyceena Books</title>
     <link rel="stylesheet" href="style.css">
     <!-- KaTeX Math Notation Renderer -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-    <!-- Chart.js for Nuage de points and Regression Line -->
+    <!-- ResponsiveVoice TTS & Web Speech API -->
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=free"></script>
+    <!-- Chart.js for Nuage de points et Droite de régression -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
+            --casio-bg: #c5cbd3;
+            --casio-body-grad: linear-gradient(175deg, #a4b3c4 0%, #8798ab 35%, #76869b 70%, #5a697c 100%);
+            --casio-bezel: #1b222c;
             --casio-screen-bg: #b2c59f;
             --casio-screen-text: #17240d;
-            --sharp-screen-bg: #9ec2b8;
         }
 
-        .calc-layout {
+        .main-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 2rem;
             align-items: start;
         }
 
         @media (max-width: 1024px) {
-            .calc-layout {
+            .main-layout {
                 grid-template-columns: 1fr;
             }
         }
 
-        /* Calculator model tabs */
-        .calc-model-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.25rem;
+        /* Scenarios grid */
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
         }
 
-        .model-tab-btn {
-            flex: 1;
-            padding: 0.8rem;
-            font-size: 1rem;
-            font-weight: 700;
+        .scenario-btn {
+            background: rgba(26, 45, 89, 0.7);
+            border: 1px solid rgba(57, 214, 195, 0.35);
             border-radius: 10px;
-            border: 1px solid var(--card-border);
-            background: rgba(26, 45, 89, 0.6);
+            padding: 0.85rem 1rem;
             color: var(--white);
+            text-align: left;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            font-weight: 500;
         }
 
-        .model-tab-btn.active-casio {
-            background: linear-gradient(135deg, rgba(57, 214, 195, 0.3) 0%, rgba(26, 45, 89, 0.9) 100%);
+        .scenario-btn:hover {
+            background: rgba(57, 214, 195, 0.25);
             border-color: var(--turquoise);
-            box-shadow: 0 4px 15px rgba(57, 214, 195, 0.25);
-            color: var(--turquoise);
+            transform: translateY(-2px);
         }
 
-        .model-tab-btn.active-sharp {
-            background: linear-gradient(135deg, rgba(245, 30, 101, 0.3) 0%, rgba(26, 45, 89, 0.9) 100%);
+        .scenario-btn.active {
+            background: linear-gradient(135deg, rgba(245, 30, 101, 0.4) 0%, rgba(26, 45, 89, 0.9) 100%);
             border-color: var(--rose);
-            box-shadow: 0 4px 15px rgba(245, 30, 101, 0.25);
-            color: var(--rose);
+            box-shadow: 0 0 15px rgba(245, 30, 101, 0.4);
         }
 
-        /* Simulator Screen Card */
-        .sim-device {
-            background: radial-gradient(circle at 50% 20%, #2a374a 0%, #131b26 100%);
-            border: 2px solid rgba(255, 255, 255, 0.15);
-            border-radius: 18px;
+        .scenario-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--navy-light);
+            border: 1px solid var(--turquoise);
+            color: var(--turquoise);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .scenario-btn.active .scenario-badge {
+            background: var(--rose);
+            border-color: var(--rose);
+            color: white;
+        }
+
+        /* Step guidance card */
+        .tutorial-card {
+            background: rgba(11, 20, 38, 0.85);
+            border: 1px solid rgba(57, 214, 195, 0.35);
+            border-radius: 16px;
             padding: 1.5rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
         }
 
-        .screen-bezel {
-            background: #101620;
-            border-radius: 10px;
-            padding: 12px;
-            border: 2px solid #080d14;
-            box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.8);
-            margin-bottom: 1.25rem;
-        }
-
-        .lcd-display {
-            background-color: var(--casio-screen-bg);
-            color: var(--casio-screen-text);
-            font-family: 'Courier New', Courier, monospace;
-            padding: 14px 16px;
-            border-radius: 6px;
-            min-height: 120px;
-            box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            transition: background-color 0.3s ease;
-        }
-
-        .lcd-display.sharp-theme {
-            background-color: var(--sharp-screen-bg);
-        }
-
-        .lcd-header {
+        .tutorial-header {
             display: flex;
             justify-content: space-between;
-            font-size: 0.75rem;
-            font-weight: bold;
-            border-bottom: 1px dashed rgba(23, 36, 13, 0.3);
-            padding-bottom: 4px;
-            letter-spacing: 1px;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.75rem;
         }
 
-        .lcd-main {
-            font-size: 1.15rem;
+        .step-pill {
+            background: linear-gradient(135deg, var(--rose) 0%, #c41249 100%);
+            color: white;
+            padding: 0.35rem 0.9rem;
+            border-radius: 20px;
             font-weight: 700;
-            margin: 8px 0;
-            white-space: pre-wrap;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .step-instruction {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 0.8rem;
             line-height: 1.4;
         }
 
-        .lcd-result {
-            font-size: 1.3rem;
+        .step-detail {
+            color: #d1d9e6;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--turquoise);
+        }
+
+        .key-action-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #253347;
+            border: 1px solid #4a6282;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: 700;
+            color: #ffe677;
+        }
+
+        /* Audio & Control buttons */
+        .controls-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .ctrl-btn {
+            background: rgba(57, 214, 195, 0.15);
+            border: 1px solid var(--turquoise);
+            color: var(--turquoise);
+            padding: 0.6rem 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .ctrl-btn:hover:not(:disabled) {
+            background: var(--turquoise);
+            color: var(--navy);
+            transform: translateY(-1px);
+        }
+
+        .ctrl-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .ctrl-btn.primary {
+            background: linear-gradient(135deg, var(--rose) 0%, #c41249 100%);
+            border-color: var(--rose);
+            color: white;
+        }
+
+        .ctrl-btn.primary:hover:not(:disabled) {
+            box-shadow: 0 0 15px rgba(245, 30, 101, 0.6);
+            color: white;
+        }
+
+        .voice-btn {
+            background: rgba(255, 214, 102, 0.15);
+            border: 1px solid #ffd166;
+            color: #ffd166;
+        }
+
+        .voice-btn:hover {
+            background: #ffd166;
+            color: #111;
+        }
+
+        .voice-btn.active-voice {
+            background: #ffd166;
+            color: #111;
+            box-shadow: 0 0 12px rgba(255, 209, 102, 0.5);
+        }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           CALCULATOR 3D HARDWARE BODY
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .calc-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .calc-body {
+            width: 360px;
+            background: var(--casio-body-grad);
+            border-radius: 24px 24px 34px 34px;
+            padding: 20px 16px 24px 16px;
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.8),
+                0 0 0 2px #445163,
+                inset 0 2px 4px rgba(255, 255, 255, 0.6),
+                inset 0 -4px 8px rgba(0, 0, 0, 0.5);
+            position: relative;
+            box-sizing: border-box;
+            border: 1px solid #2a3440;
+        }
+
+        .calc-brand {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 8px;
+            padding: 0 4px;
+        }
+
+        .calc-brand-logo {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
             font-weight: 900;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            color: #18202c;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .calc-brand-model {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #2b384a;
             text-align: right;
         }
 
-        /* Virtual Keypad Sequence */
-        .key-sequence {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            align-items: center;
-            background: rgba(11, 20, 38, 0.6);
-            padding: 1rem;
-            border-radius: 10px;
-            border: 1px solid var(--card-border);
-            margin-bottom: 1.25rem;
+        .calc-solar {
+            width: 68px;
+            height: 18px;
+            background: linear-gradient(180deg, #2b1d16 0%, #4a3328 100%);
+            border-radius: 4px;
+            border: 1px solid #1a120e;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            padding: 2px;
         }
 
-        .vkey {
-            background: #243e7b;
-            color: white;
-            padding: 0.4rem 0.75rem;
+        .solar-cell {
+            background: #1c1410;
+            border-radius: 1px;
+        }
+
+        /* Screen bezel */
+        .calc-screen-bezel {
+            background: #151b22;
+            border-radius: 12px;
+            padding: 10px;
+            border: 2px solid #0d1217;
+            box-shadow: 
+                inset 0 3px 8px rgba(0,0,0,0.9),
+                0 1px 2px rgba(255,255,255,0.4);
+            margin-bottom: 14px;
+        }
+
+        .calc-lcd {
+            background: #b0c49e;
+            color: #17240d;
             border-radius: 6px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.2);
+            height: 108px;
+            padding: 6px 10px;
+            box-sizing: border-box;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.45);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-family: 'Courier New', Courier, monospace;
+            position: relative;
+            overflow: hidden;
         }
 
-        .vkey.shift { background: #b45309; }
-        .vkey.alpha { background: #047857; }
-        .vkey.mode { background: #475569; }
-        .vkey.ac { background: #b91c1c; }
-        .vkey.sto { background: #4f46e5; }
-
-        /* Step guidance banner */
-        .tutorial-step {
-            background: rgba(57, 214, 195, 0.1);
-            border-left: 4px solid var(--turquoise);
-            padding: 1rem;
-            border-radius: 0 10px 10px 0;
-            margin-bottom: 1rem;
+        /* LCD top indicator bar */
+        .lcd-indicators {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.58rem;
+            font-weight: 900;
+            height: 12px;
+            letter-spacing: 1px;
+            opacity: 0.85;
+            border-bottom: 1px solid rgba(23, 36, 13, 0.2);
+            padding-bottom: 2px;
         }
 
-        .tutorial-step.sharp-border {
-            border-left-color: var(--rose);
-            background: rgba(245, 30, 101, 0.1);
+        .ind-active {
+            color: #17240d;
+            font-weight: 900;
         }
 
-        /* Data table input */
-        .data-input-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0.75rem;
+        .ind-inactive {
+            color: rgba(23, 36, 13, 0.15);
+        }
+
+        /* LCD main content area */
+        .lcd-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             font-size: 0.95rem;
+            font-weight: bold;
+            padding: 4px 0;
+            line-height: 1.25;
         }
 
-        .data-input-table th, .data-input-table td {
-            border: 1px solid var(--card-border);
-            padding: 0.5rem;
+        .lcd-line-1 {
+            display: flex;
+            justify-content: space-between;
+            white-space: pre;
+            min-height: 20px;
+        }
+
+        .lcd-line-2 {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 1.15rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            min-height: 24px;
+        }
+
+        .lcd-table-view {
+            font-size: 0.72rem;
+            line-height: 1.2;
+            width: 100%;
+        }
+
+        .lcd-table-header {
+            display: grid;
+            grid-template-columns: 24px 1fr 1fr;
+            border-bottom: 1px solid #17240d;
+            font-weight: 900;
+        }
+
+        .lcd-table-row {
+            display: grid;
+            grid-template-columns: 24px 1fr 1fr;
+        }
+
+        .lcd-table-row.selected {
+            background: #17240d;
+            color: #b0c49e;
+        }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           KEYPAD LAYOUT
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .keypad {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .top-cluster {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr;
+            gap: 6px;
+            align-items: center;
+            margin-bottom: 2px;
+            width: 100%;
+        }
+
+        .dpad-box {
+            grid-column: 3;
+            grid-row: 1 / span 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dpad {
+            width: 82px;
+            height: 60px;
+            background: linear-gradient(135deg, #a7b6c7 0%, #68798e 100%);
+            border-radius: 50%;
+            box-shadow: 
+                0 4px 6px rgba(0,0,0,0.5),
+                inset 0 2px 3px rgba(255,255,255,0.8),
+                inset 0 -2px 4px rgba(0,0,0,0.4);
+            position: relative;
+            border: 1px solid #4a5969;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .dpad:active {
+            transform: scale(0.96);
+        }
+
+        .dpad-arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+        .dpad-up { top: 5px; left: 34px; border-width: 0 7px 9px 7px; border-color: transparent transparent #263342 transparent; }
+        .dpad-down { bottom: 5px; left: 34px; border-width: 9px 7px 0 7px; border-color: #263342 transparent transparent transparent; }
+        .dpad-left { top: 24px; left: 7px; border-width: 7px 9px 7px 0; border-color: transparent #263342 transparent transparent; }
+        .dpad-right { top: 24px; right: 7px; border-width: 7px 0 7px 9px; border-color: transparent transparent transparent #263342; }
+
+        .sub-row-dpad {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr;
+            gap: 6px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .func-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            width: 100%;
+        }
+
+        .num-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            width: 100%;
+        }
+
+        .key-legend-box {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            width: 100%;
+            min-width: 0;
+            position: relative;
+        }
+
+        .key-sub-label {
+            font-size: 0.52rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+            line-height: 1;
+            height: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 4px;
             text-align: center;
         }
 
-        .data-input-table th {
-            background: rgba(57, 214, 195, 0.2);
-            color: var(--turquoise);
+        .lbl-shift { color: #ffe677; text-shadow: 0 1px 1px rgba(0,0,0,0.5); }
+        .lbl-alpha { color: #ff85a1; text-shadow: 0 1px 1px rgba(0,0,0,0.5); }
+
+        .key-btn {
+            position: relative;
+            width: 100%;
+            min-width: 0;
+            border-radius: 7px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 2px;
+            box-sizing: border-box;
+            box-shadow: 
+                0 3px 0 #202b38,
+                0 4px 5px rgba(0,0,0,0.35),
+                inset 0 1px 1px rgba(255,255,255,0.7);
+            transition: all 0.08s ease;
+            outline: none;
+            user-select: none;
+            font-family: inherit;
+        }
+
+        .key-btn:active, .key-btn.pressed {
+            transform: translateY(2px);
+            box-shadow: 
+                0 1px 0 #202b38,
+                0 2px 3px rgba(0,0,0,0.35),
+                inset 0 1px 1px rgba(255,255,255,0.3);
+        }
+
+        .key-btn.highlight {
+            animation: keyGlow 0.9s infinite alternate;
+        }
+
+        @keyframes keyGlow {
+            0% {
+                box-shadow: 0 0 0 2px #f51e65, 0 0 14px #f51e65, 0 3px 0 #202b38;
+                transform: scale(1.05);
+            }
+            100% {
+                box-shadow: 0 0 0 3px #39d6c3, 0 0 20px #39d6c3, 0 3px 0 #202b38;
+                transform: scale(1.08);
+            }
+        }
+
+        /* Key Colors */
+        .btn-system {
+            background: linear-gradient(180deg, #d8dee8 0%, #b8c4d4 100%);
+            color: #101620;
+            font-weight: 800;
+            font-size: 0.72rem;
+            height: 24px;
+        }
+
+        .btn-shift {
+            background: linear-gradient(180deg, #d8a02a 0%, #b88214 100%);
+            color: #fff;
+            font-weight: 900;
+            font-size: 0.68rem;
+            height: 24px;
+        }
+
+        .btn-alpha {
+            background: linear-gradient(180deg, #d83a62 0%, #b32145 100%);
+            color: #fff;
+            font-weight: 900;
+            font-size: 0.68rem;
+            height: 24px;
+        }
+
+        .btn-func {
+            background: linear-gradient(180deg, #37475a 0%, #202c3a 100%);
+            color: #fff;
             font-weight: 700;
+            font-size: 0.75rem;
+            height: 23px;
+            box-shadow: 0 3px 0 #121a22, 0 4px 4px rgba(0,0,0,0.4);
+        }
+
+        .btn-num {
+            background: linear-gradient(180deg, #f4f6fa 0%, #dbe2ed 100%);
+            color: #141c26;
+            font-weight: 800;
+            font-size: 1rem;
+            height: 30px;
+        }
+
+        .btn-op {
+            background: linear-gradient(180deg, #37475a 0%, #202c3a 100%);
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.95rem;
+            height: 30px;
+            box-shadow: 0 3px 0 #121a22, 0 4px 4px rgba(0,0,0,0.4);
+        }
+
+        .btn-del {
+            background: linear-gradient(180deg, #2b6ca3 0%, #174b78 100%);
+            color: #fff;
+            font-weight: 900;
+            font-size: 0.75rem;
+            height: 30px;
+            box-shadow: 0 3px 0 #0e2e4a, 0 4px 4px rgba(0,0,0,0.4);
+        }
+
+        .btn-ac {
+            background: linear-gradient(180deg, #d83a62 0%, #b32145 100%);
+            color: #fff;
+            font-weight: 900;
+            font-size: 0.75rem;
+            height: 30px;
+            box-shadow: 0 3px 0 #6e1027, 0 4px 4px rgba(0,0,0,0.4);
         }
 
         /* Chart container */
-        .chart-box {
-            background: rgba(11, 20, 38, 0.7);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-top: 1.25rem;
-            min-height: 280px;
+        .chart-container-card {
+            background: rgba(11, 20, 38, 0.85);
+            border: 1px solid rgba(57, 214, 195, 0.35);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <a href="index.html" class="btn-back">
-            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-            Retour au menu
-        </a>
-
-        <header style="margin-bottom: 1.5rem;">
-            <div class="subtitle">4ème Économie & Gestion • Statistiques à deux variables</div>
-            <h1>Simulateur Calculatrice (Casio & Sharp)</h1>
-            <p style="color: var(--text-muted); max-width: 750px; margin: 0.5rem auto 0 auto;">
-                Guide interactif animé pas-à-pas pour maîtriser les calculs statistiques du Bac : Nuage de points, Droite de régression $y = ax+b$, Covariance et Corrélation $r$.
-            </p>
-        </header>
-
-        <!-- Model Switcher -->
-        <div class="calc-model-tabs">
-            <button class="model-tab-btn active-casio" id="tabCasio" onclick="selectModel('casio')">
-                🔵 Simulateur Casio fx-991ES Plus / EX
-            </button>
-            <button class="model-tab-btn" id="tabSharp" onclick="selectModel('sharp')">
-                🔴 Simulateur Sharp EL-531TH / EL-W506
-            </button>
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">📐</span>
+                <div class="logo-text">
+                    <h1>Lyceena Books</h1>
+                    <p>4<sup>ème</sup> Économie & Gestion — Guide Interactif & Vocal</p>
+                </div>
+            </a>
+            <div class="header-actions">
+                <a href="index.html" class="btn-back">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Retour aux animations
+                </a>
+            </div>
         </div>
+    </header>
 
-        <div class="calc-layout">
-            <!-- Left : Virtual Calculator Display & Key Sequence -->
-            <div class="card" style="margin-bottom: 0;">
-                <div class="sim-device">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                        <span id="modelBrand" style="font-weight: 800; letter-spacing: 2px; color: #a4b3c4; font-size: 1rem;">CASIO</span>
-                        <span id="modelName" style="font-size: 0.8rem; background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: 4px; color: var(--turquoise);">fx-991ES PLUS</span>
+    <main class="main-content">
+        <div class="content-container">
+            <div class="page-title-section">
+                <span class="badge">SIMULATEUR CASIO RÉELLE AVEC VOIX</span>
+                <h2>Statistiques à Deux Variables & Régression Linéaire</h2>
+                <p class="subtitle">Suivez pas à pas la manipulation guidée sur la véritable calculatrice Casio fx-991 avec explication vocale naturelle, saisie du tableau $(x_i, y_i)$ et extraction des paramètres $a, b, r, \bar{x}, \bar{y}$.</p>
+            </div>
+
+            <!-- Scenarios selection -->
+            <div class="scenarios-grid">
+                <button class="scenario-btn active" onclick="selectScenario(0)">
+                    <span class="scenario-badge">1</span>
+                    <div>
+                        <strong>Ajustement Linéaire Complet</strong>
+                        <div style="font-size:0.75rem; color:#a0aec0;">Tableau 5 points, $a, b, r$ & Droite</div>
                     </div>
+                </button>
+                <button class="scenario-btn" onclick="selectScenario(1)">
+                    <span class="scenario-badge">2</span>
+                    <div>
+                        <strong>Moyennes & Variances</strong>
+                        <div style="font-size:0.75rem; color:#a0aec0;">Point moyen $G(\bar{x}, \bar{y})$ & Écarts-types</div>
+                    </div>
+                </button>
+                <button class="scenario-btn" onclick="selectScenario(2)">
+                    <span class="scenario-badge">3</span>
+                    <div>
+                        <strong>Prédiction & Estimation</strong>
+                        <div style="font-size:0.75rem; color:#a0aec0;">Calcul de $\hat{y}$ pour $x_0 = 10$</div>
+                    </div>
+                </button>
+                <button class="scenario-btn" onclick="selectScenario(3)">
+                    <span class="scenario-badge">4</span>
+                    <div>
+                        <strong>Effacer la Mémoire Stat</strong>
+                        <div style="font-size:0.75rem; color:#a0aec0;">Réinitialisation complète (Clear Stat)</div>
+                    </div>
+                </button>
+            </div>
 
-                    <!-- LCD Screen -->
-                    <div class="screen-bezel">
-                        <div class="lcd-display" id="lcdDisplay">
-                            <div class="lcd-header">
-                                <span id="lcdModeTag">STAT  D  LINE</span>
-                                <span id="lcdStepTag">ÉTAPE 1/5</span>
+            <div class="main-layout">
+                <!-- Left Column: Guidance & Chart -->
+                <div>
+                    <div class="tutorial-card">
+                        <div class="tutorial-header">
+                            <span class="step-pill" id="stepPill">Étape 1 sur 8</span>
+                            <div class="controls-row">
+                                <button class="ctrl-btn voice-btn active-voice" id="voiceToggleBtn" onclick="toggleVoice()">
+                                    🔊 Voix : ACTIVÉE
+                                </button>
+                                <button class="ctrl-btn" id="repeatVoiceBtn" onclick="speakCurrentStep()">
+                                    🗣️ Répéter
+                                </button>
                             </div>
-                            <div class="lcd-main" id="lcdMainText">
-1: 1-VAR     2: A+BX
-3: _+CX^2    4: ln X
-5: e^X       6: A.B^X
-                            </div>
-                            <div class="lcd-result" id="lcdResult"></div>
+                        </div>
+
+                        <div class="step-instruction" id="stepTitle">Activer le Mode Statistique</div>
+                        <div class="step-detail" id="stepDesc">
+                            Appuyez sur la touche <span class="key-action-badge">MODE</span> pour ouvrir le menu principal de la calculatrice.
+                        </div>
+
+                        <div class="controls-row" style="margin-top: 1rem;">
+                            <button class="ctrl-btn" id="prevBtn" onclick="prevStep()" disabled>← Précédent</button>
+                            <button class="ctrl-btn primary" id="nextBtn" onclick="nextStep()">Suivant →</button>
+                            <button class="ctrl-btn" id="autoBtn" onclick="toggleAutoPlay()">▶ Lecture Auto</button>
                         </div>
                     </div>
 
-                    <!-- Visual Key Sequence -->
-                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 600;">
-                        Touches à presser sur votre calculatrice :
-                    </div>
-                    <div class="key-sequence" id="keySequenceContainer">
-                        <!-- Keys populated by JS -->
-                    </div>
-
-                    <!-- Step explanation -->
-                    <div class="tutorial-step" id="tutorialStepBox">
-                        <h4 id="stepTitle" style="color: var(--turquoise); margin-bottom: 0.3rem;">Étape 1 : Activer le mode Statistique linéaire</h4>
-                        <p id="stepDescription" style="font-size: 0.92rem; line-height: 1.4; color: rgba(255,255,255,0.9);">
-                            Appuyez sur <strong>MODE</strong> puis <strong>3 (STAT)</strong>, et sélectionnez <strong>2 (A+BX)</strong> pour ouvrir le tableau de régression linéaire à 2 variables.
-                        </p>
-                    </div>
-
-                    <!-- Step Controls -->
-                    <div class="controls" style="margin-top: 0.5rem;">
-                        <button id="btnPrev" onclick="prevStep()" disabled>❮ Précédent</button>
-                        <button id="btnAuto" class="accent" onclick="toggleAutoPlay()">▶ Animation Auto</button>
-                        <button id="btnNext" onclick="nextStep()">Suivant ❯</button>
-                        <button onclick="resetStep()">Réinitialiser</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right : Data Scenario & Live Regression Chart -->
-            <div class="card" style="margin-bottom: 0;">
-                <div style="font-weight: 700; color: var(--turquoise); font-size: 1.05rem; margin-bottom: 0.75rem; display:flex; justify-content:space-between; align-items:center;">
-                    <span>📊 Données de l'Exercice</span>
-                    <select id="scenarioSelect" class="preset-select" style="width:auto; padding:0.4rem 0.6rem; font-size:0.85rem; margin:0;" onchange="loadScenario(this.value)">
-                        <option value="scen1">Exemple 1 : Ventes annuelles</option>
-                        <option value="scen2">Exemple 2 : Publicité & Chiffre d'affaires</option>
-                        <option value="scen3">Exemple 3 : Production & Coût</option>
-                    </select>
-                </div>
-
-                <!-- Table Preview -->
-                <table class="data-input-table" id="dataTablePreview">
-                    <thead>
-                        <tr>
-                            <th>Année ($X$)</th>
-                            <th>1</th>
-                            <th>2</th>
-                            <th>3</th>
-                            <th>4</th>
-                            <th>5</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <th>Ventes ($Y$)</th>
-                            <td>12</td>
-                            <td>15</td>
-                            <td>19</td>
-                            <td>22</td>
-                            <td>27</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <!-- Summary Values Calculated -->
-                <div style="background: rgba(11, 20, 38, 0.6); padding: 0.75rem 1rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.08);">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                        <span>Point Moyen $G$ :</span>
-                        <strong style="color:var(--tree-gold);" id="valG">G(3.00 ; 19.00)</strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                        <span>Droite des moindres carrés :</span>
-                        <strong style="color:var(--turquoise);" id="valEquation">y = 3.70 x + 7.90</strong>
-                    </div>
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>Corrélation linéaire $r$ :</span>
-                        <strong style="color:var(--rose);" id="valCorr">r = 0.9959 (Très Forte)</strong>
+                    <!-- Nuage de points interactif -->
+                    <div class="chart-container-card">
+                        <h4 style="color:var(--turquoise); margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;">
+                            📊 Nuage de Points $(x_i, y_i)$ & Droite de Régression $(D)$
+                        </h4>
+                        <div style="position:relative; height:240px; width:100%;">
+                            <canvas id="statsChart"></canvas>
+                        </div>
+                        <div id="statsMathSummary" style="margin-top:0.75rem; font-size:0.85rem; color:#d1d9e6; display:flex; justify-content:space-around; flex-wrap:wrap; gap:0.5rem;">
+                            <span>$\bar{x} = 3$</span>
+                            <span>$\bar{y} = 15$</span>
+                            <span>$a = 2{,}6$</span>
+                            <span>$b = 7{,}2$</span>
+                            <span>$r = 0{,}989$</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Live Chart Canvas -->
-                <div class="chart-box">
-                    <canvas id="regChart"></canvas>
+                <!-- Right Column: Realistic Casio 3D Hardware -->
+                <div class="calc-wrapper">
+                    <div class="calc-body">
+                        <!-- Top brand bar -->
+                        <div class="calc-brand">
+                            <div>
+                                <div class="calc-brand-logo">CASIO</div>
+                                <div class="calc-brand-model">fx-991ES PLUS / EX</div>
+                            </div>
+                            <div class="calc-solar">
+                                <div class="solar-cell"></div>
+                                <div class="solar-cell"></div>
+                                <div class="solar-cell"></div>
+                                <div class="solar-cell"></div>
+                            </div>
+                        </div>
+
+                        <!-- LCD Screen -->
+                        <div class="calc-screen-bezel">
+                            <div class="calc-lcd" id="calcLcd">
+                                <div class="lcd-indicators">
+                                    <span id="indS" class="ind-inactive">S</span>
+                                    <span id="indA" class="ind-inactive">A</span>
+                                    <span id="indM" class="ind-inactive">M</span>
+                                    <span id="indSTO" class="ind-inactive">STO</span>
+                                    <span id="indSTAT" class="ind-active">STAT</span>
+                                    <span id="indD" class="ind-active">D</span>
+                                    <span id="indMath" class="ind-active">Math▲</span>
+                                </div>
+                                <div class="lcd-content" id="lcdContent">
+                                    <div class="lcd-line-1" id="lcdLine1">STAT Mode</div>
+                                    <div class="lcd-line-2" id="lcdLine2">Ready</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Keypad -->
+                        <div class="keypad">
+                            <!-- Top Cluster: SHIFT, ALPHA, DPAD, MODE, ON -->
+                            <div class="top-cluster">
+                                <div class="key-legend-box">
+                                    <div class="key-sub-label"></div>
+                                    <button class="key-btn btn-shift" id="key-shift" onclick="pressKey('SHIFT')">SHIFT</button>
+                                </div>
+                                <div class="key-legend-box">
+                                    <div class="key-sub-label"></div>
+                                    <button class="key-btn btn-alpha" id="key-alpha" onclick="pressKey('ALPHA')">ALPHA</button>
+                                </div>
+                                <div class="dpad-box">
+                                    <div class="dpad" id="key-dpad" onclick="pressKey('DPAD')">
+                                        <div class="dpad-arrow dpad-up" onclick="event.stopPropagation(); pressKey('UP')"></div>
+                                        <div class="dpad-arrow dpad-down" onclick="event.stopPropagation(); pressKey('DOWN')"></div>
+                                        <div class="dpad-arrow dpad-left" onclick="event.stopPropagation(); pressKey('LEFT')"></div>
+                                        <div class="dpad-arrow dpad-right" onclick="event.stopPropagation(); pressKey('RIGHT')"></div>
+                                    </div>
+                                </div>
+                                <div class="key-legend-box">
+                                    <div class="key-sub-label"><span class="lbl-shift">SETUP</span></div>
+                                    <button class="key-btn btn-system" id="key-mode" onclick="pressKey('MODE')">MODE</button>
+                                </div>
+                                <div class="key-legend-box">
+                                    <div class="key-sub-label"></div>
+                                    <button class="key-btn btn-system" id="key-on" onclick="pressKey('ON')">ON</button>
+                                </div>
+                            </div>
+
+                            <!-- Function Grid 1: OPTN, CALC, d/dx, x^-1, log, fraction -->
+                            <div class="func-row">
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">QR</span></div><button class="key-btn btn-func" id="key-optn" onclick="pressKey('OPTN')">OPTN</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">SOLVE</span></div><button class="key-btn btn-func" id="key-calc" onclick="pressKey('CALC')">CALC</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">d/dx</span></div><button class="key-btn btn-func" id="key-int" onclick="pressKey('INT')">∫dx</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">x!</span></div><button class="key-btn btn-func" id="key-inv" onclick="pressKey('INV')">x⁻¹</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">Σ</span></div><button class="key-btn btn-func" id="key-log" onclick="pressKey('LOG')">log</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"></div><button class="key-btn btn-func" id="key-frac" onclick="pressKey('FRAC')">■/□</button></div>
+                            </div>
+
+                            <!-- Function Grid 2: sqrt, x^2, x^y, ln, (-) , deg -->
+                            <div class="func-row">
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">3√</span></div><button class="key-btn btn-func" id="key-sqrt" onclick="pressKey('SQRT')">√■</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">x3</span></div><button class="key-btn btn-func" id="key-sq" onclick="pressKey('SQ')">x²</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">x√</span></div><button class="key-btn btn-func" id="key-pwr" onclick="pressKey('PWR')">x■</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">e■</span></div><button class="key-btn btn-func" id="key-ln" onclick="pressKey('LN')">ln</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-alpha">A</span></div><button class="key-btn btn-func" id="key-neg" onclick="pressKey('NEG')">(-)</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-alpha">B</span></div><button class="key-btn btn-func" id="key-deg" onclick="pressKey('DEG')">° ' "</button></div>
+                            </div>
+
+                            <!-- Numeric Row 1: 7, 8, 9, DEL, AC -->
+                            <div class="num-row">
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">CONST</span></div><button class="key-btn btn-num" id="key-7" onclick="pressKey('7')">7</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">CONV</span></div><button class="key-btn btn-num" id="key-8" onclick="pressKey('8')">8</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">CLR</span></div><button class="key-btn btn-num" id="key-9" onclick="pressKey('9')">9</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">INS</span></div><button class="key-btn btn-del" id="key-del" onclick="pressKey('DEL')">DEL</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">OFF</span></div><button class="key-btn btn-ac" id="key-ac" onclick="pressKey('AC')">AC</button></div>
+                            </div>
+
+                            <!-- Numeric Row 2: 4, 5, 6, x, / -->
+                            <div class="num-row">
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">MATRIX</span></div><button class="key-btn btn-num" id="key-4" onclick="pressKey('4')">4</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">VECTOR</span></div><button class="key-btn btn-num" id="key-5" onclick="pressKey('5')">5</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"></div><button class="key-btn btn-num" id="key-6" onclick="pressKey('6')">6</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">nPr</span></div><button class="key-btn btn-op" id="key-mul" onclick="pressKey('MUL')">×</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">nCr</span></div><button class="key-btn btn-op" id="key-div" onclick="pressKey('DIV')">÷</button></div>
+                            </div>
+
+                            <!-- Numeric Row 3: 1, 2, 3, +, - -->
+                            <div class="num-row">
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">STAT</span></div><button class="key-btn btn-num" id="key-1" onclick="pressKey('1')">1</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">CMPLX</span></div><button class="key-btn btn-num" id="key-2" onclick="pressKey('2')">2</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">BASE</span></div><button class="key-btn btn-num" id="key-3" onclick="pressKey('3')">3</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">Pol</span></div><button class="key-btn btn-op" id="key-plus" onclick="pressKey('PLUS')">+</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">Rec</span></div><button class="key-btn btn-op" id="key-minus" onclick="pressKey('MINUS')">-</button></div>
+                            </div>
+
+                            <!-- Numeric Row 4: 0, ., x10^x, Ans, = -->
+                            <div class="num-row">
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">Rnd</span></div><button class="key-btn btn-num" id="key-0" onclick="pressKey('0')">0</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">Ran#</span></div><button class="key-btn btn-num" id="key-dot" onclick="pressKey('DOT')">.</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">π</span></div><button class="key-btn btn-op" id="key-exp" onclick="pressKey('EXP')">×10ˣ</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">%</span></div><button class="key-btn btn-op" id="key-ans" onclick="pressKey('ANS')">Ans</button></div>
+                                <div class="key-legend-box"><div class="key-sub-label"></div><button class="key-btn btn-op" id="key-eq" style="background:linear-gradient(180deg,#39d6c3 0%,#209b8d 100%); color:#0b1426; font-size:1.1rem;" onclick="pressKey('EQ')">=</button></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p>© 2026 Lyceena Books — Collection Mathématiques 4<sup>ème</sup> Économie & Gestion. Conçu pour l'excellence au Baccalauréat.</p>
+        </div>
+    </footer>
 
     <script>
-        let currentModel = 'casio'; // 'casio' or 'sharp'
-        let currentStepIndex = 0;
-        let autoTimer = null;
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  SCENARIOS & DATA
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        let isVoiceEnabled = true;
+        let autoPlayTimer = null;
+        let isAutoPlaying = false;
+        let currentScenarioIdx = 0;
+        let currentStepIdx = 0;
+        let statsChart = null;
 
-        const SCENARIOS = {
-            scen1: {
-                name: "Ventes annuelles",
-                xLabel: "Année (X)",
-                yLabel: "Ventes (Y)",
-                x: [1, 2, 3, 4, 5],
-                y: [12, 15, 19, 22, 27]
-            },
-            scen2: {
-                name: "Publicité & CA",
-                xLabel: "Budget Pub (X en kDT)",
-                yLabel: "Chiffre d'Affaires (Y)",
-                x: [2, 4, 6, 8, 10],
-                y: [25, 38, 52, 67, 85]
-            },
-            scen3: {
-                name: "Production & Coût",
-                xLabel: "Quantité (X)",
-                yLabel: "Coût Total (Y)",
-                x: [10, 20, 30, 40, 50],
-                y: [45, 65, 80, 105, 130]
-            }
-        };
-
-        let currentScenario = SCENARIOS.scen1;
-
-        // Steps definitions for Casio
-        const CASIO_STEPS = [
+        const scenarios = [
             {
-                title: "Étape 1 : Activer le Mode Statistique",
-                desc: "Allumez la calculatrice, appuyez sur <strong>MODE</strong> puis <strong>3 (STAT)</strong>. Choisissez <strong>2 (A+BX)</strong> pour configurer la régression linéaire.",
-                keys: [
-                    { label: "MODE", cls: "mode" },
-                    { label: "3 (STAT)" },
-                    { label: "2 (A+BX)", cls: "shift" }
-                ],
-                lcdMode: "STAT  D  LINE",
-                screen: `   Stat Type\n 1: 1-VAR\n 2: A+BX\n 3: _+CX^2`,
-                result: ""
+                id: "ajustement_complet",
+                title: "Ajustement Linéaire Complet (y = ax + b)",
+                dataPoints: [ {x: 1, y: 10}, {x: 2, y: 12}, {x: 3, y: 15}, {x: 4, y: 18}, {x: 5, y: 20} ],
+                stats: { xBar: "3", yBar: "15", a: "2.6", b: "7.2", r: "0.989" },
+                steps: [
+                    {
+                        title: "1. Activer le Menu de Configuration",
+                        desc: "Appuyez sur la touche MODE pour afficher la liste des modes de calcul disponibles.",
+                        voice: "Pour commencer l'ajustement linéaire, appuyez sur la touche MODE pour choisir le mode Statistique.",
+                        key: "MODE",
+                        lcd: {
+                            l1: "1:COMP    2:CMPLX",
+                            l2: "3:STAT    4:BASE-N"
+                        }
+                    },
+                    {
+                        title: "2. Sélectionner le Mode Statistique",
+                        desc: "Appuyez sur la touche 3 pour accéder au mode STAT.",
+                        voice: "Appuyez sur la touche 3 pour entrer dans le mode Statistique.",
+                        key: "3",
+                        lcd: {
+                            l1: "1:1-VAR   2:A+BX",
+                            l2: "3:_+CX²   4:ln X"
+                        }
+                    },
+                    {
+                        title: "3. Choisir le Modèle Linéaire A+BX",
+                        desc: "Appuyez sur 2 pour sélectionner la régression linéaire affine y = a + bx (ou y = ax + b).",
+                        voice: "Sélectionnez l'option 2 pour la régression affine à deux variables A plus B X.",
+                        key: "2",
+                        lcd: {
+                            table: [
+                                {n: 1, x: "", y: ""},
+                                {n: 2, x: "", y: ""},
+                                {n: 3, x: "", y: ""}
+                            ],
+                            selected: {r: 0, c: "x"}
+                        }
+                    },
+                    {
+                        title: "4. Saisir les Abscisses (x = 1, 2, 3, 4, 5)",
+                        desc: "Entrez les valeurs de X en validant par la touche = après chaque nombre : 1 = 2 = 3 = 4 = 5 =",
+                        voice: "Saisissez les valeurs de la colonne X : 1, 2, 3, 4, 5 en validant chaque valeur avec la touche égale.",
+                        key: "EQ",
+                        lcd: {
+                            table: [
+                                {n: 1, x: "1", y: ""},
+                                {n: 2, x: "2", y: ""},
+                                {n: 3, x: "3", y: ""},
+                                {n: 4, x: "4", y: ""},
+                                {n: 5, x: "5", y: ""}
+                            ],
+                            selected: {r: 4, c: "x"}
+                        }
+                    },
+                    {
+                        title: "5. Saisir les Ordonnées (y = 10, 12, 15, 18, 20)",
+                        desc: "Utilisez les flèches du pavé directionnel pour passer à la colonne Y, puis tapez : 10 = 12 = 15 = 18 = 20 =",
+                        voice: "Placez-vous sur la colonne Y et saisissez les ordonnées : 10, 12, 15, 18, 20 en validant par égale.",
+                        key: "EQ",
+                        lcd: {
+                            table: [
+                                {n: 1, x: "1", y: "10"},
+                                {n: 2, x: "2", y: "12"},
+                                {n: 3, x: "3", y: "15"},
+                                {n: 4, x: "4", y: "18"},
+                                {n: 5, x: "5", y: "20"}
+                            ],
+                            selected: {r: 4, c: "y"}
+                        }
+                    },
+                    {
+                        title: "6. Mémoriser et Revenir à l'Écran Neutre",
+                        desc: "Appuyez sur la touche AC pour mémoriser le tableau dans le processeur sans effacer les données.",
+                        voice: "Appuyez sur la touche A C pour mémoriser le tableau statistique.",
+                        key: "AC",
+                        lcd: {
+                            l1: "STAT",
+                            l2: "0"
+                        }
+                    },
+                    {
+                        title: "7. Ouvrir le Menu des Statistiques (SHIFT + 1)",
+                        desc: "Appuyez sur SHIFT puis sur 1 (STAT) pour ouvrir les résultats de calculs.",
+                        voice: "Faites SHIFT puis 1 pour afficher le menu des résultats statistiques.",
+                        key: "1",
+                        lcd: {
+                            l1: "1:Type  2:Data",
+                            l2: "3:Sum   4:Var  5:Reg"
+                        }
+                    },
+                    {
+                        title: "8. Extraire les Coefficients a, b et r (Option 5:Reg)",
+                        desc: "Appuyez sur 5 pour accéder aux coefficients de régression : 1:A (ordonnée à l'origine), 2:B (pente), 3:r (corrélation).",
+                        voice: "Appuyez sur 5 pour afficher les résultats de régression. Vous obtenez la pente a = 2 virgule 6, l'ordonnée à l'origine b = 7 virgule 2, et le coefficient de corrélation r = 0 virgule 989.",
+                        key: "5",
+                        lcd: {
+                            l1: "A=7.2       B=2.6",
+                            l2: "r=0.9899"
+                        }
+                    }
+                ]
             },
             {
-                title: "Étape 2 : Saisie des données du tableau",
-                desc: "Entrez les valeurs de la colonne <strong>X</strong> (validez chaque nombre par <strong>=</strong>). Déplacez le curseur avec la flèche droite pour remplir la colonne <strong>Y</strong>. Appuyez sur <strong>AC</strong> une fois terminé.",
-                keys: [
-                    { label: "Saisir X...", cls: "sto" },
-                    { label: "=" },
-                    { label: "Saisir Y...", cls: "sto" },
-                    { label: "=" },
-                    { label: "AC", cls: "ac" }
-                ],
-                lcdMode: "STAT  D",
-                screen: `     X        Y\n 1 [ 1   ] [ 12  ]\n 2 [ 2   ] [ 15  ]\n 3 [ 3   ] [ 19  ]`,
-                result: "Données mémorisées"
+                id: "moyennes_variances",
+                title: "Moyennes, Écarts-types & Point Moyen G",
+                dataPoints: [ {x: 1, y: 10}, {x: 2, y: 12}, {x: 3, y: 15}, {x: 4, y: 18}, {x: 5, y: 20} ],
+                stats: { xBar: "3", yBar: "15", a: "2.6", b: "7.2", r: "0.989" },
+                steps: [
+                    {
+                        title: "1. Revenir à l'Écran Neutre",
+                        desc: "Appuyez sur AC après avoir saisi vos données statistiques.",
+                        voice: "Pour calculer le point moyen G, appuyez sur la touche A C.",
+                        key: "AC",
+                        lcd: { l1: "STAT", l2: "0" }
+                    },
+                    {
+                        title: "2. Ouvrir le Menu STAT",
+                        desc: "Appuyez sur SHIFT puis sur 1 (STAT).",
+                        voice: "Appuyez sur SHIFT puis 1 pour ouvrir le menu statistique.",
+                        key: "1",
+                        lcd: { l1: "1:Type  2:Data", l2: "3:Sum   4:Var  5:Reg" }
+                    },
+                    {
+                        title: "3. Sélectionner 4:Var pour les Moyennes",
+                        desc: "Appuyez sur 4 pour afficher x̄, σx, ȳ, σy.",
+                        voice: "Choisissez l'option 4 pour afficher les moyennes x barre, y barre et les écarts-types.",
+                        key: "4",
+                        lcd: { l1: "1:n     2:x̄   3:σx", l2: "4:sx    5:ȳ   6:σy" }
+                    },
+                    {
+                        title: "4. Afficher la moyenne x̄",
+                        desc: "Appuyez sur 2 puis = pour calculer x̄.",
+                        voice: "Appuyez sur 2 puis égale. La moyenne x barre est égale à 3.",
+                        key: "EQ",
+                        lcd: { l1: "x̄", l2: "3" }
+                    },
+                    {
+                        title: "5. Afficher la moyenne ȳ",
+                        desc: "Appuyez sur SHIFT 1 4 5 = pour calculer ȳ.",
+                        voice: "Répétez l'opération avec l'option 5 pour afficher la moyenne y barre qui vaut 15. Le point moyen G a pour coordonnées 3 et 15.",
+                        key: "EQ",
+                        lcd: { l1: "ȳ", l2: "15" }
+                    }
+                ]
             },
             {
-                title: "Étape 3 : Extraction des Moyennes et Écarts-types",
-                desc: "Appuyez sur <strong>SHIFT 1 (STAT)</strong> puis <strong>4 (Var)</strong> pour obtenir la moyenne $\\bar{x}$, $\\bar{y}$ et l'effectif $n$.",
-                keys: [
-                    { label: "SHIFT", cls: "shift" },
-                    { label: "1 (STAT)" },
-                    { label: "4 (Var)" },
-                    { label: "2 (x̄) / 5 (ȳ)" },
-                    { label: "=" }
-                ],
-                lcdMode: "STAT  D",
-                screen: ` 1: n       2: x̄\n 3: xσn    4: xσn-1\n 5: ȳ       6: yσn`,
-                result: "x̄ = 3.00 | ȳ = 19.00"
+                id: "prediction_estimation",
+                title: "Prédiction & Estimation (Calcul de ŷ)",
+                dataPoints: [ {x: 1, y: 10}, {x: 2, y: 12}, {x: 3, y: 15}, {x: 4, y: 18}, {x: 5, y: 20} ],
+                stats: { xBar: "3", yBar: "15", a: "2.6", b: "7.2", r: "0.989" },
+                steps: [
+                    {
+                        title: "1. Saisir la valeur de x0 (Exemple x = 10)",
+                        desc: "Tapez 1 0 sur le clavier numérique.",
+                        voice: "Pour estimer la valeur de y en l'année de rang 10, tapez 10.",
+                        key: "0",
+                        lcd: { l1: "10", l2: "" }
+                    },
+                    {
+                        title: "2. Ouvrir le Menu Régression (SHIFT 1 -> 5:Reg)",
+                        desc: "Faites SHIFT puis 1, puis choisissez 5:Reg.",
+                        voice: "Faites SHIFT 1 puis choisissez l'option 5 Régression.",
+                        key: "5",
+                        lcd: { l1: "1:A    2:B    3:r", l2: "4:x̂    5:ŷ" }
+                    },
+                    {
+                        title: "3. Choisir le symbole d'estimation ŷ (Touche 5)",
+                        desc: "Appuyez sur 5 pour insérer le symbole ŷ après le 10.",
+                        voice: "Appuyez sur 5 pour insérer le symbole y chapeau.",
+                        key: "5",
+                        lcd: { l1: "10ŷ", l2: "" }
+                    },
+                    {
+                        title: "4. Valider l'Estimation par =",
+                        desc: "Appuyez sur = pour obtenir la valeur estimée : ŷ = 2.6(10) + 7.2 = 33.2.",
+                        voice: "Appuyez sur égale. La valeur prédite est de 33 virgule 2.",
+                        key: "EQ",
+                        lcd: { l1: "10ŷ", l2: "33.2" }
+                    }
+                ]
             },
             {
-                title: "Étape 4 : Droite de Régression et Corrélation r",
-                desc: "Appuyez sur <strong>SHIFT 1 (STAT)</strong> puis <strong>5 (Reg)</strong>. <strong>1 (A)</strong> donne l'ordonnée à l'origine $b$, <strong>2 (B)</strong> donne la pente $a$, et <strong>3 (r)</strong> donne le coefficient de corrélation.",
-                keys: [
-                    { label: "SHIFT", cls: "shift" },
-                    { label: "1 (STAT)" },
-                    { label: "5 (Reg)" },
-                    { label: "1(A) / 2(B) / 3(r)" },
-                    { label: "=" }
-                ],
-                lcdMode: "STAT  D",
-                screen: ` 1: A (Intercept)\n 2: B (Pente a)\n 3: r (Corrélation)`,
-                result: "a = 3.70 | b = 7.90 | r = 0.9959"
-            },
-            {
-                title: "Étape 5 : Estimation d'une valeur future (ŷ)",
-                desc: "Pour estimer la valeur de $y$ pour $x = 6$ : tapez <strong>6</strong> $\\to$ <strong>SHIFT 1 (STAT)</strong> $\\to$ <strong>5 (Reg)</strong> $\\to$ <strong>5 (ŷ)</strong> $\\to$ <strong>=</strong>.",
-                keys: [
-                    { label: "6", cls: "sto" },
-                    { label: "SHIFT", cls: "shift" },
-                    { label: "1 (STAT)" },
-                    { label: "5 (Reg)" },
-                    { label: "5 (ŷ)" },
-                    { label: "=" }
-                ],
-                lcdMode: "STAT  D",
-                screen: ` 6 ŷ`,
-                result: "= 30.10"
+                id: "reset_stat",
+                title: "Effacer la Mémoire Statistique (Clear Stat)",
+                dataPoints: [],
+                stats: { xBar: "-", yBar: "-", a: "-", b: "-", r: "-" },
+                steps: [
+                    {
+                        title: "1. Activer le Menu de Réinitialisation (CLR)",
+                        desc: "Appuyez sur SHIFT puis sur 9 (CLR).",
+                        voice: "Pour effacer toutes les données précédentes, faites SHIFT puis 9.",
+                        key: "9",
+                        lcd: { l1: "Clear?", l2: "1:Setup 2:Memory 3:All" }
+                    },
+                    {
+                        title: "2. Choisir d'effacer la mémoire (Touche 2 ou 3)",
+                        desc: "Appuyez sur 3 (All) pour tout réinitialiser.",
+                        voice: "Appuyez sur 3 pour tout effacer.",
+                        key: "3",
+                        lcd: { l1: "Reset All?", l2: "[=] : Yes   [AC] : Cancel" }
+                    },
+                    {
+                        title: "3. Confirmer la réinitialisation",
+                        desc: "Appuyez sur = pour confirmer, puis sur AC.",
+                        voice: "Appuyez sur la touche égale pour confirmer, puis sur A C.",
+                        key: "EQ",
+                        lcd: { l1: "Reset All", l2: "Press [AC] key" }
+                    }
+                ]
             }
         ];
 
-        // Steps definitions for Sharp
-        const SHARP_STEPS = [
-            {
-                title: "Étape 1 : Activer le Mode Statistique LINE",
-                desc: "Sur Sharp EL-531TH : appuyez sur <strong>MODE</strong> puis <strong>1</strong> et <strong>1 (LINE)</strong> pour sélectionner la régression linéaire.",
-                keys: [
-                    { label: "MODE", cls: "mode" },
-                    { label: "1 (STAT)" },
-                    { label: "1 (LINE)", cls: "shift" }
-                ],
-                lcdMode: "STAT  LINE",
-                screen: `Stat 1\n[LINE]\nReady for data`,
-                result: ""
-            },
-            {
-                title: "Étape 2 : Saisie des couples (xi, yi)",
-                desc: "Entrez chaque point : tapez $x_i$ $\\to$ <strong>STO (noté (x,y))</strong> $\\to$ tapez $y_i$ $\\to$ <strong>M+ (DATA)</strong>. Le compteur DATA SET avance à chaque point.",
-                keys: [
-                    { label: "xi", cls: "sto" },
-                    { label: "STO (x,y)", cls: "sto" },
-                    { label: "yi", cls: "sto" },
-                    { label: "M+ (DATA)", cls: "ac" }
-                ],
-                lcdMode: "STAT  LINE",
-                screen: `DATA SET =\n       5`,
-                result: "5 couples saisis"
-            },
-            {
-                title: "Étape 3 : Extraction des Moyennes et Sommes",
-                desc: "Accédez directement aux résultats avec la touche <strong>ALPHA</strong> : $\\bar{x} =$ <strong>ALPHA 4</strong> et $\\bar{y} =$ <strong>ALPHA 7</strong>.",
-                keys: [
-                    { label: "ALPHA", cls: "alpha" },
-                    { label: "4 (x̄)" },
-                    { label: "=" },
-                    { label: "ALPHA", cls: "alpha" },
-                    { label: "7 (ȳ)" }
-                ],
-                lcdMode: "STAT  LINE",
-                screen: `x̄ = 3.00\nȳ = 19.00\nn = 5`,
-                result: "x̄ = 3.00 | ȳ = 19.00"
-            },
-            {
-                title: "Étape 4 : Extraction de l'Ordonnée, Pente et Corrélation",
-                desc: "Sur Sharp, l'ordonnée à l'origine est notée $a$ (<strong>ALPHA (</strong>), la pente est notée $b$ (<strong>ALPHA )</strong>) et le coefficient de corrélation $r$ (<strong>ALPHA ÷</strong>).",
-                keys: [
-                    { label: "ALPHA", cls: "alpha" },
-                    { label: "( (a: ordonnée)" },
-                    { label: "ALPHA", cls: "alpha" },
-                    { label: ") (b: pente)" },
-                    { label: "ALPHA", cls: "alpha" },
-                    { label: "÷ (r: corr)" }
-                ],
-                lcdMode: "STAT  LINE",
-                screen: `a (intercept) = 7.90\nb (pente)     = 3.70\nr (corr)      = 0.9959`,
-                result: "a=7.90 | b=3.70 | r=0.9959"
-            },
-            {
-                title: "Étape 5 : Réinitialiser la mémoire (Memory Clear)",
-                desc: "Pour effacer toutes les données et recommencer : appuyez sur <strong>2ndF</strong> puis <strong>MODE (CA : Clear All)</strong>.",
-                keys: [
-                    { label: "2ndF", cls: "shift" },
-                    { label: "MODE (CA)", cls: "mode" }
-                ],
-                lcdMode: "STAT",
-                screen: `Clear Memory ?\n[CA] Done`,
-                result: "Mémoire effacée"
-            }
-        ];
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  SYNTHÈSE VOCALE INTELLIGENTE
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function speakText(text) {
+            if (!isVoiceEnabled) return;
 
-        let regChartInstance = null;
-
-        document.addEventListener("DOMContentLoaded", () => {
-            renderMath();
-            initChart();
-            updateStepView();
-        });
-
-        function renderMath(target) {
-            var el = target || document.body;
-            if (window.renderMathInElement) {
-                window.renderMathInElement(el, {
-                    delimiters: [
-                        { left: "$$", right: "$$", display: true },
-                        { left: "$", right: "$", display: false },
-                        { left: "\\(", right: "\\)", display: false },
-                        { left: "\\[", right: "\\]", display: true }
-                    ],
-                    throwOnError: false
+            // 1. Essai avec ResponsiveVoice (voix française naturelle)
+            if (typeof responsiveVoice !== 'undefined' && responsiveVoice.voiceSupport()) {
+                responsiveVoice.cancel();
+                responsiveVoice.speak(text, "French Female", {
+                    pitch: 1.0,
+                    rate: 0.95,
+                    volume: 1.0
                 });
+                return;
+            }
+
+            // 2. Fallback Web Speech API standard
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'fr-FR';
+                utterance.rate = 0.95;
+                utterance.pitch = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function toggleVoice() {
+            isVoiceEnabled = !isVoiceEnabled;
+            const btn = document.getElementById('voiceToggleBtn');
+            if (isVoiceEnabled) {
+                btn.classList.add('active-voice');
+                btn.innerHTML = '🔊 Voix : ACTIVÉE';
+                speakCurrentStep();
             } else {
-                setTimeout(function() { renderMath(target); }, 100);
+                btn.classList.remove('active-voice');
+                btn.innerHTML = '🔇 Voix : DÉSACTIVÉE';
+                if (typeof responsiveVoice !== 'undefined') responsiveVoice.cancel();
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
             }
         }
 
-        function selectModel(model) {
-            currentModel = model;
-            currentStepIndex = 0;
-
-            const tabC = document.getElementById('tabCasio');
-            const tabS = document.getElementById('tabSharp');
-            const display = document.getElementById('lcdDisplay');
-            const stepBox = document.getElementById('tutorialStepBox');
-
-            if (model === 'casio') {
-                tabC.className = "model-tab-btn active-casio";
-                tabS.className = "model-tab-btn";
-                document.getElementById('modelBrand').innerText = "CASIO";
-                document.getElementById('modelName').innerText = "fx-991ES PLUS / EX";
-                display.classList.remove('sharp-theme');
-                stepBox.classList.remove('sharp-border');
-            } else {
-                tabC.className = "model-tab-btn";
-                tabS.className = "model-tab-btn active-sharp";
-                document.getElementById('modelBrand').innerText = "SHARP";
-                document.getElementById('modelName').innerText = "EL-531TH / EL-W506";
-                display.classList.add('sharp-theme');
-                stepBox.classList.add('sharp-border');
+        function speakCurrentStep() {
+            const sc = scenarios[currentScenarioIdx];
+            const step = sc.steps[currentStepIdx];
+            if (step && step.voice) {
+                speakText(step.voice);
             }
-
-            updateStepView();
         }
 
-        function loadScenario(key) {
-            currentScenario = SCENARIOS[key];
-            updateTablePreview();
-            updateRegressionMath();
-            updateChartData();
-        }
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  NAVIGATION ET CONTRÔLEUR
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function selectScenario(idx) {
+            currentScenarioIdx = idx;
+            currentStepIdx = 0;
+            stopAutoPlay();
 
-        function updateTablePreview() {
-            const sc = currentScenario;
-            let html = `<thead><tr><th>${sc.xLabel}</th>`;
-            sc.x.forEach(v => html += `<th>${v}</th>`);
-            html += `</tr></thead><tbody><tr><th>${sc.yLabel}</th>`;
-            sc.y.forEach(v => html += `<td>${v}</td>`);
-            html += `</tr></tbody>`;
-            document.getElementById('dataTablePreview').innerHTML = html;
-        }
-
-        function updateRegressionMath() {
-            const sc = currentScenario;
-            const n = sc.x.length;
-            const sumX = sc.x.reduce((a, b) => a + b, 0);
-            const sumY = sc.y.reduce((a, b) => a + b, 0);
-            const meanX = sumX / n;
-            const meanY = sumY / n;
-
-            let sumSqX = 0, sumSqY = 0, sumXY = 0;
-            for (let i = 0; i < n; i++) {
-                sumSqX += Math.pow(sc.x[i] - meanX, 2);
-                sumSqY += Math.pow(sc.y[i] - meanY, 2);
-                sumXY += (sc.x[i] - meanX) * (sc.y[i] - meanY);
-            }
-
-            const a = sumXY / sumSqX;
-            const b = meanY - a * meanX;
-            const r = sumXY / Math.sqrt(sumSqX * sumSqY);
-
-            document.getElementById('valG').innerText = `G(${meanX.toFixed(2)} ; ${meanY.toFixed(2)})`;
-            document.getElementById('valEquation').innerText = `y = ${a.toFixed(2)} x + ${b.toFixed(2)}`;
-            document.getElementById('valCorr').innerText = `r = ${r.toFixed(4)} (${Math.abs(r) >= 0.95 ? 'Très Forte' : 'Modérée'})`;
-        }
-
-        function updateStepView() {
-            const steps = currentModel === 'casio' ? CASIO_STEPS : SHARP_STEPS;
-            const s = steps[currentStepIndex];
-
-            document.getElementById('stepTitle').innerText = s.title;
-            document.getElementById('stepDescription').innerHTML = s.desc;
-            document.getElementById('lcdModeTag').innerText = s.lcdMode;
-            document.getElementById('lcdStepTag').innerText = `ÉTAPE ${currentStepIndex + 1}/${steps.length}`;
-            document.getElementById('lcdMainText').innerText = s.screen;
-            document.getElementById('lcdResult').innerText = s.result;
-
-            let keysHtml = "";
-            s.keys.forEach(k => {
-                const cls = k.cls ? `vkey ${k.cls}` : "vkey";
-                keysHtml += `<span class="${cls}">${k.label}</span>`;
+            // Mettre à jour les boutons de scénario
+            const btns = document.querySelectorAll('.scenario-btn');
+            btns.forEach((b, i) => {
+                if (i === idx) b.classList.add('active');
+                else b.classList.remove('active');
             });
-            document.getElementById('keySequenceContainer').innerHTML = keysHtml;
 
-            document.getElementById('btnPrev').disabled = (currentStepIndex === 0);
-            document.getElementById('btnNext').disabled = (currentStepIndex === steps.length - 1);
-            renderMath(document.getElementById('tutorialStepBox'));
+            updateChart();
+            renderStep();
+        }
+
+        function renderStep() {
+            const sc = scenarios[currentScenarioIdx];
+            const step = sc.steps[currentStepIdx];
+
+            // Update Header & Pill
+            document.getElementById('stepPill').innerText = `Étape ${currentStepIdx + 1} sur ${sc.steps.length}`;
+            document.getElementById('stepTitle').innerText = step.title;
+            document.getElementById('stepDesc').innerHTML = step.desc;
+
+            // Update Navigation Buttons
+            document.getElementById('prevBtn').disabled = (currentStepIdx === 0);
+            document.getElementById('nextBtn').disabled = (currentStepIdx === sc.steps.length - 1);
+
+            // Update LCD Display
+            updateLcd(step.lcd);
+
+            // Highlight target key
+            highlightKey(step.key);
+
+            // Speak instruction
+            speakCurrentStep();
+        }
+
+        function updateLcd(lcdData) {
+            const content = document.getElementById('lcdContent');
+            if (!lcdData) return;
+
+            if (lcdData.table) {
+                let tableHtml = `
+                    <div class="lcd-table-view">
+                        <div class="lcd-table-header">
+                            <div>#</div><div>X</div><div>Y</div>
+                        </div>
+                `;
+                lcdData.table.forEach((row, i) => {
+                    const isSel = lcdData.selected && lcdData.selected.r === i;
+                    tableHtml += `
+                        <div class="lcd-table-row ${isSel ? 'selected' : ''}">
+                            <div>${row.n}</div>
+                            <div>${row.x || ''}</div>
+                            <div>${row.y || ''}</div>
+                        </div>
+                    `;
+                });
+                tableHtml += '</div>';
+                content.innerHTML = tableHtml;
+            } else {
+                content.innerHTML = `
+                    <div class="lcd-line-1">${lcdData.l1 || ''}</div>
+                    <div class="lcd-line-2">${lcdData.l2 || ''}</div>
+                `;
+            }
+        }
+
+        function highlightKey(keyName) {
+            // Remove previous highlights
+            document.querySelectorAll('.key-btn, .dpad').forEach(el => el.classList.remove('highlight'));
+            if (!keyName) return;
+
+            const map = {
+                'MODE': 'key-mode',
+                'ON': 'key-on',
+                'SHIFT': 'key-shift',
+                'ALPHA': 'key-alpha',
+                'OPTN': 'key-optn',
+                'CALC': 'key-calc',
+                'AC': 'key-ac',
+                'DEL': 'key-del',
+                'EQ': 'key-eq',
+                '0': 'key-0', '1': 'key-1', '2': 'key-2', '3': 'key-3', '4': 'key-4',
+                '5': 'key-5', '6': 'key-6', '7': 'key-7', '8': 'key-8', '9': 'key-9',
+                'PLUS': 'key-plus', 'MINUS': 'key-minus', 'MUL': 'key-mul', 'DIV': 'key-div',
+                'DPAD': 'key-dpad'
+            };
+
+            const id = map[keyName];
+            if (id) {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('highlight');
+            }
+        }
+
+        function pressKey(keyName) {
+            const sc = scenarios[currentScenarioIdx];
+            const step = sc.steps[currentStepIdx];
+
+            // Animate click
+            const el = event ? event.currentTarget : null;
+            if (el) {
+                el.classList.add('pressed');
+                setTimeout(() => el.classList.remove('pressed'), 120);
+            }
+
+            // If user clicked the guided key, advance to next step
+            if (step && (step.key === keyName || (step.key === 'EQ' && keyName === 'EQ') || (step.key === 'AC' && keyName === 'AC'))) {
+                if (currentStepIdx < sc.steps.length - 1) {
+                    nextStep();
+                }
+            }
         }
 
         function nextStep() {
-            const steps = currentModel === 'casio' ? CASIO_STEPS : SHARP_STEPS;
-            if (currentStepIndex < steps.length - 1) {
-                currentStepIndex++;
-                updateStepView();
+            const sc = scenarios[currentScenarioIdx];
+            if (currentStepIdx < sc.steps.length - 1) {
+                currentStepIdx++;
+                renderStep();
+            } else {
+                stopAutoPlay();
             }
         }
 
         function prevStep() {
-            if (currentStepIndex > 0) {
-                currentStepIndex--;
-                updateStepView();
+            if (currentStepIdx > 0) {
+                currentStepIdx--;
+                renderStep();
             }
-        }
-
-        function resetStep() {
-            currentStepIndex = 0;
-            updateStepView();
         }
 
         function toggleAutoPlay() {
-            const btn = document.getElementById('btnAuto');
-            if (autoTimer) {
-                clearInterval(autoTimer);
-                autoTimer = null;
-                btn.innerText = "▶ Animation Auto";
-                btn.classList.remove('accent');
+            if (isAutoPlaying) {
+                stopAutoPlay();
             } else {
-                btn.innerText = "⏸ Pause";
-                btn.classList.add('accent');
-                autoTimer = setInterval(() => {
-                    const steps = currentModel === 'casio' ? CASIO_STEPS : SHARP_STEPS;
-                    if (currentStepIndex >= steps.length - 1) {
-                        currentStepIndex = 0;
-                    } else {
-                        currentStepIndex++;
-                    }
-                    updateStepView();
-                }, 4000);
+                startAutoPlay();
             }
         }
 
-        // Chart.js initialization
-        function initChart() {
-            const ctx = document.getElementById('regChart').getContext('2d');
-            const sc = currentScenario;
+        function startAutoPlay() {
+            isAutoPlaying = true;
+            document.getElementById('autoBtn').innerHTML = '⏸ Pause';
+            autoPlayLoop();
+        }
 
-            const n = sc.x.length;
-            const sumX = sc.x.reduce((a, b) => a + b, 0);
-            const sumY = sc.y.reduce((a, b) => a + b, 0);
-            const meanX = sumX / n;
-            const meanY = sumY / n;
-            let sumSqX = 0, sumSqY = 0, sumXY = 0;
-            for (let i = 0; i < n; i++) {
-                sumSqX += Math.pow(sc.x[i] - meanX, 2);
-                sumSqY += Math.pow(sc.y[i] - meanY, 2);
-                sumXY += (sc.x[i] - meanX) * (sc.y[i] - meanY);
+        function stopAutoPlay() {
+            isAutoPlaying = false;
+            if (autoPlayTimer) clearTimeout(autoPlayTimer);
+            document.getElementById('autoBtn').innerHTML = '▶ Lecture Auto';
+        }
+
+        function autoPlayLoop() {
+            if (!isAutoPlaying) return;
+            const sc = scenarios[currentScenarioIdx];
+            if (currentStepIdx < sc.steps.length - 1) {
+                autoPlayTimer = setTimeout(() => {
+                    nextStep();
+                    autoPlayLoop();
+                }, 4800);
+            } else {
+                stopAutoPlay();
             }
-            const a = sumXY / sumSqX;
-            const b = meanY - a * meanX;
+        }
 
-            const scatterData = sc.x.map((val, idx) => ({ x: val, y: sc.y[idx] }));
-            const minX = Math.min(...sc.x) - 0.5;
-            const maxX = Math.max(...sc.x) + 1.5;
-            const lineData = [
-                { x: minX, y: a * minX + b },
-                { x: maxX, y: a * maxX + b }
-            ];
-
-            regChartInstance = new Chart(ctx, {
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  CHART.JS GRAPHIQUE STATISTIQUE
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function initChart() {
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            statsChart = new Chart(ctx, {
                 type: 'scatter',
                 data: {
                     datasets: [
                         {
-                            label: 'Nuage de points (Xi, Yi)',
-                            data: scatterData,
-                            backgroundColor: '#39d6c3',
+                            label: 'Points du nuage (xi, yi)',
+                            data: [ {x: 1, y: 10}, {x: 2, y: 12}, {x: 3, y: 15}, {x: 4, y: 18}, {x: 5, y: 20} ],
+                            backgroundColor: '#f51e65',
                             pointRadius: 6,
                             pointHoverRadius: 8
                         },
                         {
-                            label: 'Point Moyen G(x̄, ȳ)',
-                            data: [{ x: meanX, y: meanY }],
+                            label: 'Point moyen G(3, 15)',
+                            data: [ {x: 3, y: 15} ],
                             backgroundColor: '#ffd166',
-                            borderColor: '#ffd166',
-                            pointRadius: 9,
+                            borderColor: '#ffffff',
+                            borderWidth: 2,
+                            pointRadius: 8,
                             pointStyle: 'rectRot'
                         },
                         {
                             type: 'line',
-                            label: 'Droite de régression y = ax+b',
-                            data: lineData,
-                            borderColor: '#f51e65',
-                            borderWidth: 2.5,
+                            label: 'Droite de régression (D) : y = 2.6x + 7.2',
+                            data: [ {x: 0.5, y: 8.5}, {x: 5.5, y: 21.5} ],
+                            borderColor: '#39d6c3',
+                            borderWidth: 3,
                             fill: false,
                             pointRadius: 0
                         }
@@ -734,52 +1346,58 @@
                     maintainAspectRatio: false,
                     scales: {
                         x: {
-                            grid: { color: 'rgba(255,255,255,0.1)' },
-                            ticks: { color: 'rgba(255,255,255,0.8)' }
+                            type: 'linear',
+                            position: 'bottom',
+                            min: 0,
+                            max: 6,
+                            grid: { color: 'rgba(255,255,255,0.08)' },
+                            ticks: { color: '#a0aec0' },
+                            title: { display: true, text: 'Rang / Variable X', color: '#39d6c3' }
                         },
                         y: {
-                            grid: { color: 'rgba(255,255,255,0.1)' },
-                            ticks: { color: 'rgba(255,255,255,0.8)' }
+                            min: 5,
+                            max: 25,
+                            grid: { color: 'rgba(255,255,255,0.08)' },
+                            ticks: { color: '#a0aec0' },
+                            title: { display: true, text: 'Variable Y', color: '#39d6c3' }
                         }
                     },
                     plugins: {
                         legend: {
-                            labels: { color: 'white', font: { family: 'Outfit' } }
+                            labels: { color: '#d1d9e6', boxWidth: 12, font: { size: 11 } }
                         }
                     }
                 }
             });
         }
 
-        function updateChartData() {
-            if (!regChartInstance) return;
-            const sc = currentScenario;
-            const n = sc.x.length;
-            const sumX = sc.x.reduce((a, b) => a + b, 0);
-            const sumY = sc.y.reduce((a, b) => a + b, 0);
-            const meanX = sumX / n;
-            const meanY = sumY / n;
-            let sumSqX = 0, sumSqY = 0, sumXY = 0;
-            for (let i = 0; i < n; i++) {
-                sumSqX += Math.pow(sc.x[i] - meanX, 2);
-                sumSqY += Math.pow(sc.y[i] - meanY, 2);
-                sumXY += (sc.x[i] - meanX) * (sc.y[i] - meanY);
+        function updateChart() {
+            if (!statsChart) return;
+            const sc = scenarios[currentScenarioIdx];
+            if (sc.dataPoints && sc.dataPoints.length > 0) {
+                statsChart.data.datasets[0].data = sc.dataPoints;
+                statsChart.data.datasets[1].data = [ {x: 3, y: 15} ];
+                statsChart.data.datasets[2].data = [ {x: 0.5, y: 8.5}, {x: 5.5, y: 21.5} ];
+                document.getElementById('statsMathSummary').style.display = 'flex';
+            } else {
+                statsChart.data.datasets[0].data = [];
+                statsChart.data.datasets[1].data = [];
+                statsChart.data.datasets[2].data = [];
+                document.getElementById('statsMathSummary').style.display = 'none';
             }
-            const a = sumXY / sumSqX;
-            const b = meanY - a * meanX;
-
-            const scatterData = sc.x.map((val, idx) => ({ x: val, y: sc.y[idx] }));
-            const minX = Math.min(...sc.x) - 0.5;
-            const maxX = Math.max(...sc.x) + 1.5;
-
-            regChartInstance.data.datasets[0].data = scatterData;
-            regChartInstance.data.datasets[1].data = [{ x: meanX, y: meanY }];
-            regChartInstance.data.datasets[2].data = [
-                { x: minX, y: a * minX + b },
-                { x: maxX, y: a * maxX + b }
-            ];
-            regChartInstance.update();
+            statsChart.update();
         }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  INITIALISATION AU CHARGEMENT
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            renderStep();
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body);
+            }
+        });
     </script>
 </body>
 </html>

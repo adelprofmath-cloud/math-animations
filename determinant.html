@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calcul de Déterminant (Ordre 3) - Animation</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Math notation renderer -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+        <!-- KaTeX Math Notation Renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <style>
         .container-det {
             position: relative;
@@ -257,6 +258,26 @@
     </div>
 
     <script>
+
+function renderMath(target) {
+    var el = target || document.body;
+    if (window.renderMathInElement) {
+        window.renderMathInElement(el, {
+            delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+            ],
+            throwOnError: false
+        });
+    } else {
+        setTimeout(function() { renderMath(target); }, 100);
+    }
+}
+document.addEventListener("DOMContentLoaded", function() { renderMath(); });
+window.addEventListener("load", function() { renderMath(); });
+
         let currentStep = -1;
         let playInterval = null;
         let method = 'sarrus'; // 'sarrus' or 'expansion'
@@ -349,10 +370,10 @@
             
             document.getElementById('explanationTitle').innerText = 'Introduction';
             if (method === 'sarrus') {
-                document.getElementById('explanationText').innerHTML = 
+                renderMath(); document.getElementById('explanationText').innerHTML = 
                     "La règle de Sarrus est une méthode pratique pour calculer le déterminant d'une matrice 3x3. Cliquez sur <strong>Suivant</strong> pour démarrer.";
             } else {
-                document.getElementById('explanationText').innerHTML = 
+                renderMath(); document.getElementById('explanationText').innerHTML = 
                     "Le développement par rapport à la première ligne consiste à décomposer le déterminant 3x3 en trois déterminants 2x2. Cliquez sur <strong>Suivant</strong>.";
             }
         }
@@ -532,7 +553,8 @@
             }
 
             document.getElementById('explanationTitle').innerText = title;
-            document.getElementById('explanationText').innerHTML = textHTML;
+            renderMath(); document.getElementById('explanationText').innerHTML = textHTML;
+            renderMath(document.getElementById('explanationText'));
             if (window.katex) {
                 window.katex.render(mathExp, document.getElementById('mathFormula'), { throwOnError: false });
             } else {
@@ -611,7 +633,7 @@
                 
                 document.getElementById('explanationTitle').innerText = "Étape finale : Somme alternée";
                 const mathExp = `\\det(A) = a_{1,1}\\Delta_{1,1} - a_{1,2}\\Delta_{1,2} + a_{1,3}\\Delta_{1,3} = ${finalDet}`;
-                document.getElementById('explanationText').innerHTML = `On fait la somme alternée des résultats (attention au signe $-$ devant le second terme) :<br><div style="font-size:1.3rem; margin-top:0.5rem; text-align:center;" id="mathFormula"></div>`;
+                renderMath(); document.getElementById('explanationText').innerHTML = `On fait la somme alternée des résultats (attention au signe $-$ devant le second terme) :<br><div style="font-size:1.3rem; margin-top:0.5rem; text-align:center;" id="mathFormula"></div>`;
                 if (window.katex) {
                     window.katex.render(mathExp, document.getElementById('mathFormula'), { throwOnError: false });
                 } else {
@@ -682,7 +704,7 @@
                 </div>
                 <div style="font-size:1.3rem; text-align:center;" id="mathFormula"></div>
             `;
-            document.getElementById('explanationText').innerHTML = textHTML;
+            renderMath(); document.getElementById('explanationText').innerHTML = textHTML;
 
             const mathFormulaText = `\\text{Résultat de cette étape} = ${col === 1 ? '-' : '+'}(${pivotVal}) \\times (${subDetVal}) = ${stepResult}`;
             if (window.katex) {

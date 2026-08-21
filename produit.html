@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Produit Matriciel (Ordre 3) - Animation</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Math notation renderer -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+        <!-- KaTeX Math Notation Renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <style>
         /* Special matrix row/col highlight styles */
         .matrix-cell.highlight-row {
@@ -104,6 +105,26 @@
     </div>
 
     <script>
+
+function renderMath(target) {
+    var el = target || document.body;
+    if (window.renderMathInElement) {
+        window.renderMathInElement(el, {
+            delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+            ],
+            throwOnError: false
+        });
+    } else {
+        setTimeout(function() { renderMath(target); }, 100);
+    }
+}
+document.addEventListener("DOMContentLoaded", function() { renderMath(); });
+window.addEventListener("load", function() { renderMath(); });
+
         let currentStep = -1; // -1 represents intro
         let playInterval = null;
         const matrixSize = 3;
@@ -284,6 +305,7 @@
 
             document.getElementById('explanationTitle').innerText = stepTitle;
             document.getElementById('explanationText').innerHTML = textHTML;
+            renderMath(document.getElementById('explanationText'));
 
             // Render math using KaTeX
             if (window.katex) {

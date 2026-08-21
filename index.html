@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animations Mathématiques Interactives - Soltani Books</title>
     <link rel="stylesheet" href="style.css">
+    <!-- KaTeX Math Notation Renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -22,6 +26,16 @@
                 Choisissez une Animation
             </h2>
             <div class="dashboard">
+                <!-- Casio fx-991ES PLUS Simulateur -->
+                <div class="dashboard-card" style="border-color: var(--rose); background: linear-gradient(135deg, rgba(245, 30, 101, 0.15) 0%, rgba(26, 45, 89, 0.6) 100%);">
+                    <div>
+                        <div style="font-size:0.75rem; font-weight:700; color:var(--rose); text-transform:uppercase; margin-bottom:4px;">Nouveau • Simulateur Réel</div>
+                        <h3>Calculatrice Casio (Matrices)</h3>
+                        <p>Animations et simulation interactive pas-à-pas sur Casio fx-991ES / fx-570ES : Saisie, Déterminant, Multiplication par un réel, Somme, Produit et Inverse.</p>
+                    </div>
+                    <a href="casio_matrices.html" class="btn-primary" style="background:var(--rose); border-color:var(--rose);">Lancer le Simulateur Casio</a>
+                </div>
+
                 <!-- Somme -->
                 <div class="dashboard-card">
                     <div>
@@ -82,7 +96,28 @@
     </div>
 
     <script>
+
+function renderMath(target) {
+    var el = target || document.body;
+    if (window.renderMathInElement) {
+        window.renderMathInElement(el, {
+            delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$", display: false },
+                { left: "\\(", right: "\\)", display: false },
+                { left: "\\[", right: "\\]", display: true }
+            ],
+            throwOnError: false
+        });
+    } else {
+        setTimeout(function() { renderMath(target); }, 100);
+    }
+}
+document.addEventListener("DOMContentLoaded", function() { renderMath(); });
+window.addEventListener("load", function() { renderMath(); });
+
         const animations = [
+            { name: "Simulateur Casio (Matrices)", file: "casio_matrices.html" },
             { name: "Somme Matricielle", file: "somme.html" },
             { name: "Produit Matriciel", file: "produit.html" },
             { name: "Déterminant 3x3", file: "determinant.html" },

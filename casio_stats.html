@@ -1,6 +1,4 @@
-const fs = require('fs');
-
-const html = `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -14,10 +12,8 @@ const html = `<!DOCTYPE html>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-    <!-- ResponsiveVoice TTS & Web Speech API -->
+    <!-- ResponsiveVoice TTS — Voix masculine française naturelle -->
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=free"></script>
-    <!-- Chart.js for Nuage de points et Droite de régression -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --casio-bg: #c5cbd3;
@@ -104,7 +100,7 @@ const html = `<!DOCTYPE html>
             border-radius: 16px;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
         }
 
         .tutorial-header {
@@ -112,324 +108,431 @@ const html = `<!DOCTYPE html>
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 0.75rem;
-        }
-
-        .step-pill {
-            background: linear-gradient(135deg, var(--rose) 0%, #c41249 100%);
-            color: white;
-            padding: 0.35rem 0.9rem;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .step-instruction {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: var(--white);
-            margin-bottom: 0.8rem;
-            line-height: 1.4;
-        }
-
-        .step-detail {
-            color: #d1d9e6;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            margin-bottom: 1rem;
-            background: rgba(255, 255, 255, 0.04);
-            padding: 0.85rem 1rem;
-            border-radius: 8px;
-            border-left: 3px solid var(--turquoise);
-        }
-
-        .key-action-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            background: #253347;
-            border: 1px solid #4a6282;
-            padding: 0.2rem 0.6rem;
-            border-radius: 6px;
-            font-family: monospace;
-            font-weight: 700;
-            color: #ffe677;
-        }
-
-        /* Audio & Control buttons */
-        .controls-row {
-            display: flex;
-            gap: 0.75rem;
-            align-items: center;
             flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .step-tag {
+            background: var(--turquoise);
+            color: var(--navy-dark);
+            font-size: 0.85rem;
+            font-weight: 800;
+            padding: 0.3rem 0.85rem;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .step-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 0.6rem;
+        }
+
+        .step-desc {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #dbe7f5;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Key sequence display */
+        .keys-sequence {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            padding: 1rem 1.2rem;
+            background: rgba(26, 45, 89, 0.7);
+            border-radius: 12px;
+            border: 1px solid rgba(57, 214, 195, 0.3);
+            margin-bottom: 1.25rem;
+            min-height: 54px;
+        }
+
+        .key-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 38px;
+            height: 34px;
+            padding: 0 10px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+            text-transform: uppercase;
+        }
+
+        .key-badge.shift { background: #dcb320; color: #111; border: 1px solid #ffe677; }
+        .key-badge.alpha { background: #d6385f; color: #fff; border: 1px solid #ffa3b8; }
+        .key-badge.mode { background: #3d4a58; color: #fff; border: 1px solid #75869a; }
+        .key-badge.ac { background: #df7b40; color: #fff; border: 1px solid #ffb082; }
+        .key-badge.num { background: #ffffff; color: #111e2d; font-weight: 900; border: 1px solid #cbd6e2; }
+        .key-badge.fn { background: #34404f; color: #eaf1f9; border: 1px solid #5a6b7d; }
+        .key-badge.equal { background: #e3ebf4; color: #0b1426; font-weight: 900; }
+
+        .key-arrow {
+            color: var(--turquoise);
+            font-weight: 900;
+            font-size: 1.3rem;
+        }
+
+        /* Controls embedded in tutorial */
+        .tutorial-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         .ctrl-btn {
-            background: rgba(57, 214, 195, 0.15);
+            background: linear-gradient(135deg, var(--navy-light) 0%, var(--navy) 100%);
             border: 1px solid var(--turquoise);
-            color: var(--turquoise);
-            padding: 0.6rem 1.1rem;
+            color: white;
+            padding: 0.65rem 1.25rem;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: 600;
-            display: inline-flex;
+            font-weight: 700;
+            display: flex;
             align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
+            gap: 0.4rem;
+            transition: all 0.2s;
+            font-size: 0.95rem;
         }
 
-        .ctrl-btn:hover:not(:disabled) {
+        .ctrl-btn:hover {
             background: var(--turquoise);
-            color: var(--navy);
+            color: var(--navy-dark);
             transform: translateY(-1px);
         }
 
+        .ctrl-btn.play {
+            background: linear-gradient(135deg, #f51e65 0%, #c4104c 100%);
+            border-color: #f51e65;
+            box-shadow: 0 0 12px rgba(245, 30, 101, 0.4);
+        }
+
+        .ctrl-btn.play:hover {
+            background: #ff3a7b;
+            color: white;
+        }
+
         .ctrl-btn:disabled {
-            opacity: 0.4;
+            opacity: 0.35;
             cursor: not-allowed;
+            transform: none;
         }
 
-        .ctrl-btn.primary {
-            background: linear-gradient(135deg, var(--rose) 0%, #c41249 100%);
-            border-color: var(--rose);
+        .speed-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--turquoise);
+            margin-left: auto;
+        }
+
+        .speed-box select {
+            background: var(--navy-dark);
+            border: 1px solid var(--turquoise);
             color: white;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            font-family: inherit;
+            cursor: pointer;
+            font-weight: 600;
         }
 
-        .ctrl-btn.primary:hover:not(:disabled) {
-            box-shadow: 0 0 15px rgba(245, 30, 101, 0.6);
-            color: white;
+        .pedagogic-tip {
+            margin-top: 1rem;
+            background: rgba(57, 214, 195, 0.12);
+            border-left: 4px solid var(--turquoise);
+            padding: 0.85rem 1.1rem;
+            border-radius: 0 10px 10px 0;
+            font-size: 0.95rem;
+            color: #d1f7f2;
+            line-height: 1.5;
         }
 
-        .voice-btn {
-            background: rgba(255, 214, 102, 0.15);
-            border: 1px solid #ffd166;
-            color: #ffd166;
+        .pedagogic-tip strong {
+            color: var(--turquoise);
         }
 
-        .voice-btn:hover {
-            background: #ffd166;
-            color: #111;
-        }
-
-        .voice-btn.active-voice {
-            background: #ffd166;
-            color: #111;
-            box-shadow: 0 0 12px rgba(255, 209, 102, 0.5);
-        }
-
-        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-           CALCULATOR 3D HARDWARE BODY
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-        .calc-wrapper {
+        /* ------------------------------------------------------------- */
+        /* REAL CASIO CALCULATOR CONTAINER & GRAPHICS                    */
+        /* ------------------------------------------------------------- */
+        .calculator-wrapper {
+            position: relative;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            user-select: none;
         }
 
-        .calc-body {
-            width: 360px;
+        .casio-body {
+            width: 380px !important;
+            max-width: 100% !important;
             background: var(--casio-body-grad);
-            border-radius: 24px 24px 34px 34px;
-            padding: 20px 16px 24px 16px;
+            border-radius: 28px 28px 45px 45px;
             box-shadow: 
-                0 20px 50px rgba(0, 0, 0, 0.8),
-                0 0 0 2px #445163,
-                inset 0 2px 4px rgba(255, 255, 255, 0.6),
-                inset 0 -4px 8px rgba(0, 0, 0, 0.5);
+                0 22px 55px rgba(0, 0, 0, 0.7),
+                inset 0 2px 3px rgba(255, 255, 255, 0.7),
+                inset 0 -6px 12px rgba(0, 0, 0, 0.45),
+                0 0 0 2px #485666;
+            padding: 22px 16px 26px 16px;
             position: relative;
             box-sizing: border-box;
-            border: 1px solid #2a3440;
+            border: 1px solid #738499;
         }
 
-        .calc-brand {
+        /* Header CASIO Branding */
+        .casio-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 8px;
+            align-items: flex-start;
+            margin-bottom: 10px;
             padding: 0 4px;
         }
 
-        .calc-brand-logo {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+        .casio-logo {
             font-weight: 900;
-            font-size: 1.3rem;
+            font-size: 1.45rem;
+            color: #ffffff;
             letter-spacing: 2px;
-            color: #18202c;
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+            font-family: 'Arial Black', Impact, sans-serif;
+            line-height: 1;
         }
 
-        .calc-brand-model {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+        .casio-submodel {
+            color: #ffffff;
             font-size: 0.72rem;
             font-weight: 700;
-            color: #2b384a;
-            text-align: right;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
         }
 
-        .calc-solar {
-            width: 68px;
-            height: 18px;
-            background: linear-gradient(180deg, #2b1d16 0%, #4a3328 100%);
+        .casio-natural {
+            color: #dbe4ee;
+            font-size: 0.55rem;
+            font-style: italic;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+        }
+
+        .casio-solar {
+            width: 86px;
+            height: 28px;
+            background: linear-gradient(180deg, #1c1313 0%, #2f1d1d 50%, #150f0f 100%);
             border-radius: 4px;
-            border: 1px solid #1a120e;
+            border: 1px solid #4a3e3e;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 1px;
-            padding: 2px;
+            padding: 1px;
         }
 
         .solar-cell {
-            background: #1c1410;
-            border-radius: 1px;
+            background: rgba(180, 110, 110, 0.15);
+            border-right: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* Screen bezel */
-        .calc-screen-bezel {
-            background: #151b22;
+        .casio-edition-label {
+            font-size: 0.62rem;
+            color: #e5edf5;
+            text-align: right;
+            margin-top: -6px;
+            margin-bottom: 6px;
+            font-weight: 600;
+            padding-right: 6px;
+        }
+
+        /* LCD Screen Bezel */
+        .screen-bezel {
+            background: #182029;
             border-radius: 12px;
-            padding: 10px;
-            border: 2px solid #0d1217;
+            padding: 9px;
             box-shadow: 
-                inset 0 3px 8px rgba(0,0,0,0.9),
+                inset 0 3px 6px rgba(0,0,0,0.85),
                 0 1px 2px rgba(255,255,255,0.4);
+            border: 1px solid #334050;
             margin-bottom: 14px;
         }
 
-        .calc-lcd {
-            background: #b0c49e;
-            color: #17240d;
+        .lcd-screen {
+            background: linear-gradient(180deg, #b5c7a1 0%, #9cb188 100%);
             border-radius: 6px;
-            height: 108px;
-            padding: 6px 10px;
-            box-sizing: border-box;
-            box-shadow: inset 0 2px 6px rgba(0,0,0,0.45);
+            height: 118px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.35);
+            border: 1px solid #7d8f6d;
+            padding: 6px 8px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Courier New', 'Lucida Console', monospace;
+            color: #17240d;
             position: relative;
             overflow: hidden;
         }
 
-        /* LCD top indicator bar */
-        .lcd-indicators {
+        /* LCD Top Status Indicators */
+        .lcd-status-bar {
             display: flex;
             justify-content: space-between;
-            font-size: 0.58rem;
+            font-size: 0.62rem;
             font-weight: 900;
-            height: 12px;
-            letter-spacing: 1px;
-            opacity: 0.85;
             border-bottom: 1px solid rgba(23, 36, 13, 0.2);
             padding-bottom: 2px;
+            height: 14px;
         }
 
-        .ind-active {
-            color: #17240d;
-            font-weight: 900;
-        }
-
-        .ind-inactive {
-            color: rgba(23, 36, 13, 0.15);
-        }
-
-        /* LCD main content area */
-        .lcd-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            font-size: 0.95rem;
-            font-weight: bold;
-            padding: 4px 0;
-            line-height: 1.25;
-        }
-
-        .lcd-line-1 {
-            display: flex;
-            justify-content: space-between;
-            white-space: pre;
-            min-height: 20px;
-        }
-
-        .lcd-line-2 {
-            display: flex;
-            justify-content: flex-end;
-            font-size: 1.15rem;
-            font-weight: 900;
+        .status-ind {
+            opacity: 0.15;
             letter-spacing: 0.5px;
-            min-height: 24px;
         }
 
-        .lcd-table-view {
-            font-size: 0.72rem;
-            line-height: 1.2;
-            width: 100%;
-        }
-
-        .lcd-table-header {
-            display: grid;
-            grid-template-columns: 24px 1fr 1fr;
-            border-bottom: 1px solid #17240d;
+        .status-ind.on {
+            opacity: 1;
             font-weight: 900;
         }
 
-        .lcd-table-row {
-            display: grid;
-            grid-template-columns: 24px 1fr 1fr;
-        }
-
-        .lcd-table-row.selected {
-            background: #17240d;
-            color: #b0c49e;
-        }
-
-        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-           KEYPAD LAYOUT
-        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-        .keypad {
+        /* LCD Content Area */
+        .lcd-content {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            width: 100%;
-            box-sizing: border-box;
+            justify-content: center;
+            position: relative;
+            padding-top: 2px;
         }
 
-        .top-cluster {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr;
-            gap: 6px;
-            align-items: center;
-            margin-bottom: 2px;
+        .lcd-line-input {
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            min-height: 24px;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        .lcd-line-result {
+            font-size: 1.25rem;
+            font-weight: 900;
+            text-align: right;
+            margin-top: 4px;
+            min-height: 26px;
+            letter-spacing: 0.5px;
+        }
+
+        /* LCD Matrix Grid View */
+        .lcd-matrix-view {
+            display: flex;
+            flex-direction: column;
             width: 100%;
+            height: 100%;
+            justify-content: space-between;
+        }
+
+        .lcd-matrix-header {
+            font-size: 0.72rem;
+            font-weight: 900;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .lcd-matrix-grid-box {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            border-left: 2px solid #17240d;
+            border-right: 2px solid #17240d;
+            padding: 2px 6px;
+            margin: 2px 0;
+            background: rgba(23, 36, 13, 0.05);
+        }
+
+        .lcd-cell {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 1px;
+            border-radius: 2px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lcd-cell.cursor {
+            background: #17240d;
+            color: #b2c59f;
+        }
+
+        .lcd-bottom-val {
+            font-size: 0.75rem;
+            font-weight: 900;
+            text-align: right;
+            border-top: 1px dashed rgba(23, 36, 13, 0.3);
+            padding-top: 1px;
+        }
+
+        /* LCD Menu View */
+        .lcd-menu-list {
+            font-size: 0.75rem;
+            font-weight: 800;
+            line-height: 1.25;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 6px;
+        }
+
+        /* ============================================================= */
+        /* KEYPAD STYLING - REALISTIC WIDE CASIO FX-991ES BUTTONS        */
+        /* ============================================================= */
+        .keypad {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 6px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Top cluster: SHIFT, ALPHA, DPAD, MODE, ON */
+        .top-cluster {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr !important;
+            gap: 6px !important;
+            align-items: center !important;
+            margin-bottom: 2px !important;
+            width: 100% !important;
         }
 
         .dpad-box {
-            grid-column: 3;
-            grid-row: 1 / span 2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            grid-column: 3 !important;
+            grid-row: 1 / span 2 !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
         }
 
         .dpad {
-            width: 82px;
-            height: 60px;
-            background: linear-gradient(135deg, #a7b6c7 0%, #68798e 100%);
-            border-radius: 50%;
+            width: 82px !important;
+            height: 60px !important;
+            background: linear-gradient(135deg, #a7b6c7 0%, #68798e 100%) !important;
+            border-radius: 50% !important;
             box-shadow: 
                 0 4px 6px rgba(0,0,0,0.5),
                 inset 0 2px 3px rgba(255,255,255,0.8),
-                inset 0 -2px 4px rgba(0,0,0,0.4);
-            position: relative;
-            border: 1px solid #4a5969;
-            cursor: pointer;
-            transition: transform 0.1s;
+                inset 0 -2px 4px rgba(0,0,0,0.4) !important;
+            position: relative !important;
+            border: 1px solid #4a5969 !important;
+            cursor: pointer !important;
+            transition: transform 0.1s !important;
         }
 
         .dpad:active {
@@ -447,957 +550,2169 @@ const html = `<!DOCTYPE html>
         .dpad-left { top: 24px; left: 7px; border-width: 7px 9px 7px 0; border-color: transparent #263342 transparent transparent; }
         .dpad-right { top: 24px; right: 7px; border-width: 7px 0 7px 9px; border-color: transparent transparent transparent #263342; }
 
+        /* Function sub-row next to Dpad */
         .sub-row-dpad {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr;
-            gap: 6px;
-            align-items: center;
-            width: 100%;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr !important;
+            gap: 6px !important;
+            align-items: center !important;
+            width: 100% !important;
         }
 
+        /* 6-Column Function Grid */
         .func-row {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 5px;
-            width: 100%;
+            display: grid !important;
+            grid-template-columns: repeat(6, 1fr) !important;
+            gap: 5px !important;
+            width: 100% !important;
         }
 
+        /* 5-Column Numeric Grid */
         .num-row {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-            width: 100%;
+            display: grid !important;
+            grid-template-columns: repeat(5, 1fr) !important;
+            gap: 6px !important;
+            width: 100% !important;
         }
 
+        /* Key Legend container */
         .key-legend-box {
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            width: 100%;
-            min-width: 0;
-            position: relative;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            position: relative !important;
         }
 
         .key-sub-label {
-            font-size: 0.52rem;
-            font-weight: 800;
-            margin-bottom: 2px;
-            line-height: 1;
-            height: 10px;
-            display: flex;
-            justify-content: center;
-            gap: 4px;
-            text-align: center;
+            font-size: 0.52rem !important;
+            font-weight: 800 !important;
+            margin-bottom: 2px !important;
+            line-height: 1 !important;
+            height: 10px !important;
+            display: flex !important;
+            justify-content: center !important;
+            gap: 4px !important;
+            text-align: center !important;
         }
 
-        .lbl-shift { color: #ffe677; text-shadow: 0 1px 1px rgba(0,0,0,0.5); }
-        .lbl-alpha { color: #ff85a1; text-shadow: 0 1px 1px rgba(0,0,0,0.5); }
+        .lbl-shift { color: #ffe677 !important; text-shadow: 0 1px 1px rgba(0,0,0,0.5); }
+        .lbl-alpha { color: #ff85a1 !important; text-shadow: 0 1px 1px rgba(0,0,0,0.5); }
 
+        /* Base button style */
         .key-btn {
-            position: relative;
-            width: 100%;
-            min-width: 0;
-            border-radius: 7px;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 2px;
-            box-sizing: border-box;
+            position: relative !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            border-radius: 7px !important;
+            border: none !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0 2px !important;
+            box-sizing: border-box !important;
             box-shadow: 
                 0 3px 0 #202b38,
                 0 4px 5px rgba(0,0,0,0.35),
-                inset 0 1px 1px rgba(255,255,255,0.7);
-            transition: all 0.08s ease;
-            outline: none;
-            user-select: none;
-            font-family: inherit;
+                inset 0 1px 1px rgba(255,255,255,0.7) !important;
+            transition: all 0.08s ease !important;
+            outline: none !important;
+            user-select: none !important;
+            font-family: inherit !important;
         }
 
         .key-btn:active, .key-btn.pressed {
-            transform: translateY(2px);
+            transform: translateY(2px) !important;
             box-shadow: 
                 0 1px 0 #202b38,
                 0 2px 3px rgba(0,0,0,0.35),
-                inset 0 1px 1px rgba(255,255,255,0.3);
+                inset 0 1px 1px rgba(255,255,255,0.3) !important;
         }
 
+        /* Highlight animation when guided */
         .key-btn.highlight {
-            animation: keyGlow 0.9s infinite alternate;
+            animation: keyGlow 0.9s infinite alternate !important;
         }
 
         @keyframes keyGlow {
             0% {
-                box-shadow: 0 0 0 2px #f51e65, 0 0 14px #f51e65, 0 3px 0 #202b38;
+                box-shadow: 0 0 0 2px #f51e65, 0 0 14px #f51e65, 0 3px 0 #202b38 !important;
                 transform: scale(1.05);
             }
             100% {
-                box-shadow: 0 0 0 3px #39d6c3, 0 0 20px #39d6c3, 0 3px 0 #202b38;
+                box-shadow: 0 0 0 3px #39d6c3, 0 0 20px #39d6c3, 0 3px 0 #202b38 !important;
                 transform: scale(1.08);
             }
         }
 
-        /* Key Colors */
-        .btn-system {
-            background: linear-gradient(180deg, #d8dee8 0%, #b8c4d4 100%);
-            color: #101620;
-            font-weight: 800;
-            font-size: 0.72rem;
-            height: 24px;
+        /* Button Types */
+        .key-shift {
+            background: linear-gradient(180deg, #e6bf32 0%, #b89117 100%) !important;
+            color: #1a1a1a !important;
+            font-weight: 900 !important;
+            font-size: 0.65rem !important;
+            height: 24px !important;
+            border-radius: 9px !important;
         }
 
-        .btn-shift {
-            background: linear-gradient(180deg, #d8a02a 0%, #b88214 100%);
-            color: #fff;
-            font-weight: 900;
-            font-size: 0.68rem;
-            height: 24px;
+        .key-alpha {
+            background: linear-gradient(180deg, #e4426b 0%, #ab2044 100%) !important;
+            color: #ffffff !important;
+            font-weight: 900 !important;
+            font-size: 0.65rem !important;
+            height: 24px !important;
+            border-radius: 9px !important;
         }
 
-        .btn-alpha {
-            background: linear-gradient(180deg, #d83a62 0%, #b32145 100%);
-            color: #fff;
-            font-weight: 900;
-            font-size: 0.68rem;
-            height: 24px;
+        .key-mode, .key-on {
+            background: linear-gradient(180deg, #4d5c6f 0%, #303d4c 100%) !important;
+            color: #ffffff !important;
+            font-weight: 800 !important;
+            font-size: 0.65rem !important;
+            height: 24px !important;
+            border-radius: 9px !important;
         }
 
-        .btn-func {
-            background: linear-gradient(180deg, #37475a 0%, #202c3a 100%);
-            color: #fff;
-            font-weight: 700;
-            font-size: 0.75rem;
-            height: 23px;
-            box-shadow: 0 3px 0 #121a22, 0 4px 4px rgba(0,0,0,0.4);
+        .key-func {
+            background: linear-gradient(180deg, #3c4958 0%, #26313d 100%) !important;
+            color: #eaf1f8 !important;
+            font-weight: 700 !important;
+            font-size: 0.75rem !important;
+            height: 26px !important;
+            border-radius: 6px !important;
         }
 
-        .btn-num {
-            background: linear-gradient(180deg, #f4f6fa 0%, #dbe2ed 100%);
-            color: #141c26;
-            font-weight: 800;
-            font-size: 1rem;
-            height: 30px;
+        .key-num {
+            background: linear-gradient(180deg, #ffffff 0%, #d2dbe5 100%) !important;
+            color: #0f1822 !important;
+            font-weight: 900 !important;
+            font-size: 1.05rem !important;
+            height: 34px !important;
+            border-radius: 8px !important;
         }
 
-        .btn-op {
-            background: linear-gradient(180deg, #37475a 0%, #202c3a 100%);
-            color: #fff;
-            font-weight: 800;
-            font-size: 0.95rem;
-            height: 30px;
-            box-shadow: 0 3px 0 #121a22, 0 4px 4px rgba(0,0,0,0.4);
+        .key-del, .key-ac {
+            background: linear-gradient(180deg, #e8874f 0%, #b75720 100%) !important;
+            color: #ffffff !important;
+            font-weight: 900 !important;
+            font-size: 0.8rem !important;
+            height: 34px !important;
+            border-radius: 8px !important;
         }
 
-        .btn-del {
-            background: linear-gradient(180deg, #2b6ca3 0%, #174b78 100%);
-            color: #fff;
-            font-weight: 900;
-            font-size: 0.75rem;
-            height: 30px;
-            box-shadow: 0 3px 0 #0e2e4a, 0 4px 4px rgba(0,0,0,0.4);
+        .key-op {
+            background: linear-gradient(180deg, #f0f4f9 0%, #b9c7d7 100%) !important;
+            color: #0f1822 !important;
+            font-weight: 900 !important;
+            font-size: 1.05rem !important;
+            height: 34px !important;
+            border-radius: 8px !important;
         }
 
-        .btn-ac {
-            background: linear-gradient(180deg, #d83a62 0%, #b32145 100%);
-            color: #fff;
-            font-weight: 900;
-            font-size: 0.75rem;
-            height: 30px;
-            box-shadow: 0 3px 0 #6e1027, 0 4px 4px rgba(0,0,0,0.4);
+        .key-equal {
+            background: linear-gradient(180deg, #e5edf7 0%, #a4b4c7 100%) !important;
+            color: #0c1622 !important;
+            font-weight: 900 !important;
+            font-size: 1.2rem !important;
+            height: 34px !important;
+            border-radius: 8px !important;
         }
 
-        /* Chart container */
-        .chart-container-card {
-            background: rgba(11, 20, 38, 0.85);
+        /* Virtual Finger Pointer */
+        .virtual-finger {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            pointer-events: none;
+            z-index: 999;
+            transition: top 0.3s cubic-bezier(0.22, 1, 0.36, 1), left 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+            transform: translate(-50%, -50%);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .finger-pointer {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 23, 94, 0.3);
+            border: 3px solid #ff175e;
+            border-radius: 50%;
+            box-shadow: 0 0 18px #ff175e, inset 0 0 8px rgba(255, 23, 94, 0.7);
+            animation: fingerPulse 0.85s infinite alternate ease-in-out;
+            box-sizing: border-box;
+        }
+
+        @keyframes fingerPulse {
+            0% { transform: scale(0.92); opacity: 0.85; box-shadow: 0 0 10px #ff175e; }
+            100% { transform: scale(1.18); opacity: 1; box-shadow: 0 0 22px #ff175e, 0 0 35px rgba(255, 23, 94, 0.6); }
+        }
+    
+        /* ------------------------------------------------------------- */
+        /* TEACHER VOICE & PEDAGOGICAL NARRATION SYSTEM                  */
+        /* ------------------------------------------------------------- */
+        .teacher-voice-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            background: rgba(14, 26, 53, 0.75);
             border: 1px solid rgba(57, 214, 195, 0.35);
-            border-radius: 16px;
-            padding: 1.25rem;
-            margin-top: 1.5rem;
+            border-radius: 12px;
+            padding: 0.65rem 1rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
         }
+
+        .voice-toggle-btn {
+            background: linear-gradient(135deg, #0e8c7f 0%, #15b8a6 100%);
+            border: 1px solid #39d6c3;
+            color: #ffffff;
+            padding: 0.5rem 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 14px rgba(21, 184, 166, 0.4);
+        }
+
+        .voice-toggle-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 20px rgba(57, 214, 195, 0.6);
+        }
+
+        .voice-toggle-btn.muted {
+            background: rgba(35, 46, 68, 0.8);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #94a3b8;
+            box-shadow: none;
+        }
+
+        .voice-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-size: 0.85rem;
+            color: var(--turquoise);
+            font-weight: 600;
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #39d6c3;
+            box-shadow: 0 0 8px #39d6c3;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .voice-status-indicator.speaking .pulse-dot {
+            background: #ff175e;
+            box-shadow: 0 0 14px #ff175e;
+            animation: speakBlink 0.65s infinite alternate;
+        }
+
+        .voice-status-indicator.speaking {
+            color: #ff4071;
+        }
+
+        @keyframes speakBlink {
+            0% { transform: scale(0.8); opacity: 0.6; }
+            100% { transform: scale(1.35); opacity: 1; }
+        }
+
+        .teacher-speech-bubble {
+            background: linear-gradient(135deg, rgba(20, 36, 74, 0.9) 0%, rgba(11, 20, 38, 0.95) 100%);
+            border: 1.5px solid rgba(57, 214, 195, 0.4);
+            border-left: 5px solid var(--turquoise);
+            border-radius: 12px;
+            padding: 0.95rem 1.15rem;
+            margin: 1.1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        .teacher-avatar {
+            font-size: 1.9rem;
+            line-height: 1;
+            background: rgba(57, 214, 195, 0.15);
+            border-radius: 50%;
+            padding: 7px;
+            border: 1px solid rgba(57, 214, 195, 0.35);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .speech-content {
+            flex: 1;
+        }
+
+        .speech-speaker {
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--turquoise);
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .speech-text {
+            font-size: 0.97rem;
+            color: #ffffff;
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .speech-replay-btn {
+            background: rgba(57, 214, 195, 0.15);
+            border: 1px solid rgba(57, 214, 195, 0.45);
+            color: var(--turquoise);
+            border-radius: 8px;
+            padding: 0.45rem 0.75rem;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-weight: 700;
+            align-self: center;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .speech-replay-btn:hover {
+            background: var(--turquoise);
+            color: var(--navy-dark);
+            box-shadow: 0 0 10px rgba(57, 214, 195, 0.5);
+        }
+
+    
+        /* Autoplay Progress Bar */
+        .autoplay-progress-track {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 0.85rem;
+            display: none;
+        }
+
+        .autoplay-progress-track.active {
+            display: block;
+        }
+
+        .autoplay-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--turquoise), #ff175e);
+            transition: width linear;
+        }
+
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="header-container">
-            <a href="index.html" class="logo">
-                <span class="logo-icon">📐</span>
-                <div class="logo-text">
-                    <h1>Lyceena Books</h1>
-                    <p>4<sup>ème</sup> Économie & Gestion — Guide Interactif & Vocal</p>
-                </div>
-            </a>
-            <div class="header-actions">
-                <a href="index.html" class="btn-back">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 12H5M12 19l-7-7 7-7"/>
-                    </svg>
-                    Retour aux animations
-                </a>
-            </div>
-        </div>
-    </header>
+    <div class="container">
+        <a href="index.html" class="btn-back">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Retour au menu des animations
+        </a>
 
-    <main class="main-content">
-        <div class="content-container">
-            <div class="page-title-section">
-                <span class="badge">SIMULATEUR CASIO RÉELLE AVEC VOIX</span>
-                <h2>Statistiques à Deux Variables & Régression Linéaire</h2>
-                <p class="subtitle">Suivez pas à pas la manipulation guidée sur la véritable calculatrice Casio fx-991 avec explication vocale naturelle, saisie du tableau $(x_i, y_i)$ et extraction des paramètres $a, b, r, \bar{x}, \bar{y}$.</p>
-            </div>
+        <header>
+            <div class="subtitle">Bac Économie & Gestion • Calcul Matriciel</div>
+            <h1>Animations Interactives Casio fx-991ES PLUS / fx-570ES</h1>
+            <p style="color: var(--turquoise); max-width: 750px; margin: 0.5rem auto 0 auto; opacity: 0.9; font-weight: 500;">
+                Apprenez pas-à-pas à manipuler les matrices sur votre calculatrice réelle : saisie, déterminant, multiplication par un réel, somme, produit et inverse.
+            </p>
+        </header>
 
-            <!-- Scenarios selection -->
-            <div class="scenarios-grid">
-                <button class="scenario-btn active" onclick="selectScenario(0)">
-                    <span class="scenario-badge">1</span>
-                    <div>
-                        <strong>Ajustement Linéaire Complet</strong>
-                        <div style="font-size:0.75rem; color:#a0aec0;">Tableau 5 points, $a, b, r$ & Droite</div>
-                    </div>
-                </button>
-                <button class="scenario-btn" onclick="selectScenario(1)">
-                    <span class="scenario-badge">2</span>
-                    <div>
-                        <strong>Moyennes & Variances</strong>
-                        <div style="font-size:0.75rem; color:#a0aec0;">Point moyen $G(\bar{x}, \bar{y})$ & Écarts-types</div>
-                    </div>
-                </button>
-                <button class="scenario-btn" onclick="selectScenario(2)">
-                    <span class="scenario-badge">3</span>
-                    <div>
-                        <strong>Prédiction & Estimation</strong>
-                        <div style="font-size:0.75rem; color:#a0aec0;">Calcul de $\hat{y}$ pour $x_0 = 10$</div>
-                    </div>
-                </button>
-                <button class="scenario-btn" onclick="selectScenario(3)">
-                    <span class="scenario-badge">4</span>
-                    <div>
-                        <strong>Effacer la Mémoire Stat</strong>
-                        <div style="font-size:0.75rem; color:#a0aec0;">Réinitialisation complète (Clear Stat)</div>
-                    </div>
-                </button>
-            </div>
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Left Column: Controls, Scenarios, Explanations -->
+            <div>
+                <!-- Scenarios Selection -->
+                <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <h2 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--turquoise); display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+                        Sélectionnez l'Opération Matricielle
+                    </h2>
 
-            <div class="main-layout">
-                <!-- Left Column: Guidance & Chart -->
-                <div>
-                    <div class="tutorial-card">
-                        <div class="tutorial-header">
-                            <span class="step-pill" id="stepPill">Étape 1 sur 8</span>
-                            <div class="controls-row">
-                                <button class="ctrl-btn voice-btn active-voice" id="voiceToggleBtn" onclick="toggleVoice()">
-                                    🔊 Voix : ACTIVÉE
-                                </button>
-                                <button class="ctrl-btn" id="repeatVoiceBtn" onclick="speakCurrentStep()">
-                                    🗣️ Répéter
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="step-instruction" id="stepTitle">Activer le Mode Statistique</div>
-                        <div class="step-detail" id="stepDesc">
-                            Appuyez sur la touche <span class="key-action-badge">MODE</span> pour ouvrir le menu principal de la calculatrice.
-                        </div>
-
-                        <div class="controls-row" style="margin-top: 1rem;">
-                            <button class="ctrl-btn" id="prevBtn" onclick="prevStep()" disabled>← Précédent</button>
-                            <button class="ctrl-btn primary" id="nextBtn" onclick="nextStep()">Suivant →</button>
-                            <button class="ctrl-btn" id="autoBtn" onclick="toggleAutoPlay()">▶ Lecture Auto</button>
-                        </div>
-                    </div>
-
-                    <!-- Nuage de points interactif -->
-                    <div class="chart-container-card">
-                        <h4 style="color:var(--turquoise); margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem;">
-                            📊 Nuage de Points $(x_i, y_i)$ & Droite de Régression $(D)$
-                        </h4>
-                        <div style="position:relative; height:240px; width:100%;">
-                            <canvas id="statsChart"></canvas>
-                        </div>
-                        <div id="statsMathSummary" style="margin-top:0.75rem; font-size:0.85rem; color:#d1d9e6; display:flex; justify-content:space-around; flex-wrap:wrap; gap:0.5rem;">
-                            <span>$\bar{x} = 3$</span>
-                            <span>$\bar{y} = 15$</span>
-                            <span>$a = 2{,}6$</span>
-                            <span>$b = 7{,}2$</span>
-                            <span>$r = 0{,}989$</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Column: Realistic Casio 3D Hardware -->
-                <div class="calc-wrapper">
-                    <div class="calc-body">
-                        <!-- Top brand bar -->
-                        <div class="calc-brand">
+                    
+                    <div class="scenarios-grid">
+                        <button class="scenario-btn active" id="btnScen-saisie" onclick="loadScenario('saisie')">
+                            <span class="scenario-badge">1</span>
                             <div>
-                                <div class="calc-brand-logo">CASIO</div>
-                                <div class="calc-brand-model">fx-991ES PLUS / EX</div>
+                                <strong>1. Saisie du Tableau Double</strong>
+                                <div style="font-size:0.75rem; color:#a2b7d4;">Mode STAT ➔ 2: A+BX</div>
                             </div>
-                            <div class="calc-solar">
-                                <div class="solar-cell"></div>
-                                <div class="solar-cell"></div>
-                                <div class="solar-cell"></div>
-                                <div class="solar-cell"></div>
-                            </div>
-                        </div>
+                        </button>
 
-                        <!-- LCD Screen -->
-                        <div class="calc-screen-bezel">
-                            <div class="calc-lcd" id="calcLcd">
-                                <div class="lcd-indicators">
-                                    <span id="indS" class="ind-inactive">S</span>
-                                    <span id="indA" class="ind-inactive">A</span>
-                                    <span id="indM" class="ind-inactive">M</span>
-                                    <span id="indSTO" class="ind-inactive">STO</span>
-                                    <span id="indSTAT" class="ind-active">STAT</span>
-                                    <span id="indD" class="ind-active">D</span>
-                                    <span id="indMath" class="ind-active">Math▲</span>
-                                </div>
-                                <div class="lcd-content" id="lcdContent">
-                                    <div class="lcd-line-1" id="lcdLine1">STAT Mode</div>
-                                    <div class="lcd-line-2" id="lcdLine2">Ready</div>
-                                </div>
+                        <button class="scenario-btn" id="btnScen-var" onclick="loadScenario('var')">
+                            <span class="scenario-badge">2</span>
+                            <div>
+                                <strong>2. Variables (4:Var)</strong>
+                                <div style="font-size:0.75rem; color:#a2b7d4;">$\bar{x}, \bar{y}, \sigma_x, \sigma_y$</div>
                             </div>
-                        </div>
+                        </button>
 
-                        <!-- Keypad -->
-                        <div class="keypad">
-                            <!-- Top Cluster: SHIFT, ALPHA, DPAD, MODE, ON -->
-                            <div class="top-cluster">
-                                <div class="key-legend-box">
-                                    <div class="key-sub-label"></div>
-                                    <button class="key-btn btn-shift" id="key-shift" onclick="pressKey('SHIFT')">SHIFT</button>
+                        <button class="scenario-btn" id="btnScen-reg" onclick="loadScenario('reg')">
+                            <span class="scenario-badge">3</span>
+                            <div>
+                                <strong>3. Régression (5:Reg)</strong>
+                                <div style="font-size:0.75rem; color:#a2b7d4;">Pente $a$, Ordonnée $b$, $r$</div>
+                            </div>
+                        </button>
+
+                        <button class="scenario-btn" id="btnScen-pred" onclick="loadScenario('pred')">
+                            <span class="scenario-badge">4</span>
+                            <div>
+                                <strong>4. Estimation $\hat{y}$</strong>
+                                <div style="font-size:0.75rem; color:#a2b7d4;">Prédiction pour $x_0 = 10$</div>
+                            </div>
+                        </button>
+
+                        <button class="scenario-btn" id="btnScen-reset" onclick="loadScenario('reset')">
+                            <span class="scenario-badge">5</span>
+                            <div>
+                                <strong>5. Reset Mémoire STAT</strong>
+                                <div style="font-size:0.75rem; color:#a2b7d4;">SHIFT 9 (CLR)</div>
+                            </div>
+                        </button>
+                    </div>
+</div>
+
+                <!-- Teacher Voice Narration Panel -->
+                    <div class="teacher-voice-panel">
+                        <button class="voice-toggle-btn" id="btnVoiceToggle" onclick="toggleTeacherVoice()">
+                            <span id="voiceToggleIcon">🔊</span>
+                            <span id="voiceToggleLabel">Voix du Professeur : ACTIVÉE</span>
+                        </button>
+                        <div class="voice-status-indicator" id="voiceStatusIndicator">
+                            <span class="pulse-dot"></span> <span id="voiceStatusText">Prêt à expliquer</span>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Animation Player -->
+                <div class="tutorial-card">
+                    <div class="autoplay-progress-track" id="autoProgressTrack">
+                        <div class="autoplay-progress-fill" id="autoProgressFill"></div>
+                    </div>
+                    <div class="tutorial-header">
+                        <span class="step-tag" id="stepIndicator">Étape 1 / 6</span>
+                        <div class="speed-box">
+                            <span>Vitesse voix :</span>
+                            <select id="animSpeed" onchange="updateSpeed()">
+                                <option value="0.75" selected>🐢 Lente (Prof débutants)</option>
+                                <option value="0.9">🎯 Normale (Recommandée)</option>
+                                <option value="1.1">⚡ Rapide (Révision)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3 class="step-title" id="stepTitle">Activer le Mode MATRICE</h3>
+                    <p class="step-desc" id="stepDesc">
+                        Appuyez sur la touche <strong style="color:var(--turquoise);">[MODE SETUP]</strong> pour afficher la liste des modes de calcul disponibles sur la Casio.
+                    </p>
+
+                    <!-- Key sequence preview -->
+                    <div class="keys-sequence" id="keysSequenceContainer">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Embedded controls -->
+                    <div class="tutorial-controls">
+                        <button class="ctrl-btn" id="btnPrev" onclick="prevStep()">
+                            ◀ Précédent
+                        </button>
+                        <button class="ctrl-btn play" id="btnPlayPause" onclick="togglePlayPause()">
+                            ▶ Lancer l'Animation Auto
+                        </button>
+                        <button class="ctrl-btn" id="btnNext" onclick="nextStep()">
+                            Suivant ▶
+                        </button>
+                        <button class="ctrl-btn" onclick="resetCurrentScenario()">
+                            🔄 Recommencer
+                        </button>
+                    </div>
+
+                    <!-- Teacher Voice Explanation Bubble -->
+                    <div class="teacher-speech-bubble" id="teacherSpeechBubble">
+                        <div class="teacher-avatar">👨‍🏫</div>
+                        <div class="speech-content">
+                            <div class="speech-speaker">🎙️ Prof. Soltani — Explication :</div>
+                            <div class="speech-text" id="teacherVoiceText">Écoutez attentivement l'explication...</div>
+                        </div>
+                        <button class="speech-replay-btn" title="Réécouter l'explication du professeur" onclick="replayTeacherVoice()">
+                            🔄 Réécouter
+                        </button>
+                    </div>
+
+                    <div class="pedagogic-tip" id="pedagogicTip">
+                        💡 <strong>Astuce Bac :</strong> Le mode <strong>MATRIX (6)</strong> permet de stocker 3 matrices mémoires (MatA, MatB, MatC) jusqu'à la dimension 3×3.
+                    </div>
+                </div>
+
+                
+                <!-- Table Data Summary Card -->
+                <div class="matrix-config-card" style="border-color:rgba(57, 214, 195, 0.4);">
+                    <h4 style="color:var(--turquoise); margin-bottom:0.6rem; font-size:1.05rem;">📊 Série Statistique Double Utilisée (Exemple Bac) :</h4>
+                    <table style="width:100%; border-collapse:collapse; text-align:center; font-size:0.95rem; background:rgba(11,20,38,0.6); border-radius:8px; overflow:hidden;">
+                        <tr style="background:rgba(57,214,195,0.2); color:var(--turquoise); font-weight:800;">
+                            <th style="padding:6px; border:1px solid rgba(57,214,195,0.3);">Rang $X$ ($x_i$)</th>
+                            <td style="padding:6px; border:1px solid rgba(57,214,195,0.3);">1</td>
+                            <td style="padding:6px; border:1px solid rgba(57,214,195,0.3);">2</td>
+                            <td style="padding:6px; border:1px solid rgba(57,214,195,0.3);">3</td>
+                            <td style="padding:6px; border:1px solid rgba(57,214,195,0.3);">4</td>
+                            <td style="padding:6px; border:1px solid rgba(57,214,195,0.3);">5</td>
+                        </tr>
+                        <tr style="color:#fff;">
+                            <th style="padding:6px; border:1px solid rgba(57,214,195,0.3); background:rgba(245,30,101,0.15); color:var(--rose);">Chiffre d'Affaires $Y$ ($y_i$)</th>
+                            <td style="padding:6px; border:1px solid rgba(57,214,195,0.3);">10</td>
+                            <td style="padding:6px; border:1px solid rgba(57,214,195,0.3);">12</td>
+                            <td style="padding:6px; border:1px solid rgba(57,214,195,0.3);">15</td>
+                            <td style="padding:6px; border:1px solid rgba(57,214,195,0.3);">18</td>
+                            <td style="padding:6px; border:1px solid rgba(57,214,195,0.3);">20</td>
+                        </tr>
+                    </table>
+                    <div style="margin-top:0.75rem; font-size:0.88rem; color:#cbd5e1; display:flex; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+                        <span>📍 Point moyen : $G(3\,;\,15)$</span>
+                        <span>📈 Droite d'ajustement : $y = 2{,}6\,x + 7{,}2$</span>
+                        <span>🎯 Corrélation : $r = 0{,}9899$</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: The Casio fx-991ES PLUS / fx-570ES Realistic Simulator -->
+            <div class="calculator-wrapper">
+                <div class="casio-body" id="casioBody">
+                    <!-- Virtual Finger pointer -->
+                    <div class="virtual-finger" id="virtualFinger">
+                        <div class="finger-pointer"></div>
+                    </div>
+
+                    <!-- Branding Header -->
+                    <div class="casio-header">
+                        <div>
+                            <div class="casio-logo">CASIO</div>
+                            <div class="casio-submodel">fx-991ES PLUS</div>
+                            <div class="casio-natural">NATURAL-V.P.A.M.</div>
+                        </div>
+                        <div class="casio-solar">
+                            <div class="solar-cell"></div>
+                            <div class="solar-cell"></div>
+                            <div class="solar-cell"></div>
+                            <div class="solar-cell"></div>
+                        </div>
+                    </div>
+                    <div class="casio-edition-label">2nd edition</div>
+
+                    <!-- LCD Screen Screen Bezel -->
+                    <div class="screen-bezel">
+                        <div class="lcd-screen" id="lcdScreen">
+                            <!-- LCD Status Top Indicators -->
+                            <div class="lcd-status-bar">
+                                <span class="status-ind" id="indShift">S</span>
+                                <span class="status-ind" id="indAlpha">A</span>
+                                <span class="status-ind" id="indM">M</span>
+                                <span class="status-ind" id="indSto">STO</span>
+                                <span class="status-ind on" id="indStat">STAT</span>
+                                <span class="status-ind on" id="indMath">Math ▲</span>
+                            </div>
+
+                            <!-- Screen dynamic views -->
+                            <div class="lcd-content" id="lcdContent">
+                                <!-- Default Normal Expression Screen -->
+                                <div id="viewNormal">
+                                    <div class="lcd-line-input" id="lcdInput"></div>
+                                    <div class="lcd-line-result" id="lcdResult">0</div>
                                 </div>
-                                <div class="key-legend-box">
-                                    <div class="key-sub-label"></div>
-                                    <button class="key-btn btn-alpha" id="key-alpha" onclick="pressKey('ALPHA')">ALPHA</button>
-                                </div>
-                                <div class="dpad-box">
-                                    <div class="dpad" id="key-dpad" onclick="pressKey('DPAD')">
-                                        <div class="dpad-arrow dpad-up" onclick="event.stopPropagation(); pressKey('UP')"></div>
-                                        <div class="dpad-arrow dpad-down" onclick="event.stopPropagation(); pressKey('DOWN')"></div>
-                                        <div class="dpad-arrow dpad-left" onclick="event.stopPropagation(); pressKey('LEFT')"></div>
-                                        <div class="dpad-arrow dpad-right" onclick="event.stopPropagation(); pressKey('RIGHT')"></div>
+
+                                <!-- Mode Menu Screen -->
+                                <div id="viewModeMenu" style="display:none;">
+                                    <div class="lcd-menu-list">
+                                        <div>1: COMP</div>
+                                        <div>2: CMPLX</div>
+                                        <div style="font-weight:900; text-decoration:underline; color:#0c1622;">3: STAT</div>
+                                        <div>4: BASE-N</div>
+                                        <div>5: EQN</div>
+                                        <div>6: MATRIX</div>
+                                        <div>7: TABLE</div>
+                                        <div>8: VECTOR</div>
                                     </div>
                                 </div>
-                                <div class="key-legend-box">
-                                    <div class="key-sub-label"><span class="lbl-shift">SETUP</span></div>
-                                    <button class="key-btn btn-system" id="key-mode" onclick="pressKey('MODE')">MODE</button>
+
+                                <!-- Stat Type Menu Screen -->
+                                <div id="viewStatTypeMenu" style="display:none;">
+                                    <div class="lcd-menu-list">
+                                        <div>1: 1-VAR</div>
+                                        <div style="font-weight:900; text-decoration:underline; color:#0c1622;">2: A+BX</div>
+                                        <div>3: _+CX²</div>
+                                        <div>4: ln X</div>
+                                        <div>5: e^X</div>
+                                        <div>6: A·B^X</div>
+                                        <div>7: A·X^B</div>
+                                        <div>8: 1/X</div>
+                                    </div>
                                 </div>
-                                <div class="key-legend-box">
-                                    <div class="key-sub-label"></div>
-                                    <button class="key-btn btn-system" id="key-on" onclick="pressKey('ON')">ON</button>
+
+                                <!-- Stat Table Screen -->
+                                <div id="viewStatTable" style="display:none;">
+                                    <div style="display:grid; grid-template-columns:22px 1fr 1fr; font-size:0.72rem; line-height:1.25;">
+                                        <div style="border-bottom:1px solid #17240d; font-weight:900;">#</div>
+                                        <div style="border-bottom:1px solid #17240d; font-weight:900; text-align:center;">X</div>
+                                        <div style="border-bottom:1px solid #17240d; font-weight:900; text-align:center;">Y</div>
+                                        <div style="font-weight:900;">1</div><div id="cellX1" style="text-align:right; padding-right:4px;">1</div><div id="cellY1" style="text-align:right; padding-right:4px;">10</div>
+                                        <div style="font-weight:900;">2</div><div id="cellX2" style="text-align:right; padding-right:4px;">2</div><div id="cellY2" style="text-align:right; padding-right:4px;">12</div>
+                                        <div style="font-weight:900;">3</div><div id="cellX3" style="text-align:right; padding-right:4px;">3</div><div id="cellY3" style="text-align:right; padding-right:4px;">15</div>
+                                        <div style="font-weight:900;">4</div><div id="cellX4" style="text-align:right; padding-right:4px;">4</div><div id="cellY4" style="text-align:right; padding-right:4px;">18</div>
+                                        <div style="font-weight:900;">5</div><div id="cellX5" style="text-align:right; padding-right:4px;">5</div><div id="cellY5" style="text-align:right; padding-right:4px;">20</div>
+                                    </div>
+                                </div>
+
+                                <!-- Shift 1 STAT Quick Menu Screen -->
+                                <div id="viewStatShiftMenu" style="display:none;">
+                                    <div class="lcd-menu-list">
+                                        <div>1: Type</div>
+                                        <div>2: Data</div>
+                                        <div>3: Sum</div>
+                                        <div style="font-weight:900;" id="menuOptVar">4: Var</div>
+                                        <div style="font-weight:900;" id="menuOptReg">5: Reg</div>
+                                        <div>6: MinMax</div>
+                                    </div>
+                                </div>
+
+                                <!-- Var Submenu Screen -->
+                                <div id="viewVarMenu" style="display:none;">
+                                    <div class="lcd-menu-list">
+                                        <div>1: n</div>
+                                        <div>2: x̄</div>
+                                        <div>3: σx</div>
+                                        <div>4: sx</div>
+                                        <div>5: ȳ</div>
+                                        <div>6: σy</div>
+                                    </div>
+                                </div>
+
+                                <!-- Reg Submenu Screen -->
+                                <div id="viewRegMenu" style="display:none;">
+                                    <div class="lcd-menu-list">
+                                        <div>1: A</div>
+                                        <div>2: B</div>
+                                        <div>3: r</div>
+                                        <div>4: x̂</div>
+                                        <div>5: ŷ</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KEYPAD AREA -->
+                    <div class="keypad">
+                        <!-- Top Cluster: SHIFT, ALPHA, DPAD, MODE, ON -->
+                        <div class="top-cluster">
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-shift" id="key-shift" onclick="handlePhysicalKey('SHIFT')">SHIFT</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-alpha" id="key-alpha" onclick="handlePhysicalKey('ALPHA')">ALPHA</button>
+                            </div>
+
+                            <!-- Central D-PAD -->
+                            <div class="dpad-box">
+                                <div class="dpad" id="key-dpad" onclick="handlePhysicalKey('DPAD')">
+                                    <div class="dpad-arrow dpad-up"></div>
+                                    <div class="dpad-arrow dpad-down"></div>
+                                    <div class="dpad-arrow dpad-left"></div>
+                                    <div class="dpad-arrow dpad-right"></div>
                                 </div>
                             </div>
 
-                            <!-- Function Grid 1: OPTN, CALC, d/dx, x^-1, log, fraction -->
-                            <div class="func-row">
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">QR</span></div><button class="key-btn btn-func" id="key-optn" onclick="pressKey('OPTN')">OPTN</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">SOLVE</span></div><button class="key-btn btn-func" id="key-calc" onclick="pressKey('CALC')">CALC</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">d/dx</span></div><button class="key-btn btn-func" id="key-int" onclick="pressKey('INT')">∫dx</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">x!</span></div><button class="key-btn btn-func" id="key-inv" onclick="pressKey('INV')">x⁻¹</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">Σ</span></div><button class="key-btn btn-func" id="key-log" onclick="pressKey('LOG')">log</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"></div><button class="key-btn btn-func" id="key-frac" onclick="pressKey('FRAC')">■/□</button></div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">SETUP</span></div>
+                                <button class="key-btn key-mode" id="key-mode" onclick="handlePhysicalKey('MODE')">MODE</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-on" id="key-on" onclick="handlePhysicalKey('ON')">ON</button>
+                            </div>
+                        </div>
+
+                        <!-- Sub-row alongside D-PAD: CALC, ∫dx | x⁻¹, log■□ -->
+                        <div class="sub-row-dpad">
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">SOLVE</span><span class="lbl-alpha">=</span></div>
+                                <button class="key-btn key-func" id="key-calc" onclick="handlePhysicalKey('CALC')">CALC</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">d/dx</span></div>
+                                <button class="key-btn key-func" id="key-integral" onclick="handlePhysicalKey('INT')">∫dx</button>
                             </div>
 
-                            <!-- Function Grid 2: sqrt, x^2, x^y, ln, (-) , deg -->
-                            <div class="func-row">
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">3√</span></div><button class="key-btn btn-func" id="key-sqrt" onclick="pressKey('SQRT')">√■</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">x3</span></div><button class="key-btn btn-func" id="key-sq" onclick="pressKey('SQ')">x²</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">x√</span></div><button class="key-btn btn-func" id="key-pwr" onclick="pressKey('PWR')">x■</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">e■</span></div><button class="key-btn btn-func" id="key-ln" onclick="pressKey('LN')">ln</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-alpha">A</span></div><button class="key-btn btn-func" id="key-neg" onclick="pressKey('NEG')">(-)</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-alpha">B</span></div><button class="key-btn btn-func" id="key-deg" onclick="pressKey('DEG')">° ' "</button></div>
-                            </div>
+                            <div><!-- Dpad spacer --></div>
 
-                            <!-- Numeric Row 1: 7, 8, 9, DEL, AC -->
-                            <div class="num-row">
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">CONST</span></div><button class="key-btn btn-num" id="key-7" onclick="pressKey('7')">7</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">CONV</span></div><button class="key-btn btn-num" id="key-8" onclick="pressKey('8')">8</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">CLR</span></div><button class="key-btn btn-num" id="key-9" onclick="pressKey('9')">9</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">INS</span></div><button class="key-btn btn-del" id="key-del" onclick="pressKey('DEL')">DEL</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">OFF</span></div><button class="key-btn btn-ac" id="key-ac" onclick="pressKey('AC')">AC</button></div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-func" id="key-xinv" onclick="handlePhysicalKey('XINV')">x⁻¹</button>
                             </div>
-
-                            <!-- Numeric Row 2: 4, 5, 6, x, / -->
-                            <div class="num-row">
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">MATRIX</span></div><button class="key-btn btn-num" id="key-4" onclick="pressKey('4')">4</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">VECTOR</span></div><button class="key-btn btn-num" id="key-5" onclick="pressKey('5')">5</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"></div><button class="key-btn btn-num" id="key-6" onclick="pressKey('6')">6</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">nPr</span></div><button class="key-btn btn-op" id="key-mul" onclick="pressKey('MUL')">×</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">nCr</span></div><button class="key-btn btn-op" id="key-div" onclick="pressKey('DIV')">÷</button></div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-func" id="key-logbox" onclick="handlePhysicalKey('LOGBOX')">log■□</button>
                             </div>
+                        </div>
 
-                            <!-- Numeric Row 3: 1, 2, 3, +, - -->
-                            <div class="num-row">
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">STAT</span></div><button class="key-btn btn-num" id="key-1" onclick="pressKey('1')">1</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">CMPLX</span></div><button class="key-btn btn-num" id="key-2" onclick="pressKey('2')">2</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">BASE</span></div><button class="key-btn btn-num" id="key-3" onclick="pressKey('3')">3</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">Pol</span></div><button class="key-btn btn-op" id="key-plus" onclick="pressKey('PLUS')">+</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">Rec</span></div><button class="key-btn btn-op" id="key-minus" onclick="pressKey('MINUS')">-</button></div>
+                        <!-- Function Row 1: ■/□, √■, x², x■, log, ln -->
+                        <div class="func-row">
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-func" id="key-frac" onclick="handlePhysicalKey('FRAC')">■/□</button>
                             </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-func" id="key-sqrt" onclick="handlePhysicalKey('SQRT')">√■</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">x³</span></div>
+                                <button class="key-btn key-func" id="key-x2" onclick="handlePhysicalKey('X2')">x²</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-func" id="key-xpow" onclick="handlePhysicalKey('XPOW')">x■</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-func" id="key-log" onclick="handlePhysicalKey('LOG')">log</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-func" id="key-ln" onclick="handlePhysicalKey('LN')">ln</button>
+                            </div>
+                        </div>
 
-                            <!-- Numeric Row 4: 0, ., x10^x, Ans, = -->
-                            <div class="num-row">
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">Rnd</span></div><button class="key-btn btn-num" id="key-0" onclick="pressKey('0')">0</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">Ran#</span></div><button class="key-btn btn-num" id="key-dot" onclick="pressKey('DOT')">.</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">π</span></div><button class="key-btn btn-op" id="key-exp" onclick="pressKey('EXP')">×10ˣ</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"><span class="lbl-shift">%</span></div><button class="key-btn btn-op" id="key-ans" onclick="pressKey('ANS')">Ans</button></div>
-                                <div class="key-legend-box"><div class="key-sub-label"></div><button class="key-btn btn-op" id="key-eq" style="background:linear-gradient(180deg,#39d6c3 0%,#209b8d 100%); color:#0b1426; font-size:1.1rem;" onclick="pressKey('EQ')">=</button></div>
+                        <!-- Function Row 2: (-), ° ' '', hyp, sin, cos, tan -->
+                        <div class="func-row">
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">A</span></div>
+                                <button class="key-btn key-func" id="key-neg" onclick="handlePhysicalKey('NEG')">(-)</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">B</span></div>
+                                <button class="key-btn key-deg" id="key-deg" onclick="handlePhysicalKey('DEG')">°' ''</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">C</span></div>
+                                <button class="key-btn key-func" id="key-hyp" onclick="handlePhysicalKey('HYP')">hyp</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">sin⁻¹</span></div>
+                                <button class="key-btn key-func" id="key-sin" onclick="handlePhysicalKey('SIN')">sin</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">cos⁻¹</span></div>
+                                <button class="key-btn key-func" id="key-cos" onclick="handlePhysicalKey('COS')">cos</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">tan⁻¹</span></div>
+                                <button class="key-btn key-func" id="key-tan" onclick="handlePhysicalKey('TAN')">tan</button>
+                            </div>
+                        </div>
+
+                        <!-- Function Row 3: RCL, ENG, (, ), S⇔D, M+ -->
+                        <div class="func-row">
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">STO</span></div>
+                                <button class="key-btn key-func" id="key-rcl" onclick="handlePhysicalKey('RCL')">RCL</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">←</span></div>
+                                <button class="key-btn key-func" id="key-eng" onclick="handlePhysicalKey('ENG')">ENG</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-func" id="key-lpar" onclick="handlePhysicalKey('(')">(</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-alpha">X</span></div>
+                                <button class="key-btn key-func" id="key-rpar" onclick="handlePhysicalKey(')')">)</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-func" id="key-sd" onclick="handlePhysicalKey('SD')">S⇔D</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">M-</span></div>
+                                <button class="key-btn key-func" id="key-mplus" onclick="handlePhysicalKey('M+')">M+</button>
+                            </div>
+                        </div>
+
+                        <!-- Numeric Row 1: 7, 8, 9, DEL, AC -->
+                        <div class="num-row" style="margin-top: 4px;">
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">CONST</span></div>
+                                <button class="key-btn key-num" id="key-7" onclick="handlePhysicalKey('7')">7</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">CONV</span></div>
+                                <button class="key-btn key-num" id="key-8" onclick="handlePhysicalKey('8')">8</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">CLR</span></div>
+                                <button class="key-btn key-num" id="key-9" onclick="handlePhysicalKey('9')">9</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">INS</span></div>
+                                <button class="key-btn key-del" id="key-del" onclick="handlePhysicalKey('DEL')">DEL</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">OFF</span></div>
+                                <button class="key-btn key-ac" id="key-ac" onclick="handlePhysicalKey('AC')">AC</button>
+                            </div>
+                        </div>
+
+                        <!-- Numeric Row 2: 4, 5, 6, ×, ÷ -->
+                        <div class="num-row">
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">MATRIX</span></div>
+                                <button class="key-btn key-num" id="key-4" onclick="handlePhysicalKey('4')">4</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">VECTOR</span></div>
+                                <button class="key-btn key-num" id="key-5" onclick="handlePhysicalKey('5')">5</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-num" id="key-6" onclick="handlePhysicalKey('6')">6</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">nPr</span></div>
+                                <button class="key-btn key-op" id="key-mul" onclick="handlePhysicalKey('MUL')">×</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">nCr</span></div>
+                                <button class="key-btn key-op" id="key-div" onclick="handlePhysicalKey('DIV')">÷</button>
+                            </div>
+                        </div>
+
+                        <!-- Numeric Row 3: 1, 2, 3, +, - -->
+                        <div class="num-row">
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">STAT</span></div>
+                                <button class="key-btn key-num" id="key-1" onclick="handlePhysicalKey('1')">1</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">CMPLX</span></div>
+                                <button class="key-btn key-num" id="key-2" onclick="handlePhysicalKey('2')">2</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">BASE</span></div>
+                                <button class="key-btn key-num" id="key-3" onclick="handlePhysicalKey('3')">3</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">Pol</span></div>
+                                <button class="key-btn key-op" id="key-plus" onclick="handlePhysicalKey('PLUS')">+</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">Rec</span></div>
+                                <button class="key-btn key-op" id="key-minus" onclick="handlePhysicalKey('MINUS')">-</button>
+                            </div>
+                        </div>
+
+                        <!-- Numeric Row 4: 0, ., ×10ˣ, Ans, = -->
+                        <div class="num-row">
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">Rnd</span></div>
+                                <button class="key-btn key-num" id="key-0" onclick="handlePhysicalKey('0')">0</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">Ran#</span></div>
+                                <button class="key-btn key-num" id="key-dot" onclick="handlePhysicalKey('.')">.</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">π</span><span class="lbl-alpha">e</span></div>
+                                <button class="key-btn key-num" id="key-exp" onclick="handlePhysicalKey('EXP')">×10ˣ</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"><span class="lbl-shift">DRG►</span></div>
+                                <button class="key-btn key-num" id="key-ans" onclick="handlePhysicalKey('ANS')">Ans</button>
+                            </div>
+                            <div class="key-legend-box">
+                                <div class="key-sub-label"></div>
+                                <button class="key-btn key-equal" id="key-equal" onclick="handlePhysicalKey('=')">=</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
-    <footer class="footer">
-        <div class="footer-container">
-            <p>© 2026 Lyceena Books — Collection Mathématiques 4<sup>ème</sup> Économie & Gestion. Conçu pour l'excellence au Baccalauréat.</p>
-        </div>
-    </footer>
-
+    <!-- Script logic -->
     <script>
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  SCENARIOS & DATA
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        let isVoiceEnabled = true;
-        let autoPlayTimer = null;
-        let isAutoPlaying = false;
-        let currentScenarioIdx = 0;
-        let currentStepIdx = 0;
-        let statsChart = null;
-
-        const scenarios = [
-            {
-                id: "ajustement_complet",
-                title: "Ajustement Linéaire Complet (y = ax + b)",
-                dataPoints: [ {x: 1, y: 10}, {x: 2, y: 12}, {x: 3, y: 15}, {x: 4, y: 18}, {x: 5, y: 20} ],
-                stats: { xBar: "3", yBar: "15", a: "2.6", b: "7.2", r: "0.989" },
-                steps: [
-                    {
-                        title: "1. Activer le Menu de Configuration",
-                        desc: "Appuyez sur la touche MODE pour afficher la liste des modes de calcul disponibles.",
-                        voice: "Pour commencer l'ajustement linéaire, appuyez sur la touche MODE pour choisir le mode Statistique.",
-                        key: "MODE",
-                        lcd: {
-                            l1: "1:COMP    2:CMPLX",
-                            l2: "3:STAT    4:BASE-N"
-                        }
-                    },
-                    {
-                        title: "2. Sélectionner le Mode Statistique",
-                        desc: "Appuyez sur la touche 3 pour accéder au mode STAT.",
-                        voice: "Appuyez sur la touche 3 pour entrer dans le mode Statistique.",
-                        key: "3",
-                        lcd: {
-                            l1: "1:1-VAR   2:A+BX",
-                            l2: "3:_+CX²   4:ln X"
-                        }
-                    },
-                    {
-                        title: "3. Choisir le Modèle Linéaire A+BX",
-                        desc: "Appuyez sur 2 pour sélectionner la régression linéaire affine y = a + bx (ou y = ax + b).",
-                        voice: "Sélectionnez l'option 2 pour la régression affine à deux variables A plus B X.",
-                        key: "2",
-                        lcd: {
-                            table: [
-                                {n: 1, x: "", y: ""},
-                                {n: 2, x: "", y: ""},
-                                {n: 3, x: "", y: ""}
-                            ],
-                            selected: {r: 0, c: "x"}
-                        }
-                    },
-                    {
-                        title: "4. Saisir les Abscisses (x = 1, 2, 3, 4, 5)",
-                        desc: "Entrez les valeurs de X en validant par la touche = après chaque nombre : 1 = 2 = 3 = 4 = 5 =",
-                        voice: "Saisissez les valeurs de la colonne X : 1, 2, 3, 4, 5 en validant chaque valeur avec la touche égale.",
-                        key: "EQ",
-                        lcd: {
-                            table: [
-                                {n: 1, x: "1", y: ""},
-                                {n: 2, x: "2", y: ""},
-                                {n: 3, x: "3", y: ""},
-                                {n: 4, x: "4", y: ""},
-                                {n: 5, x: "5", y: ""}
-                            ],
-                            selected: {r: 4, c: "x"}
-                        }
-                    },
-                    {
-                        title: "5. Saisir les Ordonnées (y = 10, 12, 15, 18, 20)",
-                        desc: "Utilisez les flèches du pavé directionnel pour passer à la colonne Y, puis tapez : 10 = 12 = 15 = 18 = 20 =",
-                        voice: "Placez-vous sur la colonne Y et saisissez les ordonnées : 10, 12, 15, 18, 20 en validant par égale.",
-                        key: "EQ",
-                        lcd: {
-                            table: [
-                                {n: 1, x: "1", y: "10"},
-                                {n: 2, x: "2", y: "12"},
-                                {n: 3, x: "3", y: "15"},
-                                {n: 4, x: "4", y: "18"},
-                                {n: 5, x: "5", y: "20"}
-                            ],
-                            selected: {r: 4, c: "y"}
-                        }
-                    },
-                    {
-                        title: "6. Mémoriser et Revenir à l'Écran Neutre",
-                        desc: "Appuyez sur la touche AC pour mémoriser le tableau dans le processeur sans effacer les données.",
-                        voice: "Appuyez sur la touche A C pour mémoriser le tableau statistique.",
-                        key: "AC",
-                        lcd: {
-                            l1: "STAT",
-                            l2: "0"
-                        }
-                    },
-                    {
-                        title: "7. Ouvrir le Menu des Statistiques (SHIFT + 1)",
-                        desc: "Appuyez sur SHIFT puis sur 1 (STAT) pour ouvrir les résultats de calculs.",
-                        voice: "Faites SHIFT puis 1 pour afficher le menu des résultats statistiques.",
-                        key: "1",
-                        lcd: {
-                            l1: "1:Type  2:Data",
-                            l2: "3:Sum   4:Var  5:Reg"
-                        }
-                    },
-                    {
-                        title: "8. Extraire les Coefficients a, b et r (Option 5:Reg)",
-                        desc: "Appuyez sur 5 pour accéder aux coefficients de régression : 1:A (ordonnée à l'origine), 2:B (pente), 3:r (corrélation).",
-                        voice: "Appuyez sur 5 pour afficher les résultats de régression. Vous obtenez la pente a = 2 virgule 6, l'ordonnée à l'origine b = 7 virgule 2, et le coefficient de corrélation r = 0 virgule 989.",
-                        key: "5",
-                        lcd: {
-                            l1: "A=7.2       B=2.6",
-                            l2: "r=0.9899"
-                        }
-                    }
-                ]
-            },
-            {
-                id: "moyennes_variances",
-                title: "Moyennes, Écarts-types & Point Moyen G",
-                dataPoints: [ {x: 1, y: 10}, {x: 2, y: 12}, {x: 3, y: 15}, {x: 4, y: 18}, {x: 5, y: 20} ],
-                stats: { xBar: "3", yBar: "15", a: "2.6", b: "7.2", r: "0.989" },
-                steps: [
-                    {
-                        title: "1. Revenir à l'Écran Neutre",
-                        desc: "Appuyez sur AC après avoir saisi vos données statistiques.",
-                        voice: "Pour calculer le point moyen G, appuyez sur la touche A C.",
-                        key: "AC",
-                        lcd: { l1: "STAT", l2: "0" }
-                    },
-                    {
-                        title: "2. Ouvrir le Menu STAT",
-                        desc: "Appuyez sur SHIFT puis sur 1 (STAT).",
-                        voice: "Appuyez sur SHIFT puis 1 pour ouvrir le menu statistique.",
-                        key: "1",
-                        lcd: { l1: "1:Type  2:Data", l2: "3:Sum   4:Var  5:Reg" }
-                    },
-                    {
-                        title: "3. Sélectionner 4:Var pour les Moyennes",
-                        desc: "Appuyez sur 4 pour afficher x̄, σx, ȳ, σy.",
-                        voice: "Choisissez l'option 4 pour afficher les moyennes x barre, y barre et les écarts-types.",
-                        key: "4",
-                        lcd: { l1: "1:n     2:x̄   3:σx", l2: "4:sx    5:ȳ   6:σy" }
-                    },
-                    {
-                        title: "4. Afficher la moyenne x̄",
-                        desc: "Appuyez sur 2 puis = pour calculer x̄.",
-                        voice: "Appuyez sur 2 puis égale. La moyenne x barre est égale à 3.",
-                        key: "EQ",
-                        lcd: { l1: "x̄", l2: "3" }
-                    },
-                    {
-                        title: "5. Afficher la moyenne ȳ",
-                        desc: "Appuyez sur SHIFT 1 4 5 = pour calculer ȳ.",
-                        voice: "Répétez l'opération avec l'option 5 pour afficher la moyenne y barre qui vaut 15. Le point moyen G a pour coordonnées 3 et 15.",
-                        key: "EQ",
-                        lcd: { l1: "ȳ", l2: "15" }
-                    }
-                ]
-            },
-            {
-                id: "prediction_estimation",
-                title: "Prédiction & Estimation (Calcul de ŷ)",
-                dataPoints: [ {x: 1, y: 10}, {x: 2, y: 12}, {x: 3, y: 15}, {x: 4, y: 18}, {x: 5, y: 20} ],
-                stats: { xBar: "3", yBar: "15", a: "2.6", b: "7.2", r: "0.989" },
-                steps: [
-                    {
-                        title: "1. Saisir la valeur de x0 (Exemple x = 10)",
-                        desc: "Tapez 1 0 sur le clavier numérique.",
-                        voice: "Pour estimer la valeur de y en l'année de rang 10, tapez 10.",
-                        key: "0",
-                        lcd: { l1: "10", l2: "" }
-                    },
-                    {
-                        title: "2. Ouvrir le Menu Régression (SHIFT 1 -> 5:Reg)",
-                        desc: "Faites SHIFT puis 1, puis choisissez 5:Reg.",
-                        voice: "Faites SHIFT 1 puis choisissez l'option 5 Régression.",
-                        key: "5",
-                        lcd: { l1: "1:A    2:B    3:r", l2: "4:x̂    5:ŷ" }
-                    },
-                    {
-                        title: "3. Choisir le symbole d'estimation ŷ (Touche 5)",
-                        desc: "Appuyez sur 5 pour insérer le symbole ŷ après le 10.",
-                        voice: "Appuyez sur 5 pour insérer le symbole y chapeau.",
-                        key: "5",
-                        lcd: { l1: "10ŷ", l2: "" }
-                    },
-                    {
-                        title: "4. Valider l'Estimation par =",
-                        desc: "Appuyez sur = pour obtenir la valeur estimée : ŷ = 2.6(10) + 7.2 = 33.2.",
-                        voice: "Appuyez sur égale. La valeur prédite est de 33 virgule 2.",
-                        key: "EQ",
-                        lcd: { l1: "10ŷ", l2: "33.2" }
-                    }
-                ]
-            },
-            {
-                id: "reset_stat",
-                title: "Effacer la Mémoire Statistique (Clear Stat)",
-                dataPoints: [],
-                stats: { xBar: "-", yBar: "-", a: "-", b: "-", r: "-" },
-                steps: [
-                    {
-                        title: "1. Activer le Menu de Réinitialisation (CLR)",
-                        desc: "Appuyez sur SHIFT puis sur 9 (CLR).",
-                        voice: "Pour effacer toutes les données précédentes, faites SHIFT puis 9.",
-                        key: "9",
-                        lcd: { l1: "Clear?", l2: "1:Setup 2:Memory 3:All" }
-                    },
-                    {
-                        title: "2. Choisir d'effacer la mémoire (Touche 2 ou 3)",
-                        desc: "Appuyez sur 3 (All) pour tout réinitialiser.",
-                        voice: "Appuyez sur 3 pour tout effacer.",
-                        key: "3",
-                        lcd: { l1: "Reset All?", l2: "[=] : Yes   [AC] : Cancel" }
-                    },
-                    {
-                        title: "3. Confirmer la réinitialisation",
-                        desc: "Appuyez sur = pour confirmer, puis sur AC.",
-                        voice: "Appuyez sur la touche égale pour confirmer, puis sur A C.",
-                        key: "EQ",
-                        lcd: { l1: "Reset All", l2: "Press [AC] key" }
-                    }
-                ]
+        function renderMath(target) {
+            var el = target || document.body;
+            if (window.renderMathInElement) {
+                window.renderMathInElement(el, {
+                    delimiters: [
+                        { left: "$$", right: "$$", display: true },
+                        { left: "$", right: "$", display: false },
+                        { left: "\(", right: "\)", display: false },
+                        { left: "\[", right: "\]", display: true }
+                    ],
+                    throwOnError: false
+                });
             }
+        }
+
+        let audioCtx = null;
+        function playCasioBeep() {
+            try {
+                if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (!audioCtx) return;
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.04);
+            } catch(e) {}
+        }
+
+        const matrixA = [
+            [1, 2, 1],
+            [0, 1, 3],
+            [2, 1, 1]
         ];
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  SYNTHÈSE VOCALE INTELLIGENTE
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function speakText(text) {
-            if (!isVoiceEnabled) return;
+        const matrixB = [
+            [2, 0, 1],
+            [1, 3, 0],
+            [0, 2, 1]
+        ];
 
-            // 1. Essai avec ResponsiveVoice (voix française naturelle)
-            if (typeof responsiveVoice !== 'undefined' && responsiveVoice.voiceSupport()) {
-                responsiveVoice.cancel();
-                responsiveVoice.speak(text, "French Female", {
-                    pitch: 1.0,
-                    rate: 0.95,
-                    volume: 1.0
-                });
-                return;
+        const scenarios = {
+            saisie: {
+                title: "Saisie du Tableau Double (x_i, y_i)",
+                steps: [
+                    {
+                        stepTitle: "1. Activer le Menu des Modes",
+                        desc: "Appuyez sur la touche <strong style='color:var(--turquoise);'>[MODE SETUP]</strong> pour afficher les modes disponibles sur la Casio.",
+                        voiceText: "Bonjour ! Pour commencer la saisie de votre série statistique double, appuyez sur la touche MODE pour choisir le mode Statistique.",
+                        tip: "Le mode normal de calcul est 1:COMP, mais pour les statistiques nous devons choisir le mode 3:STAT.",
+                        keys: [{id: 'key-mode', name: 'MODE', type: 'mode'}],
+                        screenState: { view: 'modeMenu' }
+                    },
+                    {
+                        stepTitle: "2. Choisir le Mode STAT (Touche 3)",
+                        desc: "Appuyez sur la touche numérique <strong style='color:var(--turquoise);'>[ 3 ]</strong> pour sélectionner le mode <strong>3:STAT</strong>.",
+                        voiceText: "Appuyez sur la touche 3 pour entrer dans le mode Statistique.",
+                        tip: "Vous allez voir apparaître la liste des modèles statistiques disponibles.",
+                        keys: [{id: 'key-3', name: '3', type: 'num'}],
+                        screenState: { view: 'statTypeMenu' }
+                    },
+                    {
+                        stepTitle: "3. Sélectionner la Régression Linéaire A+BX (Touche 2)",
+                        desc: "Appuyez sur la touche <strong style='color:var(--turquoise);'>[ 2 ]</strong> pour choisir la régression affine à deux variables <strong>2: A+BX</strong>.",
+                        voiceText: "Appuyez sur la touche 2 pour choisir l'ajustement affine à deux variables A plus B X.",
+                        tip: "La calculatrice affiche alors un tableau à deux colonnes : X pour les abscisses et Y pour les ordonnées.",
+                        keys: [{id: 'key-2', name: '2', type: 'num'}],
+                        screenState: { view: 'statTable', filledX: false, filledY: false, curRow: 1 }
+                    },
+                    {
+                        stepTitle: "4. Saisir la Colonne des Abscisses X (1, 2, 3, 4, 5)",
+                        desc: "Tapez successivement : <strong style='color:var(--turquoise);'>1 [=] 2 [=] 3 [=] 4 [=] 5 [=]</strong> pour enregistrer les 5 valeurs de X.",
+                        voiceText: "Saisissez les valeurs de la colonne X : un, deux, trois, quatre, et cinq, en validant chaque nombre avec la touche égale.",
+                        tip: "La touche [=] insère la valeur et fait descendre le curseur à la ligne suivante.",
+                        keys: [{id: 'key-1', name: '1', type: 'num'}, {id: 'key-eq', name: '=', type: 'equal'}, {id: 'key-5', name: '5', type: 'num'}, {id: 'key-eq', name: '=', type: 'equal'}],
+                        screenState: { view: 'statTable', filledX: true, filledY: false, curRow: 5 }
+                    },
+                    {
+                        stepTitle: "5. Saisir la Colonne des Ordonnées Y (10, 12, 15, 18, 20)",
+                        desc: "Utilisez les flèches du pavé directionnel pour passer sur la colonne Y, puis tapez : <strong style='color:var(--turquoise);'>10 [=] 12 [=] 15 [=] 18 [=] 20 [=]</strong>.",
+                        voiceText: "Déplacez le curseur sur la colonne Y avec les flèches, puis entrez les ordonnées : 10, 12, 15, 18, et 20 en validant par égale.",
+                        tip: "Vérifiez que chaque couple (x_i, y_i) est correctement aligné sur la même ligne.",
+                        keys: [{id: 'key-dpad', name: 'D-PAD', type: 'fn'}, {id: 'key-1', name: '1', type: 'num'}, {id: 'key-0', name: '0', type: 'num'}, {id: 'key-eq', name: '=', type: 'equal'}],
+                        screenState: { view: 'statTable', filledX: true, filledY: true, curRow: 5 }
+                    },
+                    {
+                        stepTitle: "6. Mémoriser les Données (Touche AC)",
+                        desc: "Appuyez sur la touche <strong style='color:var(--rose);'>[ AC ]</strong> pour sortir du tableau. Les données restent mémorisées dans la mémoire statistique.",
+                        voiceText: "Parfait ! Appuyez maintenant sur la touche A C pour mémoriser le tableau. Vos données sont bien enregistrées dans la calculatrice.",
+                        tip: "N'appuyez jamais sur ON pour sortir, car cela pourrait réinitialiser le curseur. Utilisez toujours AC.",
+                        keys: [{id: 'key-ac', name: 'AC', type: 'ac'}],
+                        screenState: { view: 'normal', line1: 'STAT', result: '0' }
+                    }
+                ]
+            },
+
+            var: {
+                title: "Variables Statistiques (Menu 4:Var)",
+                steps: [
+                    {
+                        stepTitle: "1. Revenir à l'Écran Neutre avec AC",
+                        desc: "Assurez-vous d'être sur l'écran neutre en appuyant sur <strong style='color:var(--rose);'>[ AC ]</strong>.",
+                        voiceText: "Pour calculer les moyennes et écarts-types, placez-vous sur l'écran neutre avec la touche A C.",
+                        tip: "L'indicateur STAT doit être allumé en haut de l'écran LCD.",
+                        keys: [{id: 'key-ac', name: 'AC', type: 'ac'}],
+                        screenState: { view: 'normal', line1: 'STAT', result: '0' }
+                    },
+                    {
+                        stepTitle: "2. Ouvrir le Menu Statistique (SHIFT ➔ 1)",
+                        desc: "Appuyez sur <strong style='color:#e6bf32;'>[ SHIFT ]</strong> puis sur <strong style='color:var(--turquoise);'>[ 1 (STAT) ]</strong>.",
+                        voiceText: "Faites la combinaison SHIFT puis la touche 1 pour ouvrir le menu des fonctions statistiques.",
+                        tip: "La fonction STAT est écrite en jaune au-dessus de la touche 1.",
+                        keys: [{id: 'key-shift', name: 'SHIFT', type: 'shift'}, {id: 'key-1', name: '1 (STAT)', type: 'num'}],
+                        screenState: { view: 'statShiftMenu', highlightOpt: 'var' }
+                    },
+                    {
+                        stepTitle: "3. Sélectionner l'Option 4:Var",
+                        desc: "Appuyez sur <strong style='color:var(--turquoise);'>[ 4 ]</strong> pour accéder au sous-menu des variables statistiques.",
+                        voiceText: "Appuyez sur 4 pour choisir le menu Var, qui contient x barre, y barre et les écarts-types.",
+                        tip: "Ce menu affiche : 1:n (effectif), 2:x̄ (moyenne de X), 3:σx, 4:sx, 5:ȳ (moyenne de Y), 6:σy.",
+                        keys: [{id: 'key-4', name: '4 (Var)', type: 'num'}],
+                        screenState: { view: 'varMenu' }
+                    },
+                    {
+                        stepTitle: "4. Calculer la Moyenne x̄ (Touche 2 puis =)",
+                        desc: "Appuyez sur <strong style='color:var(--turquoise);'>[ 2 ]</strong> puis sur <strong style='color:var(--turquoise);'>[ = ]</strong>.",
+                        voiceText: "Appuyez sur 2 puis égale. La moyenne de la variable X, notée x barre, vaut exactement 3.",
+                        tip: "L'abscisse du point moyen G est x_G = x̄ = 3.",
+                        keys: [{id: 'key-2', name: '2 (x̄)', type: 'num'}, {id: 'key-eq', name: '=', type: 'equal'}],
+                        screenState: { view: 'normal', line1: 'x̄', result: '3' }
+                    },
+                    {
+                        stepTitle: "5. Calculer la Moyenne ȳ (SHIFT 1 ➔ 4 ➔ 5 =)",
+                        desc: "Répétez la manipulation : <strong style='color:#e6bf32;'>SHIFT 1</strong> ➔ <strong style='color:var(--turquoise);'>4 (Var)</strong> ➔ <strong style='color:var(--turquoise);'>5 (ȳ) [=]</strong>.",
+                        voiceText: "Répétez SHIFT 1, puis 4, puis 5 et égale. La moyenne y barre est égale à 15. Le point moyen G a donc pour coordonnées 3 et 15.",
+                        tip: "Le point moyen G(3 ; 15) appartient obligatoirement à la droite d'ajustement affine.",
+                        keys: [{id: 'key-shift', name: 'SHIFT', type: 'shift'}, {id: 'key-1', name: '1', type: 'num'}, {id: 'key-4', name: '4', type: 'num'}, {id: 'key-5', name: '5 (ȳ)', type: 'num'}, {id: 'key-eq', name: '=', type: 'equal'}],
+                        screenState: { view: 'normal', line1: 'ȳ', result: '15' }
+                    },
+                    {
+                        stepTitle: "6. Calculer l'Écart-type σx (SHIFT 1 ➔ 4 ➔ 3 =)",
+                        desc: "Appuyez sur <strong style='color:#e6bf32;'>SHIFT 1</strong> ➔ <strong style='color:var(--turquoise);'>4</strong> ➔ <strong style='color:var(--turquoise);'>3 (σx) [=]</strong>.",
+                        voiceText: "Pour obtenir l'écart-type de X, faites SHIFT 1, 4, 3 égale. Vous obtenez sigma x = 1 virgule 414.",
+                        tip: "La variance de X se déduit en mettant ce résultat au carré (Touche x²).",
+                        keys: [{id: 'key-shift', name: 'SHIFT', type: 'shift'}, {id: 'key-1', name: '1', type: 'num'}, {id: 'key-4', name: '4', type: 'num'}, {id: 'key-3', name: '3 (σx)', type: 'num'}, {id: 'key-eq', name: '=', type: 'equal'}],
+                        screenState: { view: 'normal', line1: 'σx', result: '1.414213562' }
+                    }
+                ]
+            },
+
+            reg: {
+                title: "Paramètres de Régression (Menu 5:Reg)",
+                steps: [
+                    {
+                        stepTitle: "1. Ouvrir le Menu Statistique",
+                        desc: "Appuyez sur <strong style='color:#e6bf32;'>[ SHIFT ]</strong> puis sur <strong style='color:var(--turquoise);'>[ 1 (STAT) ]</strong>.",
+                        voiceText: "Pour extraire les paramètres de la droite de régression, faites SHIFT puis 1.",
+                        tip: "L'option 5:Reg donne les coefficients de la droite y = a + bx et le coefficient de corrélation r.",
+                        keys: [{id: 'key-shift', name: 'SHIFT', type: 'shift'}, {id: 'key-1', name: '1', type: 'num'}],
+                        screenState: { view: 'statShiftMenu', highlightOpt: 'reg' }
+                    },
+                    {
+                        stepTitle: "2. Sélectionner l'Option 5:Reg",
+                        desc: "Appuyez sur la touche <strong style='color:var(--turquoise);'>[ 5 ]</strong> pour ouvrir le sous-menu de régression.",
+                        voiceText: "Appuyez sur la touche 5 pour sélectionner le menu Régression.",
+                        tip: "Sur la Casio : 1:A désigne l'ordonnée à l'origine, 2:B désigne la pente, et 3:r est le coefficient de corrélation linéaire.",
+                        keys: [{id: 'key-5', name: '5 (Reg)', type: 'num'}],
+                        screenState: { view: 'regMenu' }
+                    },
+                    {
+                        stepTitle: "3. Calculer la Pente 'B' (Touche 2 puis =)",
+                        desc: "Appuyez sur <strong style='color:var(--turquoise);'>[ 2 ]</strong> puis sur <strong style='color:var(--turquoise);'>[ = ]</strong> pour afficher la pente de la droite.",
+                        voiceText: "Appuyez sur 2 puis égale. La pente de la droite d'ajustement est B = 2 virgule 6.",
+                        tip: "Dans le programme tunisien, la droite est notée y = ax + b, donc notre pente est a = 2,6.",
+                        keys: [{id: 'key-2', name: '2 (B)', type: 'num'}, {id: 'key-eq', name: '=', type: 'equal'}],
+                        screenState: { view: 'normal', line1: 'B', result: '2.6' }
+                    },
+                    {
+                        stepTitle: "4. Calculer l'Ordonnée à l'Origine 'A' (SHIFT 1 ➔ 5 ➔ 1 =)",
+                        desc: "Faites : <strong style='color:#e6bf32;'>SHIFT 1</strong> ➔ <strong style='color:var(--turquoise);'>5 (Reg)</strong> ➔ <strong style='color:var(--turquoise);'>1 (A) [=]</strong>.",
+                        voiceText: "Faites SHIFT 1, puis 5, puis 1 et égale. L'ordonnée à l'origine A vaut 7 virgule 2. L'équation complète est donc y = 2,6 x + 7,2.",
+                        tip: "On vérifie bien que ȳ = a x̄ + b : 2,6(3) + 7,2 = 7,8 + 7,2 = 15.",
+                        keys: [{id: 'key-shift', name: 'SHIFT', type: 'shift'}, {id: 'key-1', name: '1', type: 'num'}, {id: 'key-5', name: '5', type: 'num'}, {id: 'key-1', name: '1 (A)', type: 'num'}, {id: 'key-eq', name: '=', type: 'equal'}],
+                        screenState: { view: 'normal', line1: 'A', result: '7.2' }
+                    },
+                    {
+                        stepTitle: "5. Calculer le Coefficient de Corrélation 'r' (SHIFT 1 ➔ 5 ➔ 3 =)",
+                        desc: "Faites : <strong style='color:#e6bf32;'>SHIFT 1</strong> ➔ <strong style='color:var(--turquoise);'>5 (Reg)</strong> ➔ <strong style='color:var(--turquoise);'>3 (r) [=]</strong>.",
+                        voiceText: "Pour le coefficient de corrélation linéaire r, faites SHIFT 1, 5, 3 et égale. Nous obtenons r = 0 virgule 9899.",
+                        tip: "Puisque la valeur absolue de r est supérieure à 0,95, la corrélation linéaire est très forte et l'ajustement affine est pleinement justifié.",
+                        keys: [{id: 'key-shift', name: 'SHIFT', type: 'shift'}, {id: 'key-1', name: '1', type: 'num'}, {id: 'key-5', name: '5', type: 'num'}, {id: 'key-3', name: '3 (r)', type: 'num'}, {id: 'key-eq', name: '=', type: 'equal'}],
+                        screenState: { view: 'normal', line1: 'r', result: '0.9899494937' }
+                    }
+                ]
+            },
+
+            pred: {
+                title: "Estimation & Prédiction (Symbole ŷ)",
+                steps: [
+                    {
+                        stepTitle: "1. Saisir la Valeur d'Abscisse x0 = 10",
+                        desc: "Sur l'écran neutre, tapez <strong style='color:var(--turquoise);'>[ 1 ] [ 0 ]</strong> pour entrer le rang futur $x_0 = 10$.",
+                        voiceText: "Pour estimer la valeur de Y pour un rang futur égal à 10, commencez par taper 10 sur le clavier numérique.",
+                        tip: "Exemple type Bac : estimer le chiffre d'affaires à la 10ème année.",
+                        keys: [{id: 'key-1', name: '1', type: 'num'}, {id: 'key-0', name: '0', type: 'num'}],
+                        screenState: { view: 'normal', line1: '10', result: '' }
+                    },
+                    {
+                        stepTitle: "2. Ouvrir le Menu Régression (SHIFT 1 ➔ 5)",
+                        desc: "Appuyez sur <strong style='color:#e6bf32;'>[ SHIFT ]</strong> puis <strong style='color:var(--turquoise);'>[ 1 ]</strong>, puis choisissez <strong style='color:var(--turquoise);'>[ 5 (Reg) ]</strong>.",
+                        voiceText: "Faites SHIFT 1 puis 5 pour ouvrir le menu de régression.",
+                        tip: "L'option 5:ŷ permet d'appliquer automatiquement l'équation de régression à la valeur 10.",
+                        keys: [{id: 'key-shift', name: 'SHIFT', type: 'shift'}, {id: 'key-1', name: '1', type: 'num'}, {id: 'key-5', name: '5', type: 'num'}],
+                        screenState: { view: 'regMenu' }
+                    },
+                    {
+                        stepTitle: "3. Insérer le Symbole d'Estimation ŷ (Touche 5)",
+                        desc: "Appuyez sur la touche <strong style='color:var(--turquoise);'>[ 5 ]</strong> pour ajouter le symbole $\hat{y}$ après le 10.",
+                        voiceText: "Appuyez sur la touche 5 pour insérer le symbole y chapeau.",
+                        tip: "L'écran affiche maintenant l'expression '10ŷ'.",
+                        keys: [{id: 'key-5', name: '5 (ŷ)', type: 'num'}],
+                        screenState: { view: 'normal', line1: '10ŷ', result: '' }
+                    },
+                    {
+                        stepTitle: "4. Calculer la Valeur Estimée (Touche =)",
+                        desc: "Appuyez sur la touche <strong style='color:var(--turquoise);'>[ = ]</strong> pour exécuter le calcul.",
+                        voiceText: "Appuyez sur égale. La calculatrice applique l'équation 2,6 fois 10 plus 7,2 et vous donne directement 33 virgule 2.",
+                        tip: "Estimation exacte : y = 2,6(10) + 7,2 = 26 + 7,2 = 33,2.",
+                        keys: [{id: 'key-eq', name: '=', type: 'equal'}],
+                        screenState: { view: 'normal', line1: '10ŷ', result: '33.2' }
+                    }
+                ]
+            },
+
+            reset: {
+                title: "Effacer la Mémoire Statistique (Clear All)",
+                steps: [
+                    {
+                        stepTitle: "1. Activer le Menu de Réinitialisation (SHIFT 9)",
+                        desc: "Appuyez sur <strong style='color:#e6bf32;'>[ SHIFT ]</strong> puis sur <strong style='color:var(--turquoise);'>[ 9 (CLR) ]</strong>.",
+                        voiceText: "Pour effacer complètement les anciennes données statistiques, faites SHIFT puis 9.",
+                        tip: "La fonction CLR (Clear) remet la mémoire à zéro pour un nouvel exercice.",
+                        keys: [{id: 'key-shift', name: 'SHIFT', type: 'shift'}, {id: 'key-9', name: '9 (CLR)', type: 'num'}],
+                        screenState: { view: 'normal', line1: 'Clear?', result: '1:Setup 2:Mem 3:All' }
+                    },
+                    {
+                        stepTitle: "2. Choisir de Tout Effacer (Touche 3:All)",
+                        desc: "Appuyez sur <strong style='color:var(--turquoise);'>[ 3 ]</strong> pour tout réinitialiser.",
+                        voiceText: "Appuyez sur la touche 3 pour choisir de tout réinitialiser.",
+                        tip: "L'écran demande confirmation : Reset All? [=] : Yes  [AC] : Cancel.",
+                        keys: [{id: 'key-3', name: '3 (All)', type: 'num'}],
+                        screenState: { view: 'normal', line1: 'Reset All?', result: '[=]Yes  [AC]No' }
+                    },
+                    {
+                        stepTitle: "3. Confirmer avec la Touche = puis AC",
+                        desc: "Appuyez sur <strong style='color:var(--turquoise);'>[ = ]</strong> pour confirmer, puis sur <strong style='color:var(--rose);'>[ AC ]</strong> pour revenir à l'état initial.",
+                        voiceText: "Appuyez sur égale pour confirmer, puis sur A C. La mémoire est entièrement propre et prête pour un nouvel exercice !",
+                        tip: "La calculatrice est maintenant totalement réinitialisée.",
+                        keys: [{id: 'key-eq', name: '=', type: 'equal'}, {id: 'key-ac', name: 'AC', type: 'ac'}],
+                        screenState: { view: 'normal', line1: '', result: '0' }
+                    }
+                ]
             }
+        };
 
-            // 2. Fallback Web Speech API standard
+        function renderLcd(state) {
+            const vNorm = document.getElementById('viewNormal');
+            const vMode = document.getElementById('viewModeMenu');
+            const vType = document.getElementById('viewStatTypeMenu');
+            const vTbl = document.getElementById('viewStatTable');
+            const vShift = document.getElementById('viewStatShiftMenu');
+            const vVar = document.getElementById('viewVarMenu');
+            const vReg = document.getElementById('viewRegMenu');
+
+            if (vNorm) vNorm.style.display = 'none';
+            if (vMode) vMode.style.display = 'none';
+            if (vType) vType.style.display = 'none';
+            if (vTbl) vTbl.style.display = 'none';
+            if (vShift) vShift.style.display = 'none';
+            if (vVar) vVar.style.display = 'none';
+            if (vReg) vReg.style.display = 'none';
+
+            if (!state) return;
+
+            if (state.view === 'modeMenu') {
+                if (vMode) vMode.style.display = 'block';
+            } else if (state.view === 'statTypeMenu') {
+                if (vType) vType.style.display = 'block';
+            } else if (state.view === 'statTable') {
+                if (vTbl) vTbl.style.display = 'block';
+                for (let i = 1; i <= 5; i++) {
+                    const cX = document.getElementById('cellX' + i);
+                    const cY = document.getElementById('cellY' + i);
+                    if (cX) cX.innerText = state.filledX ? i : (i <= state.curRow ? i : '');
+                    if (cY) cY.innerText = state.filledY ? [10, 12, 15, 18, 20][i-1] : '';
+                }
+            } else if (state.view === 'statShiftMenu') {
+                if (vShift) vShift.style.display = 'block';
+                const optVar = document.getElementById('menuOptVar');
+                const optReg = document.getElementById('menuOptReg');
+                if (optVar) optVar.style.textDecoration = (state.highlightOpt === 'var') ? 'underline' : 'none';
+                if (optReg) optReg.style.textDecoration = (state.highlightOpt === 'reg') ? 'underline' : 'none';
+            } else if (state.view === 'varMenu') {
+                if (vVar) vVar.style.display = 'block';
+            } else if (state.view === 'regMenu') {
+                if (vReg) vReg.style.display = 'block';
+            } else {
+                if (vNorm) vNorm.style.display = 'block';
+                const inp = document.getElementById('lcdInput');
+                const res = document.getElementById('lcdResult');
+                if (inp) inp.innerText = state.line1 || '';
+                if (res) res.innerText = state.result || '';
+            }
+        }
+
+        function playCasioBeep() {
+            try {
+                if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (!audioCtx) return;
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.04);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.04);
+            } catch(e) {}
+        }
+
+        const matrixA = [
+            [1, 2, 1],
+            [0, 1, 3],
+            [2, 1, 1]
+        ];
+
+        const matrixB = [
+            [2, 0, 1],
+            [1, 3, 0],
+            [0, 2, 1]
+        ];
+
+        const scenarios = {
+            saisieA: {
+                title: "Saisie de la Matrice A (3×3)",
+                steps: [
+                    {
+                        stepTitle: "1. Activer le menu MODE",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[MODE SETUP]</strong> pour afficher la liste des modes de calcul.",
+                        voiceText: "Bonjour ! Pour commencer, appuyez sur la touche Mode Setup pour afficher les modes de calcul.",
+                        keys: [{ name: "MODE", type: "mode", id: "key-mode" }],
+                        tip: "Le mode normal de base est COMP (1). Pour les matrices, il faut choisir MATRIX (6).",
+                        screenState: { view: "mode" }
+                    },
+                    {
+                        stepTitle: "2. Choisir le Mode 6 : MATRIX",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[6]</strong> pour entrer dans le mode de calcul matriciel.",
+                        voiceText: "Appuyez sur la touche 6 pour activer le mode Matrice. Remarquez l'indicateur MAT en haut de l'écran.",
+                        keys: [{ name: "6", type: "num", id: "key-6" }],
+                        tip: "L'indicateur 'MAT' s'affiche en haut de l'écran LCD pour indiquer que vous êtes en mode Matrice.",
+                        screenState: { view: "matSelect" }
+                    },
+                    {
+                        stepTitle: "3. Sélectionner la Matrice A (1: MatA)",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour définir les dimensions et les coefficients de MatA.",
+                        voiceText: "Sélectionnez la matrice A en appuyant sur 1 pour définir ses dimensions.",
+                        keys: [{ name: "1", type: "num", id: "key-1" }],
+                        tip: "Vous pouvez choisir entre MatA (1), MatB (2) ou MatC (3).",
+                        screenState: { view: "dimSelect", title: "MatA(m×n)" }
+                    },
+                    {
+                        stepTitle: "4. Choisir la dimension 3×3 (Touche 1)",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour sélectionner une matrice carrée d'ordre 3 (3 lignes, 3 colonnes).",
+                        voiceText: "Appuyez sur 1 pour choisir une matrice carrée 3 par 3. La grille d'édition s'ouvre à l'écran.",
+                        keys: [{ name: "1", type: "num", id: "key-1" }],
+                        tip: "Pour une matrice d'ordre 2 (2×2), on aurait appuyé sur [5].",
+                        screenState: { view: "matrixEditor", matName: "MatA 3×3", cellIdx: 0, val: 1 }
+                    },
+                    {
+                        stepTitle: "5. Remplir les coefficients avec [ = ]",
+                        desc: "Tapez chaque coefficient puis validez avec la touche <strong style=\"color:var(--turquoise);\">[ = ]</strong>. Entrez successivement : 1= 2= 1= 0= 1= 3= 2= 1= 1=",
+                        voiceText: "Entrez les coefficients un par un en validant chaque nombre avec la touche égale.",
+                        keys: [
+                            { name: "1", type: "num", id: "key-1" }, { name: "=", type: "equal", id: "key-equal" },
+                            { name: "2", type: "num", id: "key-2" }, { name: "=", type: "equal", id: "key-equal" },
+                            { name: "...", type: "num", id: "key-equal" }
+                        ],
+                        tip: "La calculatrice avance automatiquement cellule par cellule de gauche à droite, puis ligne par ligne.",
+                        screenState: { view: "matrixEditorFilled", matName: "MatA 3×3", cellIdx: 8, val: 1 }
+                    },
+                    {
+                        stepTitle: "6. Mémoriser et Quitter l'éditeur avec [AC]",
+                        desc: "Appuyez sur la touche orange <strong style=\"color:var(--rose);\">[AC]</strong>. Vos données sont enregistrées dans la mémoire MatA !",
+                        voiceText: "Appuyez sur la touche A C. Votre matrice A est enregistrée en mémoire et prête pour le calcul.",
+                        keys: [{ name: "AC", type: "ac", id: "key-ac" }],
+                        tip: "Ne vous inquiétez pas, appuyer sur [AC] n'efface pas la matrice ! Elle reste bien en mémoire dans MatA.",
+                        screenState: { view: "normal", input: "", result: "0" }
+                    }
+                ]
+            },
+
+            saisieB: {
+                title: "Saisie de la Matrice B (3×3)",
+                steps: [
+                    {
+                        stepTitle: "1. Ouvrir le Menu MATRIX (SHIFT + 4)",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[4]</strong> (au-dessus de laquelle est inscrit MATRIX en jaune).",
+                        voiceText: "Pour configurer la matrice B, ouvrez le menu Matrix en faisant Shift puis 4.",
+                        keys: [
+                            { name: "SHIFT", type: "shift", id: "key-shift" },
+                            { name: "4", type: "num", id: "key-4" }
+                        ],
+                        tip: "Le menu MATRIX vous donne accès à la dimension (1:Dim), aux données (2:Data) et aux matrices mémoires.",
+                        screenState: { view: "shift4Menu" }
+                    },
+                    {
+                        stepTitle: "2. Choisir 1 : Dim (Dimension)",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour définir la dimension d'une nouvelle matrice.",
+                        voiceText: "Appuyez sur 1 pour définir la dimension.",
+                        keys: [{ name: "1", type: "num", id: "key-1" }],
+                        tip: "Si vous vouliez juste modifier une valeur existante sans changer la dimension, vous auriez choisi [2:Data].",
+                        screenState: { view: "matSelect" }
+                    },
+                    {
+                        stepTitle: "3. Sélectionner 2 : MatB",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[2]</strong> pour configurer la Matrice B.",
+                        voiceText: "Appuyez sur 2 pour sélectionner la matrice B.",
+                        keys: [{ name: "2", type: "num", id: "key-2" }],
+                        tip: "MatB est la 2ème matrice mémoire disponible.",
+                        screenState: { view: "dimSelect", title: "MatB(m×n)" }
+                    },
+                    {
+                        stepTitle: "4. Choisir la dimension 3×3 (Touche 1)",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[1]</strong> pour choisir le format 3×3 pour la Matrice B.",
+                        voiceText: "Appuyez sur 1 pour choisir la dimension 3 par 3 pour la matrice B.",
+                        keys: [{ name: "1", type: "num", id: "key-1" }],
+                        tip: "La grille d'édition de MatB apparaît à l'écran.",
+                        screenState: { view: "matrixEditorB", matName: "MatB 3×3", cellIdx: 0, val: 2 }
+                    },
+                    {
+                        stepTitle: "5. Saisir les valeurs de MatB",
+                        desc: "Entrez les coefficients de B suivis de <strong style=\"color:var(--turquoise);\">[ = ]</strong> : 2= 0= 1= 1= 3= 0= 0= 2= 1=",
+                        voiceText: "Saisissez les coefficients de la matrice B en validant chaque case avec la touche égale.",
+                        keys: [
+                            { name: "2", type: "num", id: "key-2" }, { name: "=", type: "equal", id: "key-equal" },
+                            { name: "0", type: "num", id: "key-0" }, { name: "=", type: "equal", id: "key-equal" },
+                            { name: "...", type: "num", id: "key-equal" }
+                        ],
+                        tip: "Toutes les 9 cases de la matrice B sont maintenant renseignées.",
+                        screenState: { view: "matrixEditorBFilled", matName: "MatB 3×3", cellIdx: 8, val: 1 }
+                    },
+                    {
+                        stepTitle: "6. Sauvegarder dans MatB avec [AC]",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--rose);\">[AC]</strong> pour valider et revenir à l'écran principal.",
+                        voiceText: "Appuyez sur la touche A C pour valider. Vos deux matrices A et B sont prêtes.",
+                        keys: [{ name: "AC", type: "ac", id: "key-ac" }],
+                        tip: "MatA et MatB sont désormais prêtes pour toutes vos opérations !",
+                        screenState: { view: "normal", input: "", result: "0" }
+                    }
+                ]
+            },
+
+            det: {
+                title: "Calcul du Déterminant : det(MatA)",
+                steps: [
+                    {
+                        stepTitle: "1. Ouvrir le Menu MATRIX",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[4]</strong> (MATRIX).",
+                        voiceText: "Pour calculer le déterminant, ouvrez le menu Matrix avec Shift puis 4.",
+                        keys: [
+                            { name: "SHIFT", type: "shift", id: "key-shift" },
+                            { name: "4", type: "num", id: "key-4" }
+                        ],
+                        tip: "Repérez l'option 7: Det dans le menu.",
+                        screenState: { view: "shift4Menu" }
+                    },
+                    {
+                        stepTitle: "2. Sélectionner la fonction 7 : Det",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[7]</strong>. L'écran affiche l'instruction 'det(' en attente de la matrice.",
+                        voiceText: "Appuyez sur 7 pour choisir la fonction Déterminant.",
+                        keys: [{ name: "7", type: "num", id: "key-7" }],
+                        tip: "Det calcule le déterminant d'une matrice carrée 2×2 ou 3×3.",
+                        screenState: { view: "normal", input: "det(", result: "" }
+                    },
+                    {
+                        stepTitle: "3. Insérer la Matrice A : SHIFT + 4 puis 3",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong>, puis choisissez <strong style=\"color:var(--turquoise);\">[3]</strong> pour insérer MatA.",
+                        voiceText: "Insérez la matrice A en faisant Shift, 4, puis 3.",
+                        keys: [
+                            { name: "SHIFT", type: "shift", id: "key-shift" },
+                            { name: "4", type: "num", id: "key-4" },
+                            { name: "3", type: "num", id: "key-3" }
+                        ],
+                        tip: "L'écran affiche maintenant : det(MatA",
+                        screenState: { view: "normal", input: "det(MatA", result: "" }
+                    },
+                    {
+                        stepTitle: "4. Fermer la parenthèse et Calculer avec [ = ]",
+                        desc: "Appuyez sur la parenthèse fermante <strong style=\"color:var(--turquoise);\">[ ) ]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[ = ]</strong>.",
+                        voiceText: "Fermez la parenthèse et appuyez sur égale. Le déterminant vaut moins 8, la matrice est inversible.",
+                        keys: [
+                            { name: ")", type: "fn", id: "key-rpar" },
+                            { name: "=", type: "equal", id: "key-equal" }
+                        ],
+                        tip: "Résultat : det(A) = -8. Comme det(A) ≠ 0, la matrice A est inversible !",
+                        screenState: { view: "normal", input: "det(MatA)", result: "-8" }
+                    }
+                ]
+            },
+
+            scal: {
+                title: "Multiplication d'une Matrice par un Réel (3 × MatA)",
+                steps: [
+                    {
+                        stepTitle: "1. Taper le coefficient réel (Exemple : 3)",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[3]</strong> puis sur la touche de multiplication <strong style=\"color:var(--turquoise);\">[ × ]</strong>.",
+                        voiceText: "Pour multiplier par un réel, tapez d'abord 3 suivi de la touche de multiplication.",
+                        keys: [
+                            { name: "3", type: "num", id: "key-3" },
+                            { name: "×", type: "op", id: "key-mul" }
+                        ],
+                        tip: "Vous pouvez multiplier par n'importe quel réel, positif, négatif (avec (-)) ou fractionnaire (avec ■/□).",
+                        screenState: { view: "normal", input: "3×", result: "" }
+                    },
+                    {
+                        stepTitle: "2. Insérer MatA : SHIFT + 4 puis 3",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong>, et tapez <strong style=\"color:var(--turquoise);\">[3]</strong> pour appeler MatA.",
+                        voiceText: "Appelez la matrice A en faisant Shift, 4, puis 3.",
+                        keys: [
+                            { name: "SHIFT", type: "shift", id: "key-shift" },
+                            { name: "4", type: "num", id: "key-4" },
+                            { name: "3", type: "num", id: "key-3" }
+                        ],
+                        tip: "La formule affichée est : 3×MatA",
+                        screenState: { view: "normal", input: "3×MatA", result: "" }
+                    },
+                    {
+                        stepTitle: "3. Calculer avec [ = ] et Naviguer dans MatAns",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. Le résultat est stocké dans la matrice réponse 'MatAns'. Chaque terme est multiplié par 3 !",
+                        voiceText: "Appuyez sur égale. La Casio affiche la matrice résultat avec chaque coefficient multiplié par 3.",
+                        keys: [{ name: "=", type: "equal", id: "key-equal" }],
+                        tip: "Utilisez le pavé directionnel circulaire (flèches droite/gauche/haut/bas) pour faire défiler tous les coefficients.",
+                        screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[3,6,3],[0,3,9],[6,3,3]] }
+                    }
+                ]
+            },
+
+            somme: {
+                title: "Somme de deux Matrices : MatA + MatB",
+                steps: [
+                    {
+                        stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour écrire MatA.",
+                        voiceText: "Pour la somme, insérez d'abord la matrice A avec Shift, 4, puis 3.",
+                        keys: [
+                            { name: "SHIFT", type: "shift", id: "key-shift" },
+                            { name: "4", type: "num", id: "key-4" },
+                            { name: "3", type: "num", id: "key-3" }
+                        ],
+                        tip: "Rappel : L'addition n'est possible que si les deux matrices ont exactement la même dimension !",
+                        screenState: { view: "normal", input: "MatA", result: "" }
+                    },
+                    {
+                        stepTitle: "2. Ajouter le signe [ + ]",
+                        desc: "Appuyez sur la touche d'addition <strong style=\"color:var(--turquoise);\">[ + ]</strong>.",
+                        voiceText: "Appuyez sur la touche plus.",
+                        keys: [{ name: "+", type: "op", id: "key-plus" }],
+                        tip: "L'écran affiche : MatA+",
+                        screenState: { view: "normal", input: "MatA+", result: "" }
+                    },
+                    {
+                        stepTitle: "3. Insérer MatB (SHIFT + 4 puis 4)",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> pour insérer MatB.",
+                        voiceText: "Insérez la matrice B en faisant Shift, 4, puis 4.",
+                        keys: [
+                            { name: "SHIFT", type: "shift", id: "key-shift" },
+                            { name: "4", type: "num", id: "key-4" },
+                            { name: "4", type: "num", id: "key-4" }
+                        ],
+                        tip: "L'écran affiche l'opération complète : MatA+MatB",
+                        screenState: { view: "normal", input: "MatA+MatB", result: "" }
+                    },
+                    {
+                        stepTitle: "4. Afficher la Matrice Somme avec [ = ]",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La Casio calcule terme à terme la somme des deux matrices dans MatAns.",
+                        voiceText: "Appuyez sur égale. La Casio additionne terme à terme les deux matrices.",
+                        keys: [{ name: "=", type: "equal", id: "key-equal" }],
+                        tip: "Terme (1,1) = 1 + 2 = 3. Naviguez avec les flèches pour voir tous les termes.",
+                        screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[3,2,2],[1,4,3],[2,3,2]] }
+                    }
+                ]
+            },
+
+            produit: {
+                title: "Produit de deux Matrices : MatA × MatB",
+                steps: [
+                    {
+                        stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour afficher MatA.",
+                        voiceText: "Pour le produit matriciel, insérez la matrice A avec Shift, 4, puis 3.",
+                        keys: [
+                            { name: "SHIFT", type: "shift", id: "key-shift" },
+                            { name: "4", type: "num", id: "key-4" },
+                            { name: "3", type: "num", id: "key-3" }
+                        ],
+                        tip: "Pour multiplier deux matrices, le nombre de colonnes de A doit être égal au nombre de lignes de B.",
+                        screenState: { view: "normal", input: "MatA", result: "" }
+                    },
+                    {
+                        stepTitle: "2. Ajouter le signe de Multiplication [ × ]",
+                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[ × ]</strong>.",
+                        voiceText: "Appuyez sur le signe de multiplication.",
+                        keys: [{ name: "×", type: "op", id: "key-mul" }],
+                        tip: "L'écran affiche : MatA×",
+                        screenState: { view: "normal", input: "MatA×", result: "" }
+                    },
+                    {
+                        stepTitle: "3. Insérer MatB (SHIFT + 4 puis 4)",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> pour sélectionner MatB.",
+                        voiceText: "Insérez la matrice B avec Shift, 4, puis 4.",
+                        keys: [
+                            { name: "SHIFT", type: "shift", id: "key-shift" },
+                            { name: "4", type: "num", id: "key-4" },
+                            { name: "4", type: "num", id: "key-4" }
+                        ],
+                        tip: "L'opération complète est : MatA×MatB",
+                        screenState: { view: "normal", input: "MatA×MatB", result: "" }
+                    },
+                    {
+                        stepTitle: "4. Exécuter le Produit Matriciel avec [ = ]",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La Casio effectue le produit scalaire (ligne par colonne) et donne la matrice résultante MatAns.",
+                        voiceText: "Appuyez sur égale. La Casio effectue le calcul ligne par colonne et affiche la matrice résultat.",
+                        keys: [{ name: "=", type: "equal", id: "key-equal" }],
+                        tip: "Attention : Le produit matriciel n'est généralement PAS commutatif : MatA × MatB ≠ MatB × MatA !",
+                        screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[4,8,2],[1,9,3],[5,5,3]] }
+                    }
+                ]
+            },
+
+            inverse: {
+                title: "Calcul de la Matrice Inverse : MatA⁻¹",
+                steps: [
+                    {
+                        stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour appeler MatA.",
+                        voiceText: "Pour calculer l'inverse, commencez par insérer la matrice A avec Shift, 4, puis 3.",
+                        keys: [
+                            { name: "SHIFT", type: "shift", id: "key-shift" },
+                            { name: "4", type: "num", id: "key-4" },
+                            { name: "3", type: "num", id: "key-3" }
+                        ],
+                        tip: "La matrice doit être carrée et son déterminant doit être non nul (det(A) ≠ 0).",
+                        screenState: { view: "normal", input: "MatA", result: "" }
+                    },
+                    {
+                        stepTitle: "2. Appuyer sur la Touche [ x⁻¹ ]",
+                        desc: "Appuyez directement sur la touche <strong style=\"color:var(--turquoise);\">[ x⁻¹ ]</strong> située juste en dessous de la touche de mise sous tension.",
+                        voiceText: "Appuyez directement sur la touche x puissance moins un.",
+                        keys: [{ name: "x⁻¹", type: "fn", id: "key-xinv" }],
+                        tip: "Ne faites PAS de puissance ^(-1), utilisez toujours la touche dédiée [ x⁻¹ ] !",
+                        screenState: { view: "normal", input: "MatA⁻¹", result: "" }
+                    },
+                    {
+                        stepTitle: "3. Calculer l'Inverse avec [ = ]",
+                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La calculatrice affiche les coefficients de la matrice inverse A⁻¹.",
+                        voiceText: "Appuyez sur égale. Les coefficients de la matrice inverse s'affichent. Vous pouvez basculer l'écriture en fraction avec la touche S D.",
+                        keys: [{ name: "=", type: "equal", id: "key-equal" }],
+                        tip: "Appuyez sur la touche [S⇔D] pour basculer l'affichage d'un coefficient entre fraction et nombre décimal !",
+                        screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [["-0.25","0.125","0.625"],["-0.75","0.125","-0.375"],["0.25","-0.375","-0.125"]] }
+                    }
+                ]
+            }
+        };
+
+        let isVoiceEnabled = true;
+        let teacherVoice = null;
+        let autoPlayTimer = null;
+        let keySequenceTimer = null;
+        let currentScenarioKey = 'saisieA';
+        let currentStepIndex = 0;
+        let isPlaying = false;
+        let animSpeedMs = 2800;
+        let voiceRate = 0.75; // Débit vocal par défaut : Lente (prof débutants)
+
+        function initTeacherVoice() {
+            // ResponsiveVoice is loaded via CDN in <head>
+            // Web Speech API fallback: select best male French voice
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'fr-FR';
-                utterance.rate = 0.95;
-                utterance.pitch = 1.0;
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        function toggleVoice() {
-            isVoiceEnabled = !isVoiceEnabled;
-            const btn = document.getElementById('voiceToggleBtn');
-            if (isVoiceEnabled) {
-                btn.classList.add('active-voice');
-                btn.innerHTML = '🔊 Voix : ACTIVÉE';
-                speakCurrentStep();
-            } else {
-                btn.classList.remove('active-voice');
-                btn.innerHTML = '🔇 Voix : DÉSACTIVÉE';
-                if (typeof responsiveVoice !== 'undefined') responsiveVoice.cancel();
-                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-            }
-        }
-
-        function speakCurrentStep() {
-            const sc = scenarios[currentScenarioIdx];
-            const step = sc.steps[currentStepIdx];
-            if (step && step.voice) {
-                speakText(step.voice);
-            }
-        }
-
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  NAVIGATION ET CONTRÔLEUR
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function selectScenario(idx) {
-            currentScenarioIdx = idx;
-            currentStepIdx = 0;
-            stopAutoPlay();
-
-            // Mettre à jour les boutons de scénario
-            const btns = document.querySelectorAll('.scenario-btn');
-            btns.forEach((b, i) => {
-                if (i === idx) b.classList.add('active');
-                else b.classList.remove('active');
-            });
-
-            updateChart();
-            renderStep();
-        }
-
-        function renderStep() {
-            const sc = scenarios[currentScenarioIdx];
-            const step = sc.steps[currentStepIdx];
-
-            // Update Header & Pill
-            document.getElementById('stepPill').innerText = `Étape ${currentStepIdx + 1} sur ${sc.steps.length}`;
-            document.getElementById('stepTitle').innerText = step.title;
-            document.getElementById('stepDesc').innerHTML = step.desc;
-
-            // Update Navigation Buttons
-            document.getElementById('prevBtn').disabled = (currentStepIdx === 0);
-            document.getElementById('nextBtn').disabled = (currentStepIdx === sc.steps.length - 1);
-
-            // Update LCD Display
-            updateLcd(step.lcd);
-
-            // Highlight target key
-            highlightKey(step.key);
-
-            // Speak instruction
-            speakCurrentStep();
-        }
-
-        function updateLcd(lcdData) {
-            const content = document.getElementById('lcdContent');
-            if (!lcdData) return;
-
-            if (lcdData.table) {
-                let tableHtml = `
-                    <div class="lcd-table-view">
-                        <div class="lcd-table-header">
-                            <div>#</div><div>X</div><div>Y</div>
-                        </div>
-                `;
-                lcdData.table.forEach((row, i) => {
-                    const isSel = lcdData.selected && lcdData.selected.r === i;
-                    tableHtml += `
-                        <div class="lcd-table-row ${isSel ? 'selected' : ''}">
-                            <div>${row.n}</div>
-                            <div>${row.x || ''}</div>
-                            <div>${row.y || ''}</div>
-                        </div>
-                    `;
-                });
-                tableHtml += '</div>';
-                content.innerHTML = tableHtml;
-            } else {
-                content.innerHTML = `
-                    <div class="lcd-line-1">${lcdData.l1 || ''}</div>
-                    <div class="lcd-line-2">${lcdData.l2 || ''}</div>
-                `;
-            }
-        }
-
-        function highlightKey(keyName) {
-            // Remove previous highlights
-            document.querySelectorAll('.key-btn, .dpad').forEach(el => el.classList.remove('highlight'));
-            if (!keyName) return;
-
-            const map = {
-                'MODE': 'key-mode',
-                'ON': 'key-on',
-                'SHIFT': 'key-shift',
-                'ALPHA': 'key-alpha',
-                'OPTN': 'key-optn',
-                'CALC': 'key-calc',
-                'AC': 'key-ac',
-                'DEL': 'key-del',
-                'EQ': 'key-eq',
-                '0': 'key-0', '1': 'key-1', '2': 'key-2', '3': 'key-3', '4': 'key-4',
-                '5': 'key-5', '6': 'key-6', '7': 'key-7', '8': 'key-8', '9': 'key-9',
-                'PLUS': 'key-plus', 'MINUS': 'key-minus', 'MUL': 'key-mul', 'DIV': 'key-div',
-                'DPAD': 'key-dpad'
-            };
-
-            const id = map[keyName];
-            if (id) {
-                const el = document.getElementById(id);
-                if (el) el.classList.add('highlight');
-            }
-        }
-
-        function pressKey(keyName) {
-            const sc = scenarios[currentScenarioIdx];
-            const step = sc.steps[currentStepIdx];
-
-            // Animate click
-            const el = event ? event.currentTarget : null;
-            if (el) {
-                el.classList.add('pressed');
-                setTimeout(() => el.classList.remove('pressed'), 120);
-            }
-
-            // If user clicked the guided key, advance to next step
-            if (step && (step.key === keyName || (step.key === 'EQ' && keyName === 'EQ') || (step.key === 'AC' && keyName === 'AC'))) {
-                if (currentStepIdx < sc.steps.length - 1) {
-                    nextStep();
+                function pickBestFrenchVoice() {
+                    try {
+                        const voices = window.speechSynthesis.getVoices();
+                        const frVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
+                        const maleNames = /thomas|paul|henri|pierre|guy|nicolas|jean|arnaud|mathieu|yannick|david|raphael/i;
+                        const femaleNames = /marie|claire|julie|hortense|virginie|amelie|lea|lucie|juliette|female|femme/i;
+                        let male = frVoices.find(v => maleNames.test(v.name) && !femaleNames.test(v.name));
+                        if (!male) male = frVoices.find(v => !femaleNames.test(v.name));
+                        teacherVoice = male || (frVoices.length > 0 ? frVoices[0] : null);
+                    } catch(e) {}
+                }
+                pickBestFrenchVoice();
+                if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                    window.speechSynthesis.onvoiceschanged = pickBestFrenchVoice;
                 }
             }
         }
 
-        function nextStep() {
-            const sc = scenarios[currentScenarioIdx];
-            if (currentStepIdx < sc.steps.length - 1) {
-                currentStepIdx++;
-                renderStep();
+        function speakTeacher(text) {
+            const indicator = document.getElementById('voiceStatusIndicator');
+            const statusText = document.getElementById('voiceStatusText');
+
+            if (!isVoiceEnabled || !text) {
+                if (indicator) indicator.classList.remove('speaking');
+                if (statusText) statusText.innerText = isVoiceEnabled ? "Prêt à expliquer" : "Voix coupée";
+                return;
+            }
+
+            if (indicator) indicator.classList.add('speaking');
+            if (statusText) statusText.innerText = "Le prof vous explique...";
+
+            const onDone = () => {
+                if (indicator) indicator.classList.remove('speaking');
+                if (statusText) statusText.innerText = "Prêt à expliquer";
+            };
+
+            // ── Priorité 1 : ResponsiveVoice (voix masculine française de qualité) ──
+            if (typeof responsiveVoice !== 'undefined' && responsiveVoice.voiceSupport()) {
+                try {
+                    responsiveVoice.cancel();
+                    responsiveVoice.speak(text, "French Male", {
+                        rate: 0.9,      // Débit naturel, prof qui explique
+                        pitch: 0.85,    // Ton grave masculin
+                        volume: 1,
+                        onend: onDone,
+                        onerror: onDone
+                    });
+                    return;
+                } catch(e) {
+                    console.warn('ResponsiveVoice error, falling back:', e);
+                }
+            }
+
+            // ── Fallback : Web Speech API ──
+            if (!('speechSynthesis' in window)) { onDone(); return; }
+            try { window.speechSynthesis.cancel(); } catch(e) {}
+
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'fr-FR';
+            u.rate = 0.92;
+            u.pitch = 0.78;
+            u.volume = 1.0;
+            if (teacherVoice) u.voice = teacherVoice;
+            u.onend = onDone;
+            u.onerror = onDone;
+            window._activeUtterance = u;
+            try {
+                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+                window.speechSynthesis.speak(u);
+            } catch(err) {
+                console.warn('Speech error:', err);
+                onDone();
+            }
+        }
+
+        function stopTeacherVoice() {
+            // Arrêter ResponsiveVoice
+            try {
+                if (typeof responsiveVoice !== 'undefined') responsiveVoice.cancel();
+            } catch(e) {}
+            // Arrêter Web Speech API
+            try {
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            } catch(e) {}
+            const indicator = document.getElementById('voiceStatusIndicator');
+            const statusText = document.getElementById('voiceStatusText');
+            if (indicator) indicator.classList.remove('speaking');
+            if (statusText) statusText.innerText = isVoiceEnabled ? "Prêt à expliquer" : "Voix coupée";
+        }
+
+        // Pareil que speakTeacher mais appelle onDoneCallback quand la phrase est FINIE
+        // → utilisé par l'auto-play pour ne pas couper la voix
+        function speakTeacherWithCallback(text, onDoneCallback) {
+            const indicator = document.getElementById('voiceStatusIndicator');
+            const statusText = document.getElementById('voiceStatusText');
+
+            if (!isVoiceEnabled || !text) {
+                if (indicator) indicator.classList.remove('speaking');
+                if (statusText) statusText.innerText = "Prêt à expliquer";
+                if (onDoneCallback) onDoneCallback();
+                return;
+            }
+
+            if (indicator) indicator.classList.add('speaking');
+            if (statusText) statusText.innerText = "Le prof vous explique...";
+
+            const onDone = () => {
+                if (indicator) indicator.classList.remove('speaking');
+                if (statusText) statusText.innerText = "Prêt à expliquer";
+                if (onDoneCallback) onDoneCallback();
+            };
+
+            // ── ResponsiveVoice (voix masculine française) ──
+            if (typeof responsiveVoice !== 'undefined' && responsiveVoice.voiceSupport()) {
+                try {
+                    responsiveVoice.cancel();
+                    responsiveVoice.speak(text, "French Male", {
+                        rate: voiceRate,   // Contrôlé par le sélecteur de vitesse
+                        pitch: 0.85,
+                        volume: 1,
+                        onend: onDone,
+                        onerror: onDone
+                    });
+                    return;
+                } catch(e) {
+                    console.warn('ResponsiveVoice error, falling back:', e);
+                }
+            }
+
+            // ── Fallback : Web Speech API ──
+            if (!('speechSynthesis' in window)) { onDone(); return; }
+            try { window.speechSynthesis.cancel(); } catch(e) {}
+
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'fr-FR';
+            u.rate = 0.92;
+            u.pitch = 0.78;
+            u.volume = 1.0;
+            if (teacherVoice) u.voice = teacherVoice;
+            u.onend = onDone;
+            u.onerror = onDone;
+            window._activeUtterance = u;
+            try {
+                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+                window.speechSynthesis.speak(u);
+            } catch(err) {
+                console.warn('Speech error:', err);
+                onDone();
+            }
+        }
+
+        function toggleTeacherVoice() {
+            isVoiceEnabled = !isVoiceEnabled;
+            const btn = document.getElementById('btnVoiceToggle');
+            const icon = document.getElementById('voiceToggleIcon');
+            const label = document.getElementById('voiceToggleLabel');
+            const statusText = document.getElementById('voiceStatusText');
+
+            if (isVoiceEnabled) {
+                if (btn) btn.className = "voice-toggle-btn";
+                if (icon) icon.innerText = "🔊";
+                if (label) label.innerText = "Voix du Professeur : ACTIVÉE";
+                if (statusText) statusText.innerText = "Prêt à expliquer";
+                replayTeacherVoice();
             } else {
-                stopAutoPlay();
+                if (btn) btn.className = "voice-toggle-btn muted";
+                if (icon) icon.innerText = "🔇";
+                if (label) label.innerText = "Voix du Professeur : COUPÉE";
+                stopTeacherVoice();
+            }
+        }
+
+        function replayTeacherVoice() {
+            const scenario = scenarios[currentScenarioKey];
+            if (scenario && scenario.steps[currentStepIndex]) {
+                const step = scenario.steps[currentStepIndex];
+                speakTeacher(step.voiceText || step.desc.replace(/<[^>]*>/g, ''));
+            }
+        }
+
+        function loadScenario(key) {
+            pauseAutoPlay();
+            currentScenarioKey = key;
+            currentStepIndex = 0;
+
+            document.querySelectorAll('.scenario-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.getElementById('btnScen-' + key);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            renderCurrentStep(false);
+        }
+
+        function renderCurrentStep(shouldSpeak = true) {
+            clearTimeout(autoPlayTimer);
+            const scenario = scenarios[currentScenarioKey];
+            if (!scenario) return;
+            const totalSteps = scenario.steps.length;
+            const step = scenario.steps[currentStepIndex];
+            if (!step) return;
+
+            // Step Counter and texts
+            const stepInd = document.getElementById('stepIndicator');
+            const stepTit = document.getElementById('stepTitle');
+            const stepD = document.getElementById('stepDesc');
+            const pedTip = document.getElementById('pedagogicTip');
+
+            if (stepInd) stepInd.innerText = "Étape " + (currentStepIndex + 1) + " / " + totalSteps;
+            if (stepTit) stepTit.innerText = step.stepTitle;
+            if (stepD) stepD.innerHTML = step.desc;
+            if (pedTip) pedTip.innerHTML = "💡 <strong>Astuce Bac :</strong> " + step.tip;
+
+            // Render Keys sequence badges
+            const keysContainer = document.getElementById('keysSequenceContainer');
+            if (keysContainer) {
+                keysContainer.innerHTML = '';
+                if (step.keys && step.keys.length > 0) {
+                    step.keys.forEach((k, idx) => {
+                        const badge = document.createElement('span');
+                        badge.className = "key-badge " + (k.type || 'fn');
+                        badge.innerText = k.name;
+                        keysContainer.appendChild(badge);
+
+                        if (idx < step.keys.length - 1) {
+                            const arrow = document.createElement('span');
+                            arrow.className = 'key-arrow';
+                            arrow.innerText = '➔';
+                            keysContainer.appendChild(arrow);
+                        }
+                    });
+                }
+            }
+
+            // Update Previous/Next buttons state
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
+            if (btnPrev) btnPrev.disabled = (currentStepIndex === 0);
+            if (btnNext) btnNext.disabled = (currentStepIndex === totalSteps - 1);
+
+            // Animate keys and red pointer
+            if (step.keys && step.keys.length > 0) {
+                animateKeySequence(step.keys);
+            } else {
+                clearKeyHighlights();
+                hideVirtualFinger();
+            }
+
+            // Render Screen & KaTeX
+            renderLcd(step.screenState);
+            renderMath();
+            playCasioBeep();
+
+            // Update Teacher Voice Speech Bubble & Audio
+            const voiceTextEl = document.getElementById('teacherVoiceText');
+            const textToSpeak = step.voiceText || step.desc.replace(/<[^>]*>/g, '');
+            if (voiceTextEl) {
+                voiceTextEl.innerText = '"' + textToSpeak + '"';
+            }
+
+            // Handle Auto-Play: advance to next step only AFTER voice finishes
+            if (isPlaying) {
+                // ── Calcul du temps de parole réel ──
+                // Base: ~90ms/char à débit 0.9 normal. On divise par voiceRate pour adapter.
+                const charRate = Math.round(90 / voiceRate); // ms par caractère
+                const estimatedSpeechMs = Math.min(Math.max(textToSpeak.length * charRate, 4000), 30000);
+                const totalWaitMs = estimatedSpeechMs + 2000; // +2s de marge de sécurité
+                animateProgressBar(totalWaitMs);
+
+                // Variable de protection : on n'avance qu'une seule fois
+                let alreadyAdvanced = false;
+                let safetyTimer = null;
+
+                const advanceToNext = () => {
+                    if (alreadyAdvanced || !isPlaying) return;
+                    alreadyAdvanced = true;
+                    if (safetyTimer) clearTimeout(safetyTimer);
+                    // Petite pause naturelle après la fin de la voix
+                    autoPlayTimer = setTimeout(() => {
+                        if (isPlaying) {
+                            const scen = scenarios[currentScenarioKey];
+                            if (currentStepIndex < scen.steps.length - 1) {
+                                currentStepIndex++;
+                                renderCurrentStep(true);
+                            } else {
+                                pauseAutoPlay();
+                            }
+                        }
+                    }, 1200); // 1.2s de pause naturelle après chaque phrase
+                };
+
+                if (shouldSpeak && isVoiceEnabled) {
+                    // Lancer la voix avec callback onend
+                    speakTeacherWithCallback(textToSpeak, advanceToNext);
+                    // Timer de sécurité large : si onend ne se déclenche pas, on avance quand même
+                    safetyTimer = setTimeout(advanceToNext, totalWaitMs);
+                } else {
+                    // Pas de voix : timer fixe basé sur vitesse choisie
+                    autoPlayTimer = setTimeout(advanceToNext, animSpeedMs);
+                }
+            } else {
+                // Manual mode: just speak, no auto-advance
+                if (shouldSpeak && isVoiceEnabled) {
+                    speakTeacher(textToSpeak);
+                }
+                resetProgressBar();
+            }
+        }
+
+        function animateProgressBar(durationMs) {
+            const track = document.getElementById('autoProgressTrack');
+            const fill = document.getElementById('autoProgressFill');
+            if (!track || !fill) return;
+
+            track.classList.add('active');
+            fill.style.transition = 'none';
+            fill.style.width = '0%';
+
+            setTimeout(() => {
+                fill.style.transition = 'width ' + (durationMs / 1000) + 's linear';
+                fill.style.width = '100%';
+            }, 20);
+        }
+
+        function resetProgressBar() {
+            const track = document.getElementById('autoProgressTrack');
+            const fill = document.getElementById('autoProgressFill');
+            if (track) track.classList.remove('active');
+            if (fill) {
+                fill.style.transition = 'none';
+                fill.style.width = '0%';
+            }
+        }
+
+        function clearKeyHighlights() {
+            if (keySequenceTimer) clearTimeout(keySequenceTimer);
+            document.querySelectorAll('.key-btn').forEach(b => b.classList.remove('highlight', 'pressed'));
+        }
+
+        function animateKeySequence(keys) {
+            clearKeyHighlights();
+            if (!keys || keys.length === 0) {
+                hideVirtualFinger();
+                return;
+            }
+
+            let kIdx = 0;
+            function highlightNext() {
+                if (kIdx >= keys.length) return;
+                const kObj = keys[kIdx];
+                document.querySelectorAll('.key-btn').forEach(b => b.classList.remove('pressed'));
+                if (kObj && kObj.id) {
+                    const targetKeyEl = document.getElementById(kObj.id);
+                    if (targetKeyEl) {
+                        targetKeyEl.classList.add('highlight', 'pressed');
+                        playCasioBeep();
+                        setTimeout(() => targetKeyEl.classList.remove('pressed'), 250);
+                        moveVirtualFingerTo(targetKeyEl);
+                    }
+                }
+                kIdx++;
+                if (kIdx < keys.length) {
+                    keySequenceTimer = setTimeout(highlightNext, 450);
+                }
+            }
+            highlightNext();
+        }
+
+        function moveVirtualFingerTo(targetEl) {
+            try {
+                const finger = document.getElementById('virtualFinger');
+                const casioBody = document.getElementById('casioBody');
+                if (!finger || !casioBody || !targetEl) return;
+                const casioRect = casioBody.getBoundingClientRect();
+                const targetRect = targetEl.getBoundingClientRect();
+
+                const left = (targetRect.left - casioRect.left) + (targetRect.width / 2);
+                const top = (targetRect.top - casioRect.top) + (targetRect.height / 2);
+
+                finger.style.display = 'flex';
+                finger.style.left = left + "px";
+                finger.style.top = top + "px";
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        function hideVirtualFinger() {
+            const finger = document.getElementById('virtualFinger');
+            if (finger) finger.style.display = 'none';
+        }
+
+        function renderLcd(state) {
+            const vNorm = document.getElementById('viewNormal');
+            const vMode = document.getElementById('viewModeMenu');
+            const vMat = document.getElementById('viewMatSelect');
+            const vDim = document.getElementById('viewDimSelect');
+            const vEditor = document.getElementById('viewMatrixEditor');
+            const vShift = document.getElementById('viewMatShiftMenu');
+
+            if (vNorm) vNorm.style.display = 'none';
+            if (vMode) vMode.style.display = 'none';
+            if (vMat) vMat.style.display = 'none';
+            if (vDim) vDim.style.display = 'none';
+            if (vEditor) vEditor.style.display = 'none';
+            if (vShift) vShift.style.display = 'none';
+
+            if (!state) return;
+
+            if (state.view === 'mode') {
+                if (vMode) vMode.style.display = 'block';
+            } else if (state.view === 'matSelect') {
+                if (vMat) vMat.style.display = 'block';
+            } else if (state.view === 'dimSelect') {
+                if (vDim) vDim.style.display = 'block';
+                const dTitle = document.getElementById('dimSelectTitle');
+                if (dTitle) dTitle.innerText = state.title || 'MatA(m×n)';
+            } else if (state.view === 'matrixEditor' || state.view === 'matrixEditorFilled') {
+                if (vEditor) vEditor.style.display = 'block';
+                const mName = document.getElementById('editorMatName');
+                if (mName) mName.innerText = state.matName || 'MatA 3×3';
+                const cells = document.querySelectorAll('#lcdGridBox .lcd-cell');
+                const vals = state.view === 'matrixEditorFilled' ? [1,2,1,0,1,3,2,1,1] : [1,0,0,0,0,0,0,0,0];
+                cells.forEach((c, idx) => {
+                    c.innerText = vals[idx] !== undefined ? vals[idx] : '0';
+                    c.classList.toggle('cursor', idx === (state.cellIdx || 0));
+                });
+                const botVal = document.getElementById('lcdEditorBottomVal');
+                if (botVal) botVal.innerText = state.val !== undefined ? state.val : '1';
+            } else if (state.view === 'matrixEditorB' || state.view === 'matrixEditorBFilled') {
+                if (vEditor) vEditor.style.display = 'block';
+                const mName = document.getElementById('editorMatName');
+                if (mName) mName.innerText = state.matName || 'MatB 3×3';
+                const cells = document.querySelectorAll('#lcdGridBox .lcd-cell');
+                const vals = state.view === 'matrixEditorBFilled' ? [2,0,1,1,3,0,0,2,1] : [2,0,0,0,0,0,0,0,0];
+                cells.forEach((c, idx) => {
+                    c.innerText = vals[idx] !== undefined ? vals[idx] : '0';
+                    c.classList.toggle('cursor', idx === (state.cellIdx || 0));
+                });
+                const botVal = document.getElementById('lcdEditorBottomVal');
+                if (botVal) botVal.innerText = state.val !== undefined ? state.val : '2';
+            } else if (state.view === 'matrixResult') {
+                if (vEditor) vEditor.style.display = 'block';
+                const mName = document.getElementById('editorMatName');
+                if (mName) mName.innerText = state.title || 'MatAns 3×3';
+                const cells = document.querySelectorAll('#lcdGridBox .lcd-cell');
+                const vals = state.vals ? state.vals.flat() : [0,0,0,0,0,0,0,0,0];
+                cells.forEach((c, idx) => {
+                    c.innerText = vals[idx] !== undefined ? vals[idx] : '0';
+                    c.classList.remove('cursor');
+                });
+                const botVal = document.getElementById('lcdEditorBottomVal');
+                if (botVal) botVal.innerText = vals[0] !== undefined ? vals[0] : '';
+            } else if (state.view === 'shift4Menu') {
+                if (vShift) vShift.style.display = 'block';
+            } else {
+                if (vNorm) vNorm.style.display = 'block';
+                const lInp = document.getElementById('lcdInput');
+                const lRes = document.getElementById('lcdResult');
+                if (lInp) lInp.innerText = state.input || '';
+                if (lRes) lRes.innerText = state.result || '';
+            }
+        }
+
+        function nextStep() {
+            pauseAutoPlay();
+            const scenario = scenarios[currentScenarioKey];
+            if (currentStepIndex < scenario.steps.length - 1) {
+                currentStepIndex++;
+                renderCurrentStep(true);
             }
         }
 
         function prevStep() {
-            if (currentStepIdx > 0) {
-                currentStepIdx--;
-                renderStep();
+            pauseAutoPlay();
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                renderCurrentStep(true);
             }
         }
 
-        function toggleAutoPlay() {
-            if (isAutoPlaying) {
-                stopAutoPlay();
+        function resetCurrentScenario() {
+            pauseAutoPlay();
+            currentStepIndex = 0;
+            renderCurrentStep(true);
+        }
+
+        function togglePlayPause() {
+            if (isPlaying) {
+                pauseAutoPlay();
             } else {
                 startAutoPlay();
             }
         }
 
         function startAutoPlay() {
-            isAutoPlaying = true;
-            document.getElementById('autoBtn').innerHTML = '⏸ Pause';
-            autoPlayLoop();
+            const scenario = scenarios[currentScenarioKey];
+            if (currentStepIndex >= scenario.steps.length - 1) {
+                currentStepIndex = 0;
+            }
+            isPlaying = true;
+            const btn = document.getElementById('btnPlayPause');
+            if (btn) {
+                btn.innerHTML = '⏸ Pause';
+                btn.style.background = '#39d6c3';
+                btn.style.color = '#0b1426';
+            }
+            renderCurrentStep(true);
         }
 
-        function stopAutoPlay() {
-            isAutoPlaying = false;
-            if (autoPlayTimer) clearTimeout(autoPlayTimer);
-            document.getElementById('autoBtn').innerHTML = '▶ Lecture Auto';
-        }
-
-        function autoPlayLoop() {
-            if (!isAutoPlaying) return;
-            const sc = scenarios[currentScenarioIdx];
-            if (currentStepIdx < sc.steps.length - 1) {
-                autoPlayTimer = setTimeout(() => {
-                    nextStep();
-                    autoPlayLoop();
-                }, 4800);
-            } else {
-                stopAutoPlay();
+        function pauseAutoPlay() {
+            isPlaying = false;
+            clearTimeout(autoPlayTimer);
+            resetProgressBar();
+            stopTeacherVoice();
+            const btn = document.getElementById('btnPlayPause');
+            if (btn) {
+                btn.innerHTML = '▶ Lancer l\'Animation Auto';
+                btn.style.background = '';
+                btn.style.color = '';
             }
         }
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  CHART.JS GRAPHIQUE STATISTIQUE
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function initChart() {
-            const ctx = document.getElementById('statsChart').getContext('2d');
-            statsChart = new Chart(ctx, {
-                type: 'scatter',
-                data: {
-                    datasets: [
-                        {
-                            label: 'Points du nuage (xi, yi)',
-                            data: [ {x: 1, y: 10}, {x: 2, y: 12}, {x: 3, y: 15}, {x: 4, y: 18}, {x: 5, y: 20} ],
-                            backgroundColor: '#f51e65',
-                            pointRadius: 6,
-                            pointHoverRadius: 8
-                        },
-                        {
-                            label: 'Point moyen G(3, 15)',
-                            data: [ {x: 3, y: 15} ],
-                            backgroundColor: '#ffd166',
-                            borderColor: '#ffffff',
-                            borderWidth: 2,
-                            pointRadius: 8,
-                            pointStyle: 'rectRot'
-                        },
-                        {
-                            type: 'line',
-                            label: 'Droite de régression (D) : y = 2.6x + 7.2',
-                            data: [ {x: 0.5, y: 8.5}, {x: 5.5, y: 21.5} ],
-                            borderColor: '#39d6c3',
-                            borderWidth: 3,
-                            fill: false,
-                            pointRadius: 0
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            type: 'linear',
-                            position: 'bottom',
-                            min: 0,
-                            max: 6,
-                            grid: { color: 'rgba(255,255,255,0.08)' },
-                            ticks: { color: '#a0aec0' },
-                            title: { display: true, text: 'Rang / Variable X', color: '#39d6c3' }
-                        },
-                        y: {
-                            min: 5,
-                            max: 25,
-                            grid: { color: 'rgba(255,255,255,0.08)' },
-                            ticks: { color: '#a0aec0' },
-                            title: { display: true, text: 'Variable Y', color: '#39d6c3' }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            labels: { color: '#d1d9e6', boxWidth: 12, font: { size: 11 } }
-                        }
-                    }
-                }
-            });
+        function updateSpeed() {
+            // La valeur est maintenant un débit vocal (ex: 0.75, 0.9, 1.1)
+            voiceRate = parseFloat(document.getElementById('animSpeed').value) || 0.9;
+            // Recalibrer le charRate en fonction du débit
+            // débit 0.75 → ~145ms/char, débit 0.9 → ~110ms/char, débit 1.1 → ~90ms/char
+            animSpeedMs = Math.round(110 / voiceRate * 100); // garde une ref pour sans-voix
         }
 
-        function updateChart() {
-            if (!statsChart) return;
-            const sc = scenarios[currentScenarioIdx];
-            if (sc.dataPoints && sc.dataPoints.length > 0) {
-                statsChart.data.datasets[0].data = sc.dataPoints;
-                statsChart.data.datasets[1].data = [ {x: 3, y: 15} ];
-                statsChart.data.datasets[2].data = [ {x: 0.5, y: 8.5}, {x: 5.5, y: 21.5} ];
-                document.getElementById('statsMathSummary').style.display = 'flex';
-            } else {
-                statsChart.data.datasets[0].data = [];
-                statsChart.data.datasets[1].data = [];
-                statsChart.data.datasets[2].data = [];
-                document.getElementById('statsMathSummary').style.display = 'none';
-            }
-            statsChart.update();
+        function handlePhysicalKey(keyName) {
+            playCasioBeep();
+            nextStep();
         }
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  INITIALISATION AU CHARGEMENT
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        window.addEventListener('DOMContentLoaded', () => {
-            initChart();
-            renderStep();
-            if (window.renderMathInElement) {
-                renderMathInElement(document.body);
-            }
+        // Initialize immediately
+        document.addEventListener('DOMContentLoaded', () => {
+            initTeacherVoice();
+            renderCurrentStep(false);
         });
+        window.addEventListener('load', () => {
+            renderCurrentStep(false);
+        });
+        setTimeout(() => {
+            renderCurrentStep(false);
+        }, 80);
     </script>
 </body>
 </html>

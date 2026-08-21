@@ -26,6 +26,26 @@
                 Choisissez une Animation
             </h2>
             <div class="dashboard">
+                <!-- Arbre de Choix et Probabilités Conditionnelles -->
+                <div class="dashboard-card" style="border-color: var(--turquoise); background: linear-gradient(135deg, rgba(57, 214, 195, 0.15) 0%, rgba(26, 45, 89, 0.6) 100%);">
+                    <div>
+                        <div style="font-size:0.75rem; font-weight:700; color:var(--turquoise); text-transform:uppercase; margin-bottom:4px;">Nouveau • Probabilités 4ème Éco</div>
+                        <h3>Arbre de Choix & Probabilités Conditionnelles</h3>
+                        <p>Animation interactive pas-à-pas : Arbre pondéré au choix (dépistage médical, usine, banque, e-commerce), formule des probabilités totales, théorème de Bayes, simulation Monte-Carlo et quiz.</p>
+                    </div>
+                    <a href="arbre_probabilite.html" class="btn-primary" style="background:var(--turquoise); color:var(--navy-dark); font-weight:700;">Lancer l'animation</a>
+                </div>
+
+                <!-- Simulateur Casio & Sharp Statistiques -->
+                <div class="dashboard-card" style="border-color: var(--turquoise); background: linear-gradient(135deg, rgba(57, 214, 195, 0.2) 0%, rgba(26, 45, 89, 0.7) 100%);">
+                    <div>
+                        <div style="font-size:0.75rem; font-weight:700; color:var(--turquoise); text-transform:uppercase; margin-bottom:4px;">Nouveau • Simulateur Réel</div>
+                        <h3>Calculatrices Casio & Sharp (Statistiques)</h3>
+                        <p>Simulateur interactif pour Statistiques à deux variables : Saisie des données $(X,Y)$, point moyen $G$, droite des moindres carrés $y=ax+b$, corrélation $r$ et graphique en direct.</p>
+                    </div>
+                    <a href="casio_stats.html" class="btn-primary" style="background:var(--turquoise); color:var(--navy-dark); font-weight:700;">Lancer le Simulateur Stats</a>
+                </div>
+
                 <!-- Casio fx-991ES PLUS Simulateur -->
                 <div class="dashboard-card" style="border-color: var(--rose); background: linear-gradient(135deg, rgba(245, 30, 101, 0.15) 0%, rgba(26, 45, 89, 0.6) 100%);">
                     <div>
@@ -117,6 +137,8 @@ document.addEventListener("DOMContentLoaded", function() { renderMath(); });
 window.addEventListener("load", function() { renderMath(); });
 
         const animations = [
+            { name: "Simulateur Calculatrices Stats (Casio & Sharp)", file: "casio_stats.html" },
+            { name: "Arbre de Probabilités Conditionnelles", file: "arbre_probabilite.html" },
             { name: "Simulateur Casio (Matrices)", file: "casio_matrices.html" },
             { name: "Somme Matricielle", file: "somme.html" },
             { name: "Produit Matriciel", file: "produit.html" },
@@ -133,7 +155,6 @@ window.addEventListener("load", function() { renderMath(); });
             const qrCard = document.createElement("div");
             qrCard.className = "qr-card";
 
-            // Using standard public Google Chart API or QR Server API to generate QR Code
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(fullUrl)}&color=1a2d59&bgcolor=ffffff`;
 
             qrCard.innerHTML = `

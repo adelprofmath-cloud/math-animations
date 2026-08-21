@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbre de Probabilité & Probabilités Conditionnelles - Soltani Books</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- KaTeX Math Notation Renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --tree-gold: #ffd166;
+            --tree-purple: #a78bfa;
+            --tree-green: #06d6a0;
+            --tree-orange: #f77f00;
+        }
+
+        .proba-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .proba-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Tabs Navigation */
+        .tabs-header {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: rgba(26, 45, 89, 0.6);
+            border: 1px solid var(--card-border);
+            color: var(--white);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--turquoise);
+            background: rgba(57, 214, 195, 0.15);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(245, 30, 101, 0.8) 0%, rgba(26, 45, 89, 0.9) 100%);
+            border-color: var(--rose);
+            box-shadow: 0 4px 15px rgba(245, 30, 101, 0.3);
+        }
+
+        /* SVG Tree Visualizer Container */
+        .tree-container {
+            position: relative;
+            background: radial-gradient(circle at 20% 30%, rgba(26, 45, 89, 0.7) 0%, #0b1426 100%);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 1rem;
+            overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+            min-height: 480px;
+        }
+
+        #treeSvg {
+            width: 100%;
+            height: auto;
+            min-height: 450px;
+            display: block;
+        }
+
+        /* SVG Styles */
+        .branch-line {
+            stroke: rgba(255, 255, 255, 0.25);
+            stroke-width: 3.5;
+            stroke-linecap: round;
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .branch-line:hover, .branch-line.active {
+            stroke: var(--turquoise);
+            stroke-width: 5;
+            filter: drop-shadow(0 0 8px var(--turquoise));
+        }
+
+        .branch-line.highlight-totale {
+            stroke: var(--rose);
+            stroke-width: 5.5;
+            filter: drop-shadow(0 0 10px var(--rose));
+            animation: pulseBranch 1.5s infinite alternate;
+        }
+
+        @keyframes pulseBranch {
+            from { stroke-width: 4.5; }
+            to { stroke-width: 6.5; }
+        }
+
+        .node-circle {
+            fill: #1a2d59;
+            stroke: var(--turquoise);
+            stroke-width: 2.5;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .node-circle:hover {
+            transform: scale(1.15);
+            stroke: var(--rose);
+            filter: drop-shadow(0 0 10px var(--rose));
+        }
+
+        .node-text {
+            fill: var(--white);
+            font-family: var(--font-main);
+            font-weight: 700;
+            font-size: 14px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+
+        .prob-badge {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .prob-badge:hover {
+            transform: scale(1.08);
+        }
+
+        .prob-badge-bg {
+            fill: rgba(11, 20, 38, 0.85);
+            stroke: var(--tree-gold);
+            stroke-width: 1.5;
+            rx: 6;
+        }
+
+        .prob-badge-text {
+            fill: var(--tree-gold);
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 13px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+
+        .outcome-badge-bg {
+            fill: rgba(26, 45, 89, 0.9);
+            stroke: var(--turquoise);
+            stroke-width: 1.5;
+            rx: 8;
+            transition: all 0.3s ease;
+        }
+
+        .outcome-text-title {
+            fill: var(--turquoise);
+            font-family: var(--font-main);
+            font-weight: 700;
+            font-size: 13px;
+            text-anchor: start;
+        }
+
+        .outcome-text-val {
+            fill: var(--white);
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 13px;
+            text-anchor: start;
+        }
+
+        /* Step explanation banner */
+        .step-banner {
+            background: linear-gradient(90deg, rgba(57, 214, 195, 0.15), rgba(26, 45, 89, 0.4));
+            border-left: 4px solid var(--turquoise);
+            padding: 1rem 1.25rem;
+            border-radius: 0 10px 10px 0;
+            margin-top: 1rem;
+            min-height: 85px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .step-banner-title {
+            font-weight: 700;
+            color: var(--turquoise);
+            font-size: 1.05rem;
+            margin-bottom: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-banner-body {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.5;
+        }
+
+        /* Side Controls Panel */
+        .side-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .panel-section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--turquoise);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+        }
+
+        .preset-select {
+            width: 100%;
+            background: #0b1426;
+            border: 1px solid var(--card-border);
+            color: var(--white);
+            padding: 0.65rem 0.8rem;
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            margin-bottom: 1.25rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .preset-select:focus {
+            border-color: var(--turquoise);
+        }
+
+        .slider-group {
+            margin-bottom: 1rem;
+            background: rgba(11, 20, 38, 0.4);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+        }
+
+        .slider-header .var-name {
+            font-weight: 600;
+            color: var(--turquoise);
+        }
+
+        .slider-header .var-val {
+            font-weight: 700;
+            color: var(--tree-gold);
+            font-family: monospace;
+            font-size: 1rem;
+        }
+
+        .custom-range {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.15);
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .custom-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--turquoise);
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--turquoise);
+            transition: transform 0.15s ease;
+        }
+
+        .custom-range::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+            background: var(--rose);
+            box-shadow: 0 0 10px var(--rose);
+        }
+
+        /* Results / Formulas Card */
+        .results-box {
+            background: rgba(11, 20, 38, 0.6);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            font-size: 0.88rem;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+            padding-top: 0.6rem;
+            font-weight: 700;
+        }
+
+        .result-val {
+            color: var(--tree-gold);
+            font-weight: 700;
+        }
+
+        .result-highlight {
+            color: var(--rose);
+            font-size: 1.05rem;
+        }
+
+        /* Simulation Canvas & Controls */
+        .sim-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(11, 20, 38, 0.7);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-number {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--turquoise);
+            font-family: monospace;
+        }
+
+        .stat-freq {
+            font-size: 0.8rem;
+            color: var(--tree-gold);
+            margin-top: 0.2rem;
+        }
+
+        /* Contingency Table */
+        .contingency-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .contingency-table th, .contingency-table td {
+            border: 1px solid var(--card-border);
+            padding: 0.6rem 0.8rem;
+        }
+
+        .contingency-table th {
+            background: rgba(57, 214, 195, 0.15);
+            color: var(--turquoise);
+            font-weight: 700;
+        }
+
+        .contingency-table td.total-cell {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 700;
+            color: var(--tree-gold);
+        }
+
+        /* Quiz Box */
+        .quiz-card {
+            background: rgba(11, 20, 38, 0.6);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+        }
+
+        .quiz-option {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: rgba(26, 45, 89, 0.6);
+            border: 1px solid var(--card-border);
+            color: var(--white);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--turquoise);
+            background: rgba(57, 214, 195, 0.15);
+        }
+
+        .quiz-option.correct {
+            background: rgba(6, 214, 160, 0.3) !important;
+            border-color: #06d6a0 !important;
+            color: #06d6a0;
+            font-weight: 700;
+        }
+
+        .quiz-option.wrong {
+            background: rgba(245, 30, 101, 0.3) !important;
+            border-color: var(--rose) !important;
+            color: var(--rose);
+        }
+
+        /* Particle layer */
+        #particleCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Retour au menu
+        </a>
+
+        <header style="margin-bottom: 1.5rem;">
+            <div class="subtitle">4ème Économie & Gestion • Mathématiques</div>
+            <h1>Arbre de Choix & Probabilités Conditionnelles</h1>
+            <p style="color: var(--text-muted); max-width: 750px; margin: 0.5rem auto 0 auto;">
+                Explorez visuellement les règles de l'arbre pondéré, la formule des probabilités totales et le théorème de Bayes.
+            </p>
+        </header>
+
+        <!-- Mode Tabs -->
+        <div class="tabs-header">
+            <button class="tab-btn active" id="tabTree" onclick="switchMode('tree')">
+                🌳 Arbre Interactif & Cours
+            </button>
+            <button class="tab-btn" id="tabSim" onclick="switchMode('sim')">
+                🎲 Simulation de Tirages (Monte-Carlo)
+            </button>
+            <button class="tab-btn" id="tabTable" onclick="switchMode('table')">
+                📊 Tableau Croisé (Contingence)
+            </button>
+            <button class="tab-btn" id="tabQuiz" onclick="switchMode('quiz')">
+                📝 Auto-Évaluation / Quiz
+            </button>
+        </div>
+
+        <div class="proba-layout">
+            <!-- Left Visualizer Section -->
+            <div class="card" style="margin-bottom: 0;">
+                <div class="tree-container" id="treeContainer">
+                    <svg id="treeSvg" viewBox="0 0 740 440">
+                        <!-- SVG Tree elements dynamically generated -->
+                    </svg>
+                    <canvas id="particleCanvas"></canvas>
+                </div>
+
+                <!-- Step Description & Math details -->
+                <div class="step-banner" id="stepBanner">
+                    <div class="step-banner-title" id="stepTitle">
+                        <span>✨ Étape 1 : Structure & Probabilités a priori</span>
+                    </div>
+                    <div class="step-banner-body" id="stepDesc">
+                        L'arbre commence à la racine $\Omega$. Au 1er niveau, la somme des probabilités des branches issues d'un même nœud est égale à 1 : $P(A) + P(\overline{A}) = 1$.
+                    </div>
+                </div>
+
+                <!-- Step navigation bar -->
+                <div class="controls" style="margin-top: 1rem;">
+                    <button id="btnStepPrev" onclick="prevStep()" disabled>❮ Étape Précédente</button>
+                    <button id="btnStepAuto" class="accent" onclick="toggleAutoTour()">▶ Visite Guidée</button>
+                    <button id="btnStepNext" onclick="nextStep()">Étape Suivante ❯</button>
+                    <button onclick="resetTreeHighlight()">Réinitialiser Vue</button>
+                </div>
+            </div>
+
+            <!-- Right Controls Panel -->
+            <div class="side-panel">
+                <div class="panel-section-title">
+                    <span>⚙️ Choix du Scénario</span>
+                </div>
+
+                <select class="preset-select" id="presetSelect" onchange="loadPreset(this.value)">
+                    <option value="factory" selected>🏭 Contrôle Qualité (Usine Machine A/B)</option>
+                    <option value="medical">🏥 Dépistage Médical (Malade / Test +)</option>
+                    <option value="bank">💳 Banque & Crédit (Solvable / Remboursé)</option>
+                    <option value="ecommerce">🛒 Marketing Web (Visiteur / Achat)</option>
+                    <option value="custom">✏️ Scénario Personnalisé (Valeurs libres)</option>
+                </select>
+
+                <div class="panel-section-title">
+                    <span>🎚️ Ajustement des Probabilités</span>
+                </div>
+
+                <!-- Slider P(A) -->
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="var-name" id="labelPA">P(A) : Probabilité de A</span>
+                        <span class="var-val" id="valPA">0.60</span>
+                    </div>
+                    <input type="range" class="custom-range" id="rangePA" min="0.05" max="0.95" step="0.05" value="0.60" oninput="updateProbabilities()">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                        Alors <span id="labelNotPA">P(Ā)</span> = <span id="valNotPA" style="color:var(--turquoise); font-weight:600;">0.40</span>
+                    </div>
+                </div>
+
+                <!-- Slider P(B|A) -->
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="var-name" id="labelPBA">P(B | A) : Sachant A</span>
+                        <span class="var-val" id="valPBA">0.05</span>
+                    </div>
+                    <input type="range" class="custom-range" id="rangePBA" min="0.01" max="0.99" step="0.01" value="0.05" oninput="updateProbabilities()">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                        Alors <span id="labelNotPBA">P(B̄ | A)</span> = <span id="valNotPBA" style="color:var(--turquoise); font-weight:600;">0.95</span>
+                    </div>
+                </div>
+
+                <!-- Slider P(B|A_bar) -->
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span class="var-name" id="labelPBNotA">P(B | Ā) : Sachant Ā</span>
+                        <span class="var-val" id="valPBNotA">0.15</span>
+                    </div>
+                    <input type="range" class="custom-range" id="rangePBNotA" min="0.01" max="0.99" step="0.01" value="0.15" oninput="updateProbabilities()">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                        Alors <span id="labelNotPBNotA">P(B̄ | Ā)</span> = <span id="valNotPBNotA" style="color:var(--turquoise); font-weight:600;">0.85</span>
+                    </div>
+                </div>
+
+                <!-- Calculation Summary -->
+                <div class="results-box">
+                    <div style="font-weight: 700; color: var(--turquoise); font-size: 0.95rem; margin-bottom: 0.5rem;">
+                        📐 Formules Clés Calculées :
+                    </div>
+                    <div class="result-row">
+                        <span id="calcLabelAB">P(A ∩ B) :</span>
+                        <span class="result-val" id="calcValAB">0.0300</span>
+                    </div>
+                    <div class="result-row">
+                        <span id="calcLabelNotAB">P(Ā ∩ B) :</span>
+                        <span class="result-val" id="calcValNotAB">0.0600</span>
+                    </div>
+                    <div class="result-row">
+                        <span style="color: var(--tree-gold);" id="calcLabelTotale">P(B) [Prob. Totale] :</span>
+                        <span class="result-val result-highlight" id="calcValPB">0.0900</span>
+                    </div>
+                    <div class="result-row" style="background: rgba(245, 30, 101, 0.1); padding: 0.4rem; border-radius: 6px;">
+                        <span style="color: var(--rose);" id="calcLabelBayes">P(A | B) [Formule Bayes] :</span>
+                        <span class="result-val" style="color: var(--rose);" id="calcValPABayes">0.3333</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation View Container (Shown when Simulation tab is active) -->
+        <div id="simSection" class="card" style="display: none; margin-top: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h3 style="color: var(--turquoise); margin-bottom: 0.25rem;">🎲 Simulateur de Tirages Aléatoires en Temps Réel</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        Envoyez des individus virtuels traverser l'arbre pour observer la convergence des fréquences observées vers les probabilités théoriques.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn-primary" onclick="runSimulation(100)">+ 100 Tirages</button>
+                    <button class="btn-primary" style="background: var(--turquoise); color: var(--navy-dark);" onclick="runSimulation(1000)">+ 1 000 Tirages</button>
+                    <button class="btn-primary" style="background: var(--rose);" onclick="runSimulation(5000)">+ 5 000 Tirages</button>
+                    <button onclick="resetSimulation()">Effacer</button>
+                </div>
+            </div>
+
+            <div class="sim-stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Tirages</div>
+                    <div class="stat-number" id="simTotal">0</div>
+                    <div class="stat-freq">Échantillon $N$</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" id="simLabelAB">Chemin A ∩ B</div>
+                    <div class="stat-number" id="simCountAB">0</div>
+                    <div class="stat-freq" id="simFreqAB">0.00% (Théo: 3.0%)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" id="simLabelANotB">Chemin A ∩ B̄</div>
+                    <div class="stat-number" id="simCountANotB">0</div>
+                    <div class="stat-freq" id="simFreqANotB">0.00% (Théo: 57.0%)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" id="simLabelNotAB">Chemin Ā ∩ B</div>
+                    <div class="stat-number" id="simCountNotAB">0</div>
+                    <div class="stat-freq" id="simFreqNotAB">0.00% (Théo: 6.0%)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label" id="simLabelNotANotB">Chemin Ā ∩ B̄</div>
+                    <div class="stat-number" id="simCountNotANotB">0</div>
+                    <div class="stat-freq" id="simFreqNotANotB">0.00% (Théo: 34.0%)</div>
+                </div>
+                <div class="stat-card" style="border-color: var(--rose);">
+                    <div class="stat-label" style="color: var(--rose);">Fréq. Globale de B</div>
+                    <div class="stat-number" style="color: var(--rose);" id="simFreqB">0.00%</div>
+                    <div class="stat-freq" id="simTheoB">Théorie : 9.0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contingency Table Container (Shown when Table tab is active) -->
+        <div id="tableSection" class="card" style="display: none; margin-top: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <h3 style="color: var(--turquoise);">📊 Tableau Croisé d'Effectifs & de Probabilités</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        Correspondance directe entre l'arbre pondéré et le tableau de contingence (sur une base type de $N = 10\,000$ individus).
+                    </p>
+                </div>
+            </div>
+
+            <table class="contingency-table" id="contingencyTable">
+                <thead>
+                    <tr>
+                        <th id="thCategory">Événements</th>
+                        <th id="thEventB">B (Événement B)</th>
+                        <th id="thEventNotB">B̄ (Contraire de B)</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th id="thEventA">A</th>
+                        <td id="cellAB">300 <br><small style="color:var(--text-muted);">(3.0%)</small></td>
+                        <td id="cellANotB">5 700 <br><small style="color:var(--text-muted);">(57.0%)</small></td>
+                        <td class="total-cell" id="cellTotalA">6 000 <br><small>(60.0%)</small></td>
+                    </tr>
+                    <tr>
+                        <th id="thEventNotA">Ā</th>
+                        <td id="cellNotAB">600 <br><small style="color:var(--text-muted);">(6.0%)</small></td>
+                        <td id="cellNotANotB">3 400 <br><small style="color:var(--text-muted);">(34.0%)</small></td>
+                        <td class="total-cell" id="cellTotalNotA">4 000 <br><small>(40.0%)</small></td>
+                    </tr>
+                    <tr>
+                        <th class="total-cell">Total</th>
+                        <td class="total-cell" id="cellTotalB">900 <br><small>(9.0%)</small></td>
+                        <td class="total-cell" id="cellTotalNotB">9 100 <br><small>(91.0%)</small></td>
+                        <td class="total-cell" style="color: var(--rose); font-size: 1.1rem;" id="cellGrandTotal">10 000 <br><small>(100%)</small></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Quiz Section (Shown when Quiz tab is active) -->
+        <div id="quizSection" class="card" style="display: none; margin-top: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="color: var(--turquoise);">📝 Testez votre compréhension</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">
+                        Répondez aux questions basées sur l'arbre de probabilité actuellement configuré.
+                    </p>
+                </div>
+                <button class="btn-primary" onclick="generateNewQuizQuestion()">Nouvelle Question 🔄</button>
+            </div>
+
+            <div class="quiz-card" id="quizCard">
+                <div id="quizQuestionText" style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--white);">
+                    <!-- Question injected by JS -->
+                </div>
+                <div id="quizOptionsContainer">
+                    <!-- Options injected by JS -->
+                </div>
+                <div id="quizFeedback" style="margin-top: 1rem; font-size: 0.95rem; display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PRESETS = {
+            factory: {
+                name: "Contrôle Qualité (Usine)",
+                eventA: "Machine A",
+                eventNotA: "Machine B",
+                eventB: "Défectueuse (D)",
+                eventNotB: "Conforme (D̄)",
+                symA: "A",
+                symNotA: "B",
+                symB: "D",
+                symNotB: "\\overline{D}",
+                pA: 0.60,
+                pBA: 0.05,
+                pBNotA: 0.15,
+                desc: "Une usine utilise 2 machines A et B. La machine A fabrique 60% des pièces avec 5% de défectueuses. La machine B fabrique 40% des pièces avec 15% de défectueuses."
+            },
+            medical: {
+                name: "Dépistage Médical",
+                eventA: "Malade (M)",
+                eventNotA: "Sain (M̄)",
+                eventB: "Test Positif (T)",
+                eventNotB: "Test Négatif (T̄)",
+                symA: "M",
+                symNotA: "\\overline{M}",
+                symB: "T",
+                symNotB: "\\overline{T}",
+                pA: 0.08,
+                pBA: 0.95,
+                pBNotA: 0.04,
+                desc: "Une maladie touche 8% de la population. Le test est positif pour 95% des personnes malades (sensibilité) et pour 4% des personnes saines (faux positifs)."
+            },
+            bank: {
+                name: "Banque & Prêts",
+                eventA: "Solvable (S)",
+                eventNotA: "Risqué (S̄)",
+                eventB: "Remboursement (R)",
+                eventNotB: "Défaut (R̄)",
+                symA: "S",
+                symNotA: "\\overline{S}",
+                symB: "R",
+                symNotB: "\\overline{R}",
+                pA: 0.75,
+                pBA: 0.96,
+                pBNotA: 0.50,
+                desc: "Une banque classe ses clients : 75% sont solvables (96% remboursent normalement), 25% sont à risque (50% seulement remboursent)."
+            },
+            ecommerce: {
+                name: "Marketing & E-commerce",
+                eventA: "Fidèle (F)",
+                eventNotA: "Nouveau (F̄)",
+                eventB: "Achat (A)",
+                eventNotB: "Sans Achat (Ā)",
+                symA: "F",
+                symNotA: "\\overline{F}",
+                symB: "A",
+                symNotB: "\\overline{A}",
+                pA: 0.35,
+                pBA: 0.60,
+                pBNotA: 0.15,
+                desc: "35% des visiteurs d'un site sont des clients fidèles (60% effectuent un achat). 65% sont de nouveaux visiteurs (15% effectuent un achat)."
+            },
+            custom: {
+                name: "Personnalisé",
+                eventA: "Événement A",
+                eventNotA: "Événement Ā",
+                eventB: "Événement B",
+                eventNotB: "Événement B̄",
+                symA: "A",
+                symNotA: "\\overline{A}",
+                symB: "B",
+                symNotB: "\\overline{B}",
+                pA: 0.50,
+                pBA: 0.70,
+                pBNotA: 0.30,
+                desc: "Configuration personnalisée libre."
+            }
+        };
+
+        let currentPresetKey = 'factory';
+        let currentStep = 1;
+        const totalSteps = 5;
+        let autoTourTimer = null;
+
+        let prob = {
+            pA: 0.60,
+            pNotA: 0.40,
+            pBA: 0.05,
+            pNotBA: 0.95,
+            pBNotA: 0.15,
+            pNotBNotA: 0.85,
+            pAB: 0,
+            pANotB: 0,
+            pNotAB: 0,
+            pNotANotB: 0,
+            pB: 0,
+            pNotB: 0,
+            pABayes: 0
+        };
+
+        let simData = {
+            total: 0,
+            countAB: 0,
+            countANotB: 0,
+            countNotAB: 0,
+            countNotANotB: 0
+        };
+
+        function renderMath(target) {
+            var el = target || document.body;
+            if (window.renderMathInElement) {
+                window.renderMathInElement(el, {
+                    delimiters: [
+                        { left: "$$", right: "$$", display: true },
+                        { left: "$", right: "$", display: false },
+                        { left: "\\(", right: "\\)", display: false },
+                        { left: "\\[", right: "\\]", display: true }
+                    ],
+                    throwOnError: false
+                });
+            } else {
+                setTimeout(function() { renderMath(target); }, 100);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadPreset('factory');
+            initCanvas();
+            renderMath();
+        });
+
+        function switchMode(mode) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('simSection').style.display = 'none';
+            document.getElementById('tableSection').style.display = 'none';
+            document.getElementById('quizSection').style.display = 'none';
+
+            if (mode === 'tree') {
+                document.getElementById('tabTree').classList.add('active');
+            } else if (mode === 'sim') {
+                document.getElementById('tabSim').classList.add('active');
+                document.getElementById('simSection').style.display = 'block';
+                updateSimUI();
+            } else if (mode === 'table') {
+                document.getElementById('tabTable').classList.add('active');
+                document.getElementById('tableSection').style.display = 'block';
+                updateTableUI();
+            } else if (mode === 'quiz') {
+                document.getElementById('tabQuiz').classList.add('active');
+                document.getElementById('quizSection').style.display = 'block';
+                generateNewQuizQuestion();
+            }
+            renderMath();
+        }
+
+        function loadPreset(key) {
+            currentPresetKey = key;
+            const p = PRESETS[key];
+            prob.pA = p.pA;
+            prob.pBA = p.pBA;
+            prob.pBNotA = p.pBNotA;
+
+            document.getElementById('rangePA').value = prob.pA;
+            document.getElementById('rangePBA').value = prob.pBA;
+            document.getElementById('rangePBNotA').value = prob.pBNotA;
+
+            updateLabels();
+            updateProbabilities();
+        }
+
+        function updateLabels() {
+            const p = PRESETS[currentPresetKey];
+            document.getElementById('labelPA').innerText = `P(${p.symA}) : ${p.eventA}`;
+            document.getElementById('labelNotPA').innerText = `P(${p.symNotA})`;
+            document.getElementById('labelPBA').innerText = `P(${p.symB} | ${p.symA}) : ${p.eventB} sachant ${p.symA}`;
+            document.getElementById('labelNotPBA').innerText = `P(${p.symNotB} | ${p.symA})`;
+            document.getElementById('labelPBNotA').innerText = `P(${p.symB} | ${p.symNotA}) : ${p.eventB} sachant ${p.symNotA}`;
+            document.getElementById('labelNotPBNotA').innerText = `P(${p.symNotB} | ${p.symNotA})`;
+
+            document.getElementById('thEventB').innerHTML = `$${p.symB}$ <br><small>(${p.eventB})</small>`;
+            document.getElementById('thEventNotB').innerHTML = `$${p.symNotB}$ <br><small>(${p.eventNotB})</small>`;
+            document.getElementById('thEventA').innerHTML = `$${p.symA}$ (${p.eventA})`;
+            document.getElementById('thEventNotA').innerHTML = `$${p.symNotA}$ (${p.eventNotA})`;
+        }
+
+        function updateProbabilities() {
+            prob.pA = parseFloat(document.getElementById('rangePA').value);
+            prob.pNotA = parseFloat((1 - prob.pA).toFixed(4));
+
+            prob.pBA = parseFloat(document.getElementById('rangePBA').value);
+            prob.pNotBA = parseFloat((1 - prob.pBA).toFixed(4));
+
+            prob.pBNotA = parseFloat(document.getElementById('rangePBNotA').value);
+            prob.pNotBNotA = parseFloat((1 - prob.pBNotA).toFixed(4));
+
+            prob.pAB = parseFloat((prob.pA * prob.pBA).toFixed(4));
+            prob.pANotB = parseFloat((prob.pA * prob.pNotBA).toFixed(4));
+            prob.pNotAB = parseFloat((prob.pNotA * prob.pBNotA).toFixed(4));
+            prob.pNotANotB = parseFloat((prob.pNotA * prob.pNotBNotA).toFixed(4));
+
+            prob.pB = parseFloat((prob.pAB + prob.pNotAB).toFixed(4));
+            prob.pNotB = parseFloat((1 - prob.pB).toFixed(4));
+
+            prob.pABayes = prob.pB > 0 ? parseFloat((prob.pAB / prob.pB).toFixed(4)) : 0;
+
+            document.getElementById('valPA').innerText = prob.pA.toFixed(2);
+            document.getElementById('valNotPA').innerText = prob.pNotA.toFixed(2);
+            document.getElementById('valPBA').innerText = prob.pBA.toFixed(2);
+            document.getElementById('valNotPBA').innerText = prob.pNotBA.toFixed(2);
+            document.getElementById('valPBNotA').innerText = prob.pBNotA.toFixed(2);
+            document.getElementById('valNotPBNotA').innerText = prob.pNotBNotA.toFixed(2);
+
+            const p = PRESETS[currentPresetKey];
+            document.getElementById('calcLabelAB').innerHTML = `$P(${p.symA} \\cap ${p.symB}) = P(${p.symA}) \\times P_{${p.symA}}(${p.symB})$ :`;
+            document.getElementById('calcValAB').innerText = prob.pAB.toFixed(4);
+
+            document.getElementById('calcLabelNotAB').innerHTML = `$P(${p.symNotA} \\cap ${p.symB}) = P(${p.symNotA}) \\times P_{${p.symNotA}}(${p.symB})$ :`;
+            document.getElementById('calcValNotAB').innerText = prob.pNotAB.toFixed(4);
+
+            document.getElementById('calcLabelTotale').innerHTML = `$P(${p.symB})$ [Formule Probabilités Totales] :`;
+            document.getElementById('calcValPB').innerText = prob.pB.toFixed(4);
+
+            document.getElementById('calcLabelBayes').innerHTML = `$P_{${p.symB}}(${p.symA}) = \\frac{P(${p.symA} \\cap ${p.symB})}{P(${p.symB})}$ [Bayes] :`;
+            document.getElementById('calcValPABayes').innerText = prob.pABayes.toFixed(4);
+
+            drawTreeSvg();
+            updateTableUI();
+            updateSimStatsUI();
+            renderMath();
+        }
+
+        function drawTreeSvg() {
+            const svg = document.getElementById('treeSvg');
+            const p = PRESETS[currentPresetKey];
+
+            const x0 = 50,  y0 = 220;
+            const x1 = 260, y1A = 110, y1NotA = 330;
+            const x2 = 500;
+            const y2AB = 55, y2ANotB = 165, y2NotAB = 275, y2NotANotB = 385;
+            const x3 = 540;
+
+            let clsBranchA = (currentStep >= 1) ? 'active' : '';
+            let clsBranchNotA = (currentStep >= 1) ? 'active' : '';
+            let clsBranchAB = (currentStep >= 2) ? 'active' : '';
+            let clsBranchANotB = (currentStep >= 2) ? 'active' : '';
+            let clsBranchNotAB = (currentStep >= 2) ? 'active' : '';
+            let clsBranchNotANotB = (currentStep >= 2) ? 'active' : '';
+
+            if (currentStep === 4) {
+                clsBranchA += ' highlight-totale';
+                clsBranchAB += ' highlight-totale';
+                clsBranchNotA += ' highlight-totale';
+                clsBranchNotAB += ' highlight-totale';
+            } else if (currentStep === 5) {
+                clsBranchA += ' highlight-totale';
+                clsBranchAB += ' highlight-totale';
+            }
+
+            svg.innerHTML = `
+                <defs>
+                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="3" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                </defs>
+
+                <!-- Branches Level 1 -->
+                <path d="M ${x0} ${y0} C ${(x0+x1)/2} ${y0}, ${(x0+x1)/2} ${y1A}, ${x1} ${y1A}" class="branch-line ${clsBranchA}" id="path_A" onclick="highlightPath('A')"/>
+                <path d="M ${x0} ${y0} C ${(x0+x1)/2} ${y0}, ${(x0+x1)/2} ${y1NotA}, ${x1} ${y1NotA}" class="branch-line ${clsBranchNotA}" id="path_NotA" onclick="highlightPath('NotA')"/>
+
+                <!-- Branches Level 2 -->
+                <path d="M ${x1} ${y1A} C ${(x1+x2)/2} ${y1A}, ${(x1+x2)/2} ${y2AB}, ${x2} ${y2AB}" class="branch-line ${clsBranchAB}" id="path_AB" onclick="highlightPath('AB')"/>
+                <path d="M ${x1} ${y1A} C ${(x1+x2)/2} ${y1A}, ${(x1+x2)/2} ${y2ANotB}, ${x2} ${y2ANotB}" class="branch-line ${clsBranchANotB}" id="path_ANotB" onclick="highlightPath('ANotB')"/>
+                
+                <path d="M ${x1} ${y1NotA} C ${(x1+x2)/2} ${y1NotA}, ${(x1+x2)/2} ${y2NotAB}, ${x2} ${y2NotAB}" class="branch-line ${clsBranchNotAB}" id="path_NotAB" onclick="highlightPath('NotAB')"/>
+                <path d="M ${x1} ${y1NotA} C ${(x1+x2)/2} ${y1NotA}, ${(x1+x2)/2} ${y2NotANotB}, ${x2} ${y2NotANotB}" class="branch-line ${clsBranchNotANotB}" id="path_NotANotB" onclick="highlightPath('NotANotB')"/>
+
+                <!-- Badges Level 1 Probabilities -->
+                <g class="prob-badge" onclick="highlightPath('A')">
+                    <rect x="${(x0+x1)/2 - 38}" y="${(y0+y1A)/2 - 14}" width="76" height="26" class="prob-badge-bg"/>
+                    <text x="${(x0+x1)/2}" y="${(y0+y1A)/2}" class="prob-badge-text">${prob.pA.toFixed(2)}</text>
+                </g>
+                <g class="prob-badge" onclick="highlightPath('NotA')">
+                    <rect x="${(x0+x1)/2 - 38}" y="${(y0+y1NotA)/2 - 14}" width="76" height="26" class="prob-badge-bg"/>
+                    <text x="${(x0+x1)/2}" y="${(y0+y1NotA)/2}" class="prob-badge-text">${prob.pNotA.toFixed(2)}</text>
+                </g>
+
+                <!-- Badges Level 2 Probabilities -->
+                <g class="prob-badge" onclick="highlightPath('AB')">
+                    <rect x="${(x1+x2)/2 - 36}" y="${(y1A+y2AB)/2 - 14}" width="72" height="26" class="prob-badge-bg"/>
+                    <text x="${(x1+x2)/2}" y="${(y1A+y2AB)/2}" class="prob-badge-text">${prob.pBA.toFixed(2)}</text>
+                </g>
+                <g class="prob-badge" onclick="highlightPath('ANotB')">
+                    <rect x="${(x1+x2)/2 - 36}" y="${(y1A+y2ANotB)/2 - 14}" width="72" height="26" class="prob-badge-bg"/>
+                    <text x="${(x1+x2)/2}" y="${(y1A+y2ANotB)/2}" class="prob-badge-text">${prob.pNotBA.toFixed(2)}</text>
+                </g>
+                <g class="prob-badge" onclick="highlightPath('NotAB')">
+                    <rect x="${(x1+x2)/2 - 36}" y="${(y1NotA+y2NotAB)/2 - 14}" width="72" height="26" class="prob-badge-bg"/>
+                    <text x="${(x1+x2)/2}" y="${(y1NotA+y2NotAB)/2}" class="prob-badge-text">${prob.pBNotA.toFixed(2)}</text>
+                </g>
+                <g class="prob-badge" onclick="highlightPath('NotANotB')">
+                    <rect x="${(x1+x2)/2 - 36}" y="${(y1NotA+y2NotANotB)/2 - 14}" width="72" height="26" class="prob-badge-bg"/>
+                    <text x="${(x1+x2)/2}" y="${(y1NotA+y2NotANotB)/2}" class="prob-badge-text">${prob.pNotBNotA.toFixed(2)}</text>
+                </g>
+
+                <!-- Outcome Cards at Right (Chemins & Intersections) -->
+                <g onclick="highlightPath('AB')" style="cursor:pointer;">
+                    <rect x="${x3}" y="${y2AB - 22}" width="185" height="44" class="outcome-badge-bg" ${currentStep===4||currentStep===5?'style="stroke:var(--rose); stroke-width:2.5;"':''}/>
+                    <text x="${x3+12}" y="${y2AB - 5}" class="outcome-text-title">${p.eventA.substring(0,10)} ∩ ${p.eventB.substring(0,10)}</text>
+                    <text x="${x3+12}" y="${y2AB + 13}" class="outcome-text-val">P = ${(prob.pAB).toFixed(4)}</text>
+                </g>
+                <g onclick="highlightPath('ANotB')" style="cursor:pointer;">
+                    <rect x="${x3}" y="${y2ANotB - 22}" width="185" height="44" class="outcome-badge-bg"/>
+                    <text x="${x3+12}" y="${y2ANotB - 5}" class="outcome-text-title">${p.eventA.substring(0,10)} ∩ ${p.eventNotB.substring(0,10)}</text>
+                    <text x="${x3+12}" y="${y2ANotB + 13}" class="outcome-text-val">P = ${(prob.pANotB).toFixed(4)}</text>
+                </g>
+                <g onclick="highlightPath('NotAB')" style="cursor:pointer;">
+                    <rect x="${x3}" y="${y2NotAB - 22}" width="185" height="44" class="outcome-badge-bg" ${currentStep===4?'style="stroke:var(--rose); stroke-width:2.5;"':''}/>
+                    <text x="${x3+12}" y="${y2NotAB - 5}" class="outcome-text-title">${p.eventNotA.substring(0,10)} ∩ ${p.eventB.substring(0,10)}</text>
+                    <text x="${x3+12}" y="${y2NotAB + 13}" class="outcome-text-val">P = ${(prob.pNotAB).toFixed(4)}</text>
+                </g>
+                <g onclick="highlightPath('NotANotB')" style="cursor:pointer;">
+                    <rect x="${x3}" y="${y2NotANotB - 22}" width="185" height="44" class="outcome-badge-bg"/>
+                    <text x="${x3+12}" y="${y2NotANotB - 5}" class="outcome-text-title">${p.eventNotA.substring(0,10)} ∩ ${p.eventNotB.substring(0,10)}</text>
+                    <text x="${x3+12}" y="${y2NotANotB + 13}" class="outcome-text-val">P = ${(prob.pNotANotB).toFixed(4)}</text>
+                </g>
+
+                <!-- Nodes -->
+                <!-- Root -->
+                <circle cx="${x0}" cy="${y0}" r="22" class="node-circle" fill="#1a2d59"/>
+                <text x="${x0}" y="${y0}" class="node-text">Ω</text>
+
+                <!-- Level 1 Nodes -->
+                <circle cx="${x1}" cy="${y1A}" r="24" class="node-circle"/>
+                <text x="${x1}" y="${y1A}" class="node-text">${p.symA.replace('\\overline{', '').replace('}', '')}</text>
+
+                <circle cx="${x1}" cy="${y1NotA}" r="24" class="node-circle"/>
+                <text x="${x1}" y="${y1NotA}" class="node-text">${p.symNotA.includes('overline') ? p.symA.replace('\\overline{', '').replace('}', '') + '̄' : p.symNotA}</text>
+
+                <!-- Level 2 Nodes -->
+                <circle cx="${x2}" cy="${y2AB}" r="20" class="node-circle"/>
+                <text x="${x2}" y="${y2AB}" class="node-text">${p.symB.replace('\\overline{', '').replace('}', '')}</text>
+
+                <circle cx="${x2}" cy="${y2ANotB}" r="20" class="node-circle"/>
+                <text x="${x2}" y="${y2ANotB}" class="node-text">${p.symNotB.includes('overline') ? p.symB.replace('\\overline{', '').replace('}', '') + '̄' : p.symNotB}</text>
+
+                <circle cx="${x2}" cy="${y2NotAB}" r="20" class="node-circle"/>
+                <text x="${x2}" y="${y2NotAB}" class="node-text">${p.symB.replace('\\overline{', '').replace('}', '')}</text>
+
+                <circle cx="${x2}" cy="${y2NotANotB}" r="20" class="node-circle"/>
+                <text x="${x2}" y="${y2NotANotB}" class="node-text">${p.symNotB.includes('overline') ? p.symB.replace('\\overline{', '').replace('}', '') + '̄' : p.symNotB}</text>
+            `;
+        }
+
+        function highlightPath(pathKey) {
+            const p = PRESETS[currentPresetKey];
+            document.querySelectorAll('.branch-line').forEach(el => el.classList.remove('active', 'highlight-totale'));
+            
+            if (pathKey === 'AB') {
+                document.getElementById('path_A')?.classList.add('highlight-totale');
+                document.getElementById('path_AB')?.classList.add('highlight-totale');
+                updateBanner(
+                    `Chemin direct : $${p.symA} \\cap ${p.symB}$`,
+                    `Probabilité de l'intersection : $P(${p.symA} \\cap ${p.symB}) = P(${p.symA}) \\times P_{${p.symA}}(${p.symB}) = ${prob.pA.toFixed(2)} \\times ${prob.pBA.toFixed(2)} = ${prob.pAB.toFixed(4)}$ (${(prob.pAB*100).toFixed(2)}%).`
+                );
+                spawnParticlesAlongPath('AB');
+            } else if (pathKey === 'ANotB') {
+                document.getElementById('path_A')?.classList.add('highlight-totale');
+                document.getElementById('path_ANotB')?.classList.add('highlight-totale');
+                updateBanner(
+                    `Chemin : $${p.symA} \\cap ${p.symNotB}$`,
+                    `Probabilité de l'intersection : $P(${p.symA} \\cap ${p.symNotB}) = P(${p.symA}) \\times P_{${p.symA}}(${p.symNotB}) = ${prob.pA.toFixed(2)} \\times ${prob.pNotBA.toFixed(2)} = ${prob.pANotB.toFixed(4)}$ (${(prob.pANotB*100).toFixed(2)}%).`
+                );
+                spawnParticlesAlongPath('ANotB');
+            } else if (pathKey === 'NotAB') {
+                document.getElementById('path_NotA')?.classList.add('highlight-totale');
+                document.getElementById('path_NotAB')?.classList.add('highlight-totale');
+                updateBanner(
+                    `Chemin : $${p.symNotA} \\cap ${p.symB}$`,
+                    `Probabilité de l'intersection : $P(${p.symNotA} \\cap ${p.symB}) = P(${p.symNotA}) \\times P_{${p.symNotA}}(${p.symB}) = ${prob.pNotA.toFixed(2)} \\times ${prob.pBNotA.toFixed(2)} = ${prob.pNotAB.toFixed(4)}$ (${(prob.pNotAB*100).toFixed(2)}%).`
+                );
+                spawnParticlesAlongPath('NotAB');
+            } else if (pathKey === 'NotANotB') {
+                document.getElementById('path_NotA')?.classList.add('highlight-totale');
+                document.getElementById('path_NotANotB')?.classList.add('highlight-totale');
+                updateBanner(
+                    `Chemin : $${p.symNotA} \\cap ${p.symNotB}$`,
+                    `Probabilité de l'intersection : $P(${p.symNotA} \\cap ${p.symNotB}) = P(${p.symNotA}) \\times P_{${p.symNotA}}(${p.symNotB}) = ${prob.pNotA.toFixed(2)} \\times ${prob.pNotBNotA.toFixed(2)} = ${prob.pNotANotB.toFixed(4)}$ (${(prob.pNotANotB*100).toFixed(2)}%).`
+                );
+                spawnParticlesAlongPath('NotANotB');
+            } else if (pathKey === 'A') {
+                document.getElementById('path_A')?.classList.add('highlight-totale');
+                updateBanner(`Branche primaire : $${p.symA}$`, `Probabilité a priori $P(${p.symA}) = ${prob.pA.toFixed(2)}$. La branche complémentaire vaut $P(${p.symNotA}) = 1 - ${prob.pA.toFixed(2)} = ${prob.pNotA.toFixed(2)}$.`);
+            } else if (pathKey === 'NotA') {
+                document.getElementById('path_NotA')?.classList.add('highlight-totale');
+                updateBanner(`Branche primaire : $${p.symNotA}$`, `Probabilité a priori $P(${p.symNotA}) = ${prob.pNotA.toFixed(2)}$.`);
+            }
+            renderMath(document.getElementById('stepBanner'));
+        }
+
+        function resetTreeHighlight() {
+            setStep(1);
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                setStep(currentStep + 1);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                setStep(currentStep - 1);
+            }
+        }
+
+        function setStep(step) {
+            currentStep = step;
+            document.getElementById('btnStepPrev').disabled = (currentStep === 1);
+            document.getElementById('btnStepNext').disabled = (currentStep === totalSteps);
+
+            const p = PRESETS[currentPresetKey];
+
+            if (currentStep === 1) {
+                updateBanner(
+                    `✨ Étape 1 : Règle des Nœuds & Probabilités a priori`,
+                    `L'arbre part de la racine $\\Omega$. À chaque nœud, la somme des probabilités des branches issues de ce nœud est égale à 1 : $P(${p.symA}) + P(${p.symNotA}) = 1$. Ici, $P(${p.symA}) = ${prob.pA.toFixed(2)}$ et $P(${p.symNotA}) = ${prob.pNotA.toFixed(2)}$.`
+                );
+            } else if (currentStep === 2) {
+                updateBanner(
+                    `✨ Étape 2 : Probabilités Conditionnelles au 2ème niveau`,
+                    `Sur les branches secondaires figurent les probabilités conditionnelles : sachant $${p.symA}$, on a $P_{${p.symA}}(${p.symB}) = ${prob.pBA.toFixed(2)}$ et $P_{${p.symA}}(${p.symNotB}) = 1 - ${prob.pBA.toFixed(2)} = ${prob.pNotBA.toFixed(2)}$. Même règle au nœud $${p.symNotA}$.`
+                );
+            } else if (currentStep === 3) {
+                updateBanner(
+                    `✨ Étape 3 : Règle du Produit (Intersection le long d'un chemin)`,
+                    `La probabilité d'un chemin complet est le produit des probabilités de ses branches : $P(${p.symA} \\cap ${p.symB}) = P(${p.symA}) \\times P_{${p.symA}}(${p.symB}) = ${prob.pA.toFixed(2)} \\times ${prob.pBA.toFixed(2)} = ${prob.pAB.toFixed(4)}$.`
+                );
+            } else if (currentStep === 4) {
+                updateBanner(
+                    `✨ Étape 4 : Formule des Probabilités Totales`,
+                    `L'événement $${p.symB}$ est atteint par deux chemins disjoints ($${p.symA} \\cap ${p.symB}$ et $${p.symNotA} \\cap ${p.symB}$). Donc : $P(${p.symB}) = P(${p.symA} \\cap ${p.symB}) + P(${p.symNotA} \\cap ${p.symB}) = ${prob.pAB.toFixed(4)} + ${prob.pNotAB.toFixed(4)} = \\mathbf{${prob.pB.toFixed(4)}}$.`
+                );
+            } else if (currentStep === 5) {
+                updateBanner(
+                    `✨ Étape 5 : Formule de Bayes (Probabilité a posteriori)`,
+                    `Sachant que $${p.symB}$ est réalisé, quelle est la probabilité que cela provienne de $${p.symA}$ ? $P_{${p.symB}}(${p.symA}) = \\frac{P(${p.symA} \\cap ${p.symB})}{P(${p.symB})} = \\frac{${prob.pAB.toFixed(4)}}{${prob.pB.toFixed(4)}} = \\mathbf{${prob.pABayes.toFixed(4)}}$ (${(prob.pABayes*100).toFixed(2)}%).`
+                );
+            }
+
+            drawTreeSvg();
+            renderMath(document.getElementById('stepBanner'));
+        }
+
+        function updateBanner(title, desc) {
+            document.getElementById('stepTitle').innerHTML = `<span>${title}</span>`;
+            document.getElementById('stepDesc').innerHTML = desc;
+        }
+
+        function toggleAutoTour() {
+            const btn = document.getElementById('btnStepAuto');
+            if (autoTourTimer) {
+                clearInterval(autoTourTimer);
+                autoTourTimer = null;
+                btn.innerText = "▶ Visite Guidée";
+                btn.classList.remove('accent');
+            } else {
+                btn.innerText = "⏸ Pause Visite";
+                btn.classList.add('accent');
+                autoTourTimer = setInterval(() => {
+                    if (currentStep >= totalSteps) {
+                        setStep(1);
+                    } else {
+                        nextStep();
+                    }
+                }, 4000);
+            }
+        }
+
+        let pCanvas, pCtx;
+        let particles = [];
+
+        function initCanvas() {
+            pCanvas = document.getElementById('particleCanvas');
+            pCtx = pCanvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            requestAnimationFrame(animateParticles);
+        }
+
+        function resizeCanvas() {
+            const rect = document.getElementById('treeContainer').getBoundingClientRect();
+            pCanvas.width = rect.width;
+            pCanvas.height = rect.height;
+        }
+
+        function spawnParticlesAlongPath(pathKey) {
+            const rect = pCanvas.getBoundingClientRect();
+            const scaleX = rect.width / 740;
+            const scaleY = rect.height / 440;
+
+            const x0 = 50 * scaleX, y0 = 220 * scaleY;
+            const x1 = 260 * scaleX;
+            const y1A = 110 * scaleY, y1NotA = 330 * scaleY;
+            const x2 = 500 * scaleX;
+            const y2AB = 55 * scaleY, y2ANotB = 165 * scaleY, y2NotAB = 275 * scaleY, y2NotANotB = 385 * scaleY;
+
+            let pts = [];
+            if (pathKey === 'AB') {
+                pts = [[x0, y0], [x1, y1A], [x2, y2AB]];
+            } else if (pathKey === 'ANotB') {
+                pts = [[x0, y0], [x1, y1A], [x2, y2ANotB]];
+            } else if (pathKey === 'NotAB') {
+                pts = [[x0, y0], [x1, y1NotA], [x2, y2NotAB]];
+            } else if (pathKey === 'NotANotB') {
+                pts = [[x0, y0], [x1, y1NotA], [x2, y2NotANotB]];
+            }
+
+            for (let i = 0; i < 20; i++) {
+                particles.push({
+                    pts: pts,
+                    progress: Math.random() * -0.5,
+                    speed: 0.015 + Math.random() * 0.01,
+                    radius: 3 + Math.random() * 2.5,
+                    color: '#f51e65',
+                    alpha: 1
+                });
+            }
+        }
+
+        function animateParticles() {
+            pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.progress += p.speed;
+
+                if (p.progress >= 0 && p.progress <= 1) {
+                    let pos;
+                    if (p.progress < 0.5) {
+                        const t = p.progress * 2;
+                        pos = bezierPoint(p.pts[0], [(p.pts[0][0] + p.pts[1][0])/2, p.pts[0][1]], [(p.pts[0][0] + p.pts[1][0])/2, p.pts[1][1]], p.pts[1], t);
+                    } else {
+                        const t = (p.progress - 0.5) * 2;
+                        pos = bezierPoint(p.pts[1], [(p.pts[1][0] + p.pts[2][0])/2, p.pts[1][1]], [(p.pts[1][0] + p.pts[2][0])/2, p.pts[2][1]], p.pts[2], t);
+                    }
+
+                    pCtx.save();
+                    pCtx.beginPath();
+                    pCtx.arc(pos.x, pos.y, p.radius, 0, Math.PI * 2);
+                    pCtx.fillStyle = p.color;
+                    pCtx.shadowColor = p.color;
+                    pCtx.shadowBlur = 10;
+                    pCtx.fill();
+                    pCtx.restore();
+                } else if (p.progress > 1) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(animateParticles);
+        }
+
+        function bezierPoint(p0, p1, p2, p3, t) {
+            const cx = 3 * (p1[0] - p0[0]);
+            const bx = 3 * (p2[0] - p1[0]) - cx;
+            const ax = p3[0] - p0[0] - cx - bx;
+
+            const cy = 3 * (p1[1] - p0[1]);
+            const by = 3 * (p2[1] - p1[1]) - cy;
+            const ay = p3[1] - p0[1] - cy - by;
+
+            const x = (ax * Math.pow(t, 3)) + (bx * Math.pow(t, 2)) + (cx * t) + p0[0];
+            const y = (ay * Math.pow(t, 3)) + (by * Math.pow(t, 2)) + (cy * t) + p0[1];
+
+            return { x, y };
+        }
+
+        function runSimulation(n) {
+            for (let i = 0; i < n; i++) {
+                simData.total++;
+                const r1 = Math.random();
+                if (r1 < prob.pA) {
+                    const r2 = Math.random();
+                    if (r2 < prob.pBA) {
+                        simData.countAB++;
+                        if (n <= 100) spawnParticlesAlongPath('AB');
+                    } else {
+                        simData.countANotB++;
+                        if (n <= 100) spawnParticlesAlongPath('ANotB');
+                    }
+                } else {
+                    const r2 = Math.random();
+                    if (r2 < prob.pBNotA) {
+                        simData.countNotAB++;
+                        if (n <= 100) spawnParticlesAlongPath('NotAB');
+                    } else {
+                        simData.countNotANotB++;
+                        if (n <= 100) spawnParticlesAlongPath('NotANotB');
+                    }
+                }
+            }
+            updateSimStatsUI();
+        }
+
+        function resetSimulation() {
+            simData = { total: 0, countAB: 0, countANotB: 0, countNotAB: 0, countNotANotB: 0 };
+            updateSimStatsUI();
+        }
+
+        function updateSimStatsUI() {
+            const p = PRESETS[currentPresetKey];
+            document.getElementById('simTotal').innerText = simData.total.toLocaleString();
+
+            const fAB = simData.total > 0 ? (simData.countAB / simData.total * 100).toFixed(2) : '0.00';
+            const fANotB = simData.total > 0 ? (simData.countANotB / simData.total * 100).toFixed(2) : '0.00';
+            const fNotAB = simData.total > 0 ? (simData.countNotAB / simData.total * 100).toFixed(2) : '0.00';
+            const fNotANotB = simData.total > 0 ? (simData.countNotANotB / simData.total * 100).toFixed(2) : '0.00';
+            const countB = simData.countAB + simData.countNotAB;
+            const fB = simData.total > 0 ? (countB / simData.total * 100).toFixed(2) : '0.00';
+
+            document.getElementById('simLabelAB').innerText = `Chemin ${p.symA} ∩ ${p.symB}`;
+            document.getElementById('simCountAB').innerText = simData.countAB.toLocaleString();
+            document.getElementById('simFreqAB').innerText = `${fAB}% (Théo: ${(prob.pAB*100).toFixed(1)}%)`;
+
+            document.getElementById('simLabelANotB').innerText = `Chemin ${p.symA} ∩ ${p.symNotB.replace('\\overline{','').replace('}','')}̄`;
+            document.getElementById('simCountANotB').innerText = simData.countANotB.toLocaleString();
+            document.getElementById('simFreqANotB').innerText = `${fANotB}% (Théo: ${(prob.pANotB*100).toFixed(1)}%)`;
+
+            document.getElementById('simLabelNotAB').innerText = `Chemin ${p.symNotA.replace('\\overline{','').replace('}','')}̄ ∩ ${p.symB}`;
+            document.getElementById('simCountNotAB').innerText = simData.countNotAB.toLocaleString();
+            document.getElementById('simFreqNotAB').innerText = `${fNotAB}% (Théo: ${(prob.pNotAB*100).toFixed(1)}%)`;
+
+            document.getElementById('simLabelNotANotB').innerText = `Chemin ${p.symNotA.replace('\\overline{','').replace('}','')}̄ ∩ ${p.symNotB.replace('\\overline{','').replace('}','')}̄`;
+            document.getElementById('simCountNotANotB').innerText = simData.countNotANotB.toLocaleString();
+            document.getElementById('simFreqNotANotB').innerText = `${fNotANotB}% (Théo: ${(prob.pNotANotB*100).toFixed(1)}%)`;
+
+            document.getElementById('simFreqB').innerText = `${fB}%`;
+            document.getElementById('simTheoB').innerText = `Théorie : ${(prob.pB*100).toFixed(1)}%`;
+        }
+
+        function updateSimUI() {
+            updateSimStatsUI();
+        }
+
+        function updateTableUI() {
+            const N = 10000;
+            const nAB = Math.round(N * prob.pAB);
+            const nANotB = Math.round(N * prob.pANotB);
+            const nTotalA = Math.round(N * prob.pA);
+
+            const nNotAB = Math.round(N * prob.pNotAB);
+            const nNotANotB = Math.round(N * prob.pNotANotB);
+            const nTotalNotA = Math.round(N * prob.pNotA);
+
+            const nTotalB = Math.round(N * prob.pB);
+            const nTotalNotB = Math.round(N * prob.pNotB);
+
+            document.getElementById('cellAB').innerHTML = `${nAB.toLocaleString()} <br><small style="color:var(--text-muted);">(${(prob.pAB*100).toFixed(2)}%)</small>`;
+            document.getElementById('cellANotB').innerHTML = `${nANotB.toLocaleString()} <br><small style="color:var(--text-muted);">(${(prob.pANotB*100).toFixed(2)}%)</small>`;
+            document.getElementById('cellTotalA').innerHTML = `${nTotalA.toLocaleString()} <br><small>(${(prob.pA*100).toFixed(2)}%)</small>`;
+
+            document.getElementById('cellNotAB').innerHTML = `${nNotAB.toLocaleString()} <br><small style="color:var(--text-muted);">(${(prob.pNotAB*100).toFixed(2)}%)</small>`;
+            document.getElementById('cellNotANotB').innerHTML = `${nNotANotB.toLocaleString()} <br><small style="color:var(--text-muted);">(${(prob.pNotANotB*100).toFixed(2)}%)</small>`;
+            document.getElementById('cellTotalNotA').innerHTML = `${nTotalNotA.toLocaleString()} <br><small>(${(prob.pNotA*100).toFixed(2)}%)</small>`;
+
+            document.getElementById('cellTotalB').innerHTML = `${nTotalB.toLocaleString()} <br><small>(${(prob.pB*100).toFixed(2)}%)</small>`;
+            document.getElementById('cellTotalNotB').innerHTML = `${nTotalNotB.toLocaleString()} <br><small>(${(prob.pNotB*100).toFixed(2)}%)</small>`;
+            document.getElementById('cellGrandTotal').innerHTML = `${N.toLocaleString()} <br><small>(100%)</small>`;
+        }
+
+        function generateNewQuizQuestion() {
+            const p = PRESETS[currentPresetKey];
+            const types = ['pB', 'pAB', 'pABayes', 'pNotBA'];
+            const type = types[Math.floor(Math.random() * types.length)];
+
+            let qText = "";
+            let correctVal = 0;
+            let explanation = "";
+
+            if (type === 'pB') {
+                qText = `En utilisant la formule des probabilités totales, calculez la probabilité de l'événement $${p.symB}$ ($P(${p.symB})$) :`;
+                correctVal = prob.pB;
+                explanation = `Formule : $P(${p.symB}) = P(${p.symA} \\cap ${p.symB}) + P(${p.symNotA} \\cap ${p.symB}) = (${prob.pA.toFixed(2)} \\times ${prob.pBA.toFixed(2)}) + (${prob.pNotA.toFixed(2)} \\times ${prob.pBNotA.toFixed(2)}) = ${prob.pB.toFixed(4)}$.`;
+            } else if (type === 'pAB') {
+                qText = `Quelle est la probabilité de l'intersection $P(${p.symA} \\cap ${p.symB})$ (arbre le long du 1er chemin) ?`;
+                correctVal = prob.pAB;
+                explanation = `Formule : $P(${p.symA} \\cap ${p.symB}) = P(${p.symA}) \\times P_{${p.symA}}(${p.symB}) = ${prob.pA.toFixed(2)} \\times ${prob.pBA.toFixed(2)} = ${prob.pAB.toFixed(4)}$.`;
+            } else if (type === 'pABayes') {
+                qText = `Sachant que l'événement $${p.symB}$ s'est produit, quelle est la probabilité conditionnelle $P_{${p.symB}}(${p.symA})$ ? (Formule de Bayes)`;
+                correctVal = prob.pABayes;
+                explanation = `Formule de Bayes : $P_{${p.symB}}(${p.symA}) = \\frac{P(${p.symA} \\cap ${p.symB})}{P(${p.symB})} = \\frac{${prob.pAB.toFixed(4)}}{${prob.pB.toFixed(4)}} = ${prob.pABayes.toFixed(4)}$.`;
+            } else if (type === 'pNotBA') {
+                qText = `Quelle est la probabilité conditionnelle $P_{${p.symA}}(${p.symNotB})$ issue du nœud $${p.symA}$ ?`;
+                correctVal = prob.pNotBA;
+                explanation = `Loi du nœud : $P_{${p.symA}}(${p.symNotB}) = 1 - P_{${p.symA}}(${p.symB}) = 1 - ${prob.pBA.toFixed(2)} = ${prob.pNotBA.toFixed(2)}$.`;
+            }
+
+            document.getElementById('quizQuestionText').innerHTML = qText;
+            document.getElementById('quizFeedback').style.display = 'none';
+
+            let options = [correctVal];
+            while (options.length < 4) {
+                let delta = (Math.floor(Math.random() * 9) - 4) * 0.05;
+                if (delta === 0) delta = 0.08;
+                let fake = Math.max(0.01, Math.min(0.99, parseFloat((correctVal + delta).toFixed(4))));
+                if (!options.includes(fake)) {
+                    options.push(fake);
+                }
+            }
+
+            options.sort(() => Math.random() - 0.5);
+
+            let html = "";
+            options.forEach((opt, idx) => {
+                html += `<button class="quiz-option" onclick="checkQuizAnswer(this, ${opt}, ${correctVal}, \`${explanation}\`)">
+                    <strong>${String.fromCharCode(65 + idx)}.</strong> ${opt.toFixed(4)}
+                </button>`;
+            });
+
+            document.getElementById('quizOptionsContainer').innerHTML = html;
+            renderMath(document.getElementById('quizCard'));
+        }
+
+        function checkQuizAnswer(btn, selected, correct, exp) {
+            const allBtns = document.querySelectorAll('.quiz-option');
+            allBtns.forEach(b => b.disabled = true);
+
+            const feedback = document.getElementById('quizFeedback');
+            feedback.style.display = 'block';
+
+            if (Math.abs(selected - correct) < 0.0001) {
+                btn.classList.add('correct');
+                feedback.innerHTML = `<span style="color:#06d6a0; font-weight:700;">🎉 Bravo ! Réponse exacte.</span><br><div style="margin-top:0.4rem;">${exp}</div>`;
+                if (window.confetti) {
+                    confetti({ particleCount: 60, spread: 60, origin: { y: 0.7 } });
+                }
+            } else {
+                btn.classList.add('wrong');
+                allBtns.forEach(b => {
+                    if (b.innerText.includes(correct.toFixed(4))) {
+                        b.classList.add('correct');
+                    }
+                });
+                feedback.innerHTML = `<span style="color:var(--rose); font-weight:700;">❌ Incorrect.</span><br><div style="margin-top:0.4rem;">${exp}</div>`;
+            }
+            renderMath(feedback);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculatrices Casio & Sharp - Guide Interactif Statistiques | Soltani Books</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- KaTeX Math Notation Renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <!-- Chart.js for Nuage de points and Regression Line -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --casio-screen-bg: #b2c59f;
+            --casio-screen-text: #17240d;
+            --sharp-screen-bg: #9ec2b8;
+        }
+
+        .calc-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .calc-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Calculator model tabs */
+        .calc-model-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .model-tab-btn {
+            flex: 1;
+            padding: 0.8rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+            background: rgba(26, 45, 89, 0.6);
+            color: var(--white);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .model-tab-btn.active-casio {
+            background: linear-gradient(135deg, rgba(57, 214, 195, 0.3) 0%, rgba(26, 45, 89, 0.9) 100%);
+            border-color: var(--turquoise);
+            box-shadow: 0 4px 15px rgba(57, 214, 195, 0.25);
+            color: var(--turquoise);
+        }
+
+        .model-tab-btn.active-sharp {
+            background: linear-gradient(135deg, rgba(245, 30, 101, 0.3) 0%, rgba(26, 45, 89, 0.9) 100%);
+            border-color: var(--rose);
+            box-shadow: 0 4px 15px rgba(245, 30, 101, 0.25);
+            color: var(--rose);
+        }
+
+        /* Simulator Screen Card */
+        .sim-device {
+            background: radial-gradient(circle at 50% 20%, #2a374a 0%, #131b26 100%);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 18px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .screen-bezel {
+            background: #101620;
+            border-radius: 10px;
+            padding: 12px;
+            border: 2px solid #080d14;
+            box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.8);
+            margin-bottom: 1.25rem;
+        }
+
+        .lcd-display {
+            background-color: var(--casio-screen-bg);
+            color: var(--casio-screen-text);
+            font-family: 'Courier New', Courier, monospace;
+            padding: 14px 16px;
+            border-radius: 6px;
+            min-height: 120px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.35);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+
+        .lcd-display.sharp-theme {
+            background-color: var(--sharp-screen-bg);
+        }
+
+        .lcd-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border-bottom: 1px dashed rgba(23, 36, 13, 0.3);
+            padding-bottom: 4px;
+            letter-spacing: 1px;
+        }
+
+        .lcd-main {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 8px 0;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+
+        .lcd-result {
+            font-size: 1.3rem;
+            font-weight: 900;
+            text-align: right;
+        }
+
+        /* Virtual Keypad Sequence */
+        .key-sequence {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+            background: rgba(11, 20, 38, 0.6);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+            margin-bottom: 1.25rem;
+        }
+
+        .vkey {
+            background: #243e7b;
+            color: white;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .vkey.shift { background: #b45309; }
+        .vkey.alpha { background: #047857; }
+        .vkey.mode { background: #475569; }
+        .vkey.ac { background: #b91c1c; }
+        .vkey.sto { background: #4f46e5; }
+
+        /* Step guidance banner */
+        .tutorial-step {
+            background: rgba(57, 214, 195, 0.1);
+            border-left: 4px solid var(--turquoise);
+            padding: 1rem;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 1rem;
+        }
+
+        .tutorial-step.sharp-border {
+            border-left-color: var(--rose);
+            background: rgba(245, 30, 101, 0.1);
+        }
+
+        /* Data table input */
+        .data-input-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .data-input-table th, .data-input-table td {
+            border: 1px solid var(--card-border);
+            padding: 0.5rem;
+            text-align: center;
+        }
+
+        .data-input-table th {
+            background: rgba(57, 214, 195, 0.2);
+            color: var(--turquoise);
+            font-weight: 700;
+        }
+
+        /* Chart container */
+        .chart-box {
+            background: rgba(11, 20, 38, 0.7);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1.25rem;
+            min-height: 280px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Retour au menu
+        </a>
+
+        <header style="margin-bottom: 1.5rem;">
+            <div class="subtitle">4ème Économie & Gestion • Statistiques à deux variables</div>
+            <h1>Simulateur Calculatrice (Casio & Sharp)</h1>
+            <p style="color: var(--text-muted); max-width: 750px; margin: 0.5rem auto 0 auto;">
+                Guide interactif animé pas-à-pas pour maîtriser les calculs statistiques du Bac : Nuage de points, Droite de régression $y = ax+b$, Covariance et Corrélation $r$.
+            </p>
+        </header>
+
+        <!-- Model Switcher -->
+        <div class="calc-model-tabs">
+            <button class="model-tab-btn active-casio" id="tabCasio" onclick="selectModel('casio')">
+                🔵 Simulateur Casio fx-991ES Plus / EX
+            </button>
+            <button class="model-tab-btn" id="tabSharp" onclick="selectModel('sharp')">
+                🔴 Simulateur Sharp EL-531TH / EL-W506
+            </button>
+        </div>
+
+        <div class="calc-layout">
+            <!-- Left : Virtual Calculator Display & Key Sequence -->
+            <div class="card" style="margin-bottom: 0;">
+                <div class="sim-device">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <span id="modelBrand" style="font-weight: 800; letter-spacing: 2px; color: #a4b3c4; font-size: 1rem;">CASIO</span>
+                        <span id="modelName" style="font-size: 0.8rem; background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: 4px; color: var(--turquoise);">fx-991ES PLUS</span>
+                    </div>
+
+                    <!-- LCD Screen -->
+                    <div class="screen-bezel">
+                        <div class="lcd-display" id="lcdDisplay">
+                            <div class="lcd-header">
+                                <span id="lcdModeTag">STAT  D  LINE</span>
+                                <span id="lcdStepTag">ÉTAPE 1/5</span>
+                            </div>
+                            <div class="lcd-main" id="lcdMainText">
+1: 1-VAR     2: A+BX
+3: _+CX^2    4: ln X
+5: e^X       6: A.B^X
+                            </div>
+                            <div class="lcd-result" id="lcdResult"></div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Key Sequence -->
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 600;">
+                        Touches à presser sur votre calculatrice :
+                    </div>
+                    <div class="key-sequence" id="keySequenceContainer">
+                        <!-- Keys populated by JS -->
+                    </div>
+
+                    <!-- Step explanation -->
+                    <div class="tutorial-step" id="tutorialStepBox">
+                        <h4 id="stepTitle" style="color: var(--turquoise); margin-bottom: 0.3rem;">Étape 1 : Activer le mode Statistique linéaire</h4>
+                        <p id="stepDescription" style="font-size: 0.92rem; line-height: 1.4; color: rgba(255,255,255,0.9);">
+                            Appuyez sur <strong>MODE</strong> puis <strong>3 (STAT)</strong>, et sélectionnez <strong>2 (A+BX)</strong> pour ouvrir le tableau de régression linéaire à 2 variables.
+                        </p>
+                    </div>
+
+                    <!-- Step Controls -->
+                    <div class="controls" style="margin-top: 0.5rem;">
+                        <button id="btnPrev" onclick="prevStep()" disabled>❮ Précédent</button>
+                        <button id="btnAuto" class="accent" onclick="toggleAutoPlay()">▶ Animation Auto</button>
+                        <button id="btnNext" onclick="nextStep()">Suivant ❯</button>
+                        <button onclick="resetStep()">Réinitialiser</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right : Data Scenario & Live Regression Chart -->
+            <div class="card" style="margin-bottom: 0;">
+                <div style="font-weight: 700; color: var(--turquoise); font-size: 1.05rem; margin-bottom: 0.75rem; display:flex; justify-content:space-between; align-items:center;">
+                    <span>📊 Données de l'Exercice</span>
+                    <select id="scenarioSelect" class="preset-select" style="width:auto; padding:0.4rem 0.6rem; font-size:0.85rem; margin:0;" onchange="loadScenario(this.value)">
+                        <option value="scen1">Exemple 1 : Ventes annuelles</option>
+                        <option value="scen2">Exemple 2 : Publicité & Chiffre d'affaires</option>
+                        <option value="scen3">Exemple 3 : Production & Coût</option>
+                    </select>
+                </div>
+
+                <!-- Table Preview -->
+                <table class="data-input-table" id="dataTablePreview">
+                    <thead>
+                        <tr>
+                            <th>Année ($X$)</th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                            <th>5</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>Ventes ($Y$)</th>
+                            <td>12</td>
+                            <td>15</td>
+                            <td>19</td>
+                            <td>22</td>
+                            <td>27</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Summary Values Calculated -->
+                <div style="background: rgba(11, 20, 38, 0.6); padding: 0.75rem 1rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.08);">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span>Point Moyen $G$ :</span>
+                        <strong style="color:var(--tree-gold);" id="valG">G(3.00 ; 19.00)</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span>Droite des moindres carrés :</span>
+                        <strong style="color:var(--turquoise);" id="valEquation">y = 3.70 x + 7.90</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Corrélation linéaire $r$ :</span>
+                        <strong style="color:var(--rose);" id="valCorr">r = 0.9959 (Très Forte)</strong>
+                    </div>
+                </div>
+
+                <!-- Live Chart Canvas -->
+                <div class="chart-box">
+                    <canvas id="regChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentModel = 'casio'; // 'casio' or 'sharp'
+        let currentStepIndex = 0;
+        let autoTimer = null;
+
+        const SCENARIOS = {
+            scen1: {
+                name: "Ventes annuelles",
+                xLabel: "Année (X)",
+                yLabel: "Ventes (Y)",
+                x: [1, 2, 3, 4, 5],
+                y: [12, 15, 19, 22, 27]
+            },
+            scen2: {
+                name: "Publicité & CA",
+                xLabel: "Budget Pub (X en kDT)",
+                yLabel: "Chiffre d'Affaires (Y)",
+                x: [2, 4, 6, 8, 10],
+                y: [25, 38, 52, 67, 85]
+            },
+            scen3: {
+                name: "Production & Coût",
+                xLabel: "Quantité (X)",
+                yLabel: "Coût Total (Y)",
+                x: [10, 20, 30, 40, 50],
+                y: [45, 65, 80, 105, 130]
+            }
+        };
+
+        let currentScenario = SCENARIOS.scen1;
+
+        // Steps definitions for Casio
+        const CASIO_STEPS = [
+            {
+                title: "Étape 1 : Activer le Mode Statistique",
+                desc: "Allumez la calculatrice, appuyez sur <strong>MODE</strong> puis <strong>3 (STAT)</strong>. Choisissez <strong>2 (A+BX)</strong> pour configurer la régression linéaire.",
+                keys: [
+                    { label: "MODE", cls: "mode" },
+                    { label: "3 (STAT)" },
+                    { label: "2 (A+BX)", cls: "shift" }
+                ],
+                lcdMode: "STAT  D  LINE",
+                screen: `   Stat Type\n 1: 1-VAR\n 2: A+BX\n 3: _+CX^2`,
+                result: ""
+            },
+            {
+                title: "Étape 2 : Saisie des données du tableau",
+                desc: "Entrez les valeurs de la colonne <strong>X</strong> (validez chaque nombre par <strong>=</strong>). Déplacez le curseur avec la flèche droite pour remplir la colonne <strong>Y</strong>. Appuyez sur <strong>AC</strong> une fois terminé.",
+                keys: [
+                    { label: "Saisir X...", cls: "sto" },
+                    { label: "=" },
+                    { label: "Saisir Y...", cls: "sto" },
+                    { label: "=" },
+                    { label: "AC", cls: "ac" }
+                ],
+                lcdMode: "STAT  D",
+                screen: `     X        Y\n 1 [ 1   ] [ 12  ]\n 2 [ 2   ] [ 15  ]\n 3 [ 3   ] [ 19  ]`,
+                result: "Données mémorisées"
+            },
+            {
+                title: "Étape 3 : Extraction des Moyennes et Écarts-types",
+                desc: "Appuyez sur <strong>SHIFT 1 (STAT)</strong> puis <strong>4 (Var)</strong> pour obtenir la moyenne $\\bar{x}$, $\\bar{y}$ et l'effectif $n$.",
+                keys: [
+                    { label: "SHIFT", cls: "shift" },
+                    { label: "1 (STAT)" },
+                    { label: "4 (Var)" },
+                    { label: "2 (x̄) / 5 (ȳ)" },
+                    { label: "=" }
+                ],
+                lcdMode: "STAT  D",
+                screen: ` 1: n       2: x̄\n 3: xσn    4: xσn-1\n 5: ȳ       6: yσn`,
+                result: "x̄ = 3.00 | ȳ = 19.00"
+            },
+            {
+                title: "Étape 4 : Droite de Régression et Corrélation r",
+                desc: "Appuyez sur <strong>SHIFT 1 (STAT)</strong> puis <strong>5 (Reg)</strong>. <strong>1 (A)</strong> donne l'ordonnée à l'origine $b$, <strong>2 (B)</strong> donne la pente $a$, et <strong>3 (r)</strong> donne le coefficient de corrélation.",
+                keys: [
+                    { label: "SHIFT", cls: "shift" },
+                    { label: "1 (STAT)" },
+                    { label: "5 (Reg)" },
+                    { label: "1(A) / 2(B) / 3(r)" },
+                    { label: "=" }
+                ],
+                lcdMode: "STAT  D",
+                screen: ` 1: A (Intercept)\n 2: B (Pente a)\n 3: r (Corrélation)`,
+                result: "a = 3.70 | b = 7.90 | r = 0.9959"
+            },
+            {
+                title: "Étape 5 : Estimation d'une valeur future (ŷ)",
+                desc: "Pour estimer la valeur de $y$ pour $x = 6$ : tapez <strong>6</strong> $\\to$ <strong>SHIFT 1 (STAT)</strong> $\\to$ <strong>5 (Reg)</strong> $\\to$ <strong>5 (ŷ)</strong> $\\to$ <strong>=</strong>.",
+                keys: [
+                    { label: "6", cls: "sto" },
+                    { label: "SHIFT", cls: "shift" },
+                    { label: "1 (STAT)" },
+                    { label: "5 (Reg)" },
+                    { label: "5 (ŷ)" },
+                    { label: "=" }
+                ],
+                lcdMode: "STAT  D",
+                screen: ` 6 ŷ`,
+                result: "= 30.10"
+            }
+        ];
+
+        // Steps definitions for Sharp
+        const SHARP_STEPS = [
+            {
+                title: "Étape 1 : Activer le Mode Statistique LINE",
+                desc: "Sur Sharp EL-531TH : appuyez sur <strong>MODE</strong> puis <strong>1</strong> et <strong>1 (LINE)</strong> pour sélectionner la régression linéaire.",
+                keys: [
+                    { label: "MODE", cls: "mode" },
+                    { label: "1 (STAT)" },
+                    { label: "1 (LINE)", cls: "shift" }
+                ],
+                lcdMode: "STAT  LINE",
+                screen: `Stat 1\n[LINE]\nReady for data`,
+                result: ""
+            },
+            {
+                title: "Étape 2 : Saisie des couples (xi, yi)",
+                desc: "Entrez chaque point : tapez $x_i$ $\\to$ <strong>STO (noté (x,y))</strong> $\\to$ tapez $y_i$ $\\to$ <strong>M+ (DATA)</strong>. Le compteur DATA SET avance à chaque point.",
+                keys: [
+                    { label: "xi", cls: "sto" },
+                    { label: "STO (x,y)", cls: "sto" },
+                    { label: "yi", cls: "sto" },
+                    { label: "M+ (DATA)", cls: "ac" }
+                ],
+                lcdMode: "STAT  LINE",
+                screen: `DATA SET =\n       5`,
+                result: "5 couples saisis"
+            },
+            {
+                title: "Étape 3 : Extraction des Moyennes et Sommes",
+                desc: "Accédez directement aux résultats avec la touche <strong>ALPHA</strong> : $\\bar{x} =$ <strong>ALPHA 4</strong> et $\\bar{y} =$ <strong>ALPHA 7</strong>.",
+                keys: [
+                    { label: "ALPHA", cls: "alpha" },
+                    { label: "4 (x̄)" },
+                    { label: "=" },
+                    { label: "ALPHA", cls: "alpha" },
+                    { label: "7 (ȳ)" }
+                ],
+                lcdMode: "STAT  LINE",
+                screen: `x̄ = 3.00\nȳ = 19.00\nn = 5`,
+                result: "x̄ = 3.00 | ȳ = 19.00"
+            },
+            {
+                title: "Étape 4 : Extraction de l'Ordonnée, Pente et Corrélation",
+                desc: "Sur Sharp, l'ordonnée à l'origine est notée $a$ (<strong>ALPHA (</strong>), la pente est notée $b$ (<strong>ALPHA )</strong>) et le coefficient de corrélation $r$ (<strong>ALPHA ÷</strong>).",
+                keys: [
+                    { label: "ALPHA", cls: "alpha" },
+                    { label: "( (a: ordonnée)" },
+                    { label: "ALPHA", cls: "alpha" },
+                    { label: ") (b: pente)" },
+                    { label: "ALPHA", cls: "alpha" },
+                    { label: "÷ (r: corr)" }
+                ],
+                lcdMode: "STAT  LINE",
+                screen: `a (intercept) = 7.90\nb (pente)     = 3.70\nr (corr)      = 0.9959`,
+                result: "a=7.90 | b=3.70 | r=0.9959"
+            },
+            {
+                title: "Étape 5 : Réinitialiser la mémoire (Memory Clear)",
+                desc: "Pour effacer toutes les données et recommencer : appuyez sur <strong>2ndF</strong> puis <strong>MODE (CA : Clear All)</strong>.",
+                keys: [
+                    { label: "2ndF", cls: "shift" },
+                    { label: "MODE (CA)", cls: "mode" }
+                ],
+                lcdMode: "STAT",
+                screen: `Clear Memory ?\n[CA] Done`,
+                result: "Mémoire effacée"
+            }
+        ];
+
+        let regChartInstance = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderMath();
+            initChart();
+            updateStepView();
+        });
+
+        function renderMath(target) {
+            var el = target || document.body;
+            if (window.renderMathInElement) {
+                window.renderMathInElement(el, {
+                    delimiters: [
+                        { left: "$$", right: "$$", display: true },
+                        { left: "$", right: "$", display: false },
+                        { left: "\\(", right: "\\)", display: false },
+                        { left: "\\[", right: "\\]", display: true }
+                    ],
+                    throwOnError: false
+                });
+            } else {
+                setTimeout(function() { renderMath(target); }, 100);
+            }
+        }
+
+        function selectModel(model) {
+            currentModel = model;
+            currentStepIndex = 0;
+
+            const tabC = document.getElementById('tabCasio');
+            const tabS = document.getElementById('tabSharp');
+            const display = document.getElementById('lcdDisplay');
+            const stepBox = document.getElementById('tutorialStepBox');
+
+            if (model === 'casio') {
+                tabC.className = "model-tab-btn active-casio";
+                tabS.className = "model-tab-btn";
+                document.getElementById('modelBrand').innerText = "CASIO";
+                document.getElementById('modelName').innerText = "fx-991ES PLUS / EX";
+                display.classList.remove('sharp-theme');
+                stepBox.classList.remove('sharp-border');
+            } else {
+                tabC.className = "model-tab-btn";
+                tabS.className = "model-tab-btn active-sharp";
+                document.getElementById('modelBrand').innerText = "SHARP";
+                document.getElementById('modelName').innerText = "EL-531TH / EL-W506";
+                display.classList.add('sharp-theme');
+                stepBox.classList.add('sharp-border');
+            }
+
+            updateStepView();
+        }
+
+        function loadScenario(key) {
+            currentScenario = SCENARIOS[key];
+            updateTablePreview();
+            updateRegressionMath();
+            updateChartData();
+        }
+
+        function updateTablePreview() {
+            const sc = currentScenario;
+            let html = `<thead><tr><th>${sc.xLabel}</th>`;
+            sc.x.forEach(v => html += `<th>${v}</th>`);
+            html += `</tr></thead><tbody><tr><th>${sc.yLabel}</th>`;
+            sc.y.forEach(v => html += `<td>${v}</td>`);
+            html += `</tr></tbody>`;
+            document.getElementById('dataTablePreview').innerHTML = html;
+        }
+
+        function updateRegressionMath() {
+            const sc = currentScenario;
+            const n = sc.x.length;
+            const sumX = sc.x.reduce((a, b) => a + b, 0);
+            const sumY = sc.y.reduce((a, b) => a + b, 0);
+            const meanX = sumX / n;
+            const meanY = sumY / n;
+
+            let sumSqX = 0, sumSqY = 0, sumXY = 0;
+            for (let i = 0; i < n; i++) {
+                sumSqX += Math.pow(sc.x[i] - meanX, 2);
+                sumSqY += Math.pow(sc.y[i] - meanY, 2);
+                sumXY += (sc.x[i] - meanX) * (sc.y[i] - meanY);
+            }
+
+            const a = sumXY / sumSqX;
+            const b = meanY - a * meanX;
+            const r = sumXY / Math.sqrt(sumSqX * sumSqY);
+
+            document.getElementById('valG').innerText = `G(${meanX.toFixed(2)} ; ${meanY.toFixed(2)})`;
+            document.getElementById('valEquation').innerText = `y = ${a.toFixed(2)} x + ${b.toFixed(2)}`;
+            document.getElementById('valCorr').innerText = `r = ${r.toFixed(4)} (${Math.abs(r) >= 0.95 ? 'Très Forte' : 'Modérée'})`;
+        }
+
+        function updateStepView() {
+            const steps = currentModel === 'casio' ? CASIO_STEPS : SHARP_STEPS;
+            const s = steps[currentStepIndex];
+
+            document.getElementById('stepTitle').innerText = s.title;
+            document.getElementById('stepDescription').innerHTML = s.desc;
+            document.getElementById('lcdModeTag').innerText = s.lcdMode;
+            document.getElementById('lcdStepTag').innerText = `ÉTAPE ${currentStepIndex + 1}/${steps.length}`;
+            document.getElementById('lcdMainText').innerText = s.screen;
+            document.getElementById('lcdResult').innerText = s.result;
+
+            let keysHtml = "";
+            s.keys.forEach(k => {
+                const cls = k.cls ? `vkey ${k.cls}` : "vkey";
+                keysHtml += `<span class="${cls}">${k.label}</span>`;
+            });
+            document.getElementById('keySequenceContainer').innerHTML = keysHtml;
+
+            document.getElementById('btnPrev').disabled = (currentStepIndex === 0);
+            document.getElementById('btnNext').disabled = (currentStepIndex === steps.length - 1);
+            renderMath(document.getElementById('tutorialStepBox'));
+        }
+
+        function nextStep() {
+            const steps = currentModel === 'casio' ? CASIO_STEPS : SHARP_STEPS;
+            if (currentStepIndex < steps.length - 1) {
+                currentStepIndex++;
+                updateStepView();
+            }
+        }
+
+        function prevStep() {
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                updateStepView();
+            }
+        }
+
+        function resetStep() {
+            currentStepIndex = 0;
+            updateStepView();
+        }
+
+        function toggleAutoPlay() {
+            const btn = document.getElementById('btnAuto');
+            if (autoTimer) {
+                clearInterval(autoTimer);
+                autoTimer = null;
+                btn.innerText = "▶ Animation Auto";
+                btn.classList.remove('accent');
+            } else {
+                btn.innerText = "⏸ Pause";
+                btn.classList.add('accent');
+                autoTimer = setInterval(() => {
+                    const steps = currentModel === 'casio' ? CASIO_STEPS : SHARP_STEPS;
+                    if (currentStepIndex >= steps.length - 1) {
+                        currentStepIndex = 0;
+                    } else {
+                        currentStepIndex++;
+                    }
+                    updateStepView();
+                }, 4000);
+            }
+        }
+
+        // Chart.js initialization
+        function initChart() {
+            const ctx = document.getElementById('regChart').getContext('2d');
+            const sc = currentScenario;
+
+            const n = sc.x.length;
+            const sumX = sc.x.reduce((a, b) => a + b, 0);
+            const sumY = sc.y.reduce((a, b) => a + b, 0);
+            const meanX = sumX / n;
+            const meanY = sumY / n;
+            let sumSqX = 0, sumSqY = 0, sumXY = 0;
+            for (let i = 0; i < n; i++) {
+                sumSqX += Math.pow(sc.x[i] - meanX, 2);
+                sumSqY += Math.pow(sc.y[i] - meanY, 2);
+                sumXY += (sc.x[i] - meanX) * (sc.y[i] - meanY);
+            }
+            const a = sumXY / sumSqX;
+            const b = meanY - a * meanX;
+
+            const scatterData = sc.x.map((val, idx) => ({ x: val, y: sc.y[idx] }));
+            const minX = Math.min(...sc.x) - 0.5;
+            const maxX = Math.max(...sc.x) + 1.5;
+            const lineData = [
+                { x: minX, y: a * minX + b },
+                { x: maxX, y: a * maxX + b }
+            ];
+
+            regChartInstance = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Nuage de points (Xi, Yi)',
+                            data: scatterData,
+                            backgroundColor: '#39d6c3',
+                            pointRadius: 6,
+                            pointHoverRadius: 8
+                        },
+                        {
+                            label: 'Point Moyen G(x̄, ȳ)',
+                            data: [{ x: meanX, y: meanY }],
+                            backgroundColor: '#ffd166',
+                            borderColor: '#ffd166',
+                            pointRadius: 9,
+                            pointStyle: 'rectRot'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Droite de régression y = ax+b',
+                            data: lineData,
+                            borderColor: '#f51e65',
+                            borderWidth: 2.5,
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: 'rgba(255,255,255,0.8)' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            ticks: { color: 'rgba(255,255,255,0.8)' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white', font: { family: 'Outfit' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChartData() {
+            if (!regChartInstance) return;
+            const sc = currentScenario;
+            const n = sc.x.length;
+            const sumX = sc.x.reduce((a, b) => a + b, 0);
+            const sumY = sc.y.reduce((a, b) => a + b, 0);
+            const meanX = sumX / n;
+            const meanY = sumY / n;
+            let sumSqX = 0, sumSqY = 0, sumXY = 0;
+            for (let i = 0; i < n; i++) {
+                sumSqX += Math.pow(sc.x[i] - meanX, 2);
+                sumSqY += Math.pow(sc.y[i] - meanY, 2);
+                sumXY += (sc.x[i] - meanX) * (sc.y[i] - meanY);
+            }
+            const a = sumXY / sumSqX;
+            const b = meanY - a * meanX;
+
+            const scatterData = sc.x.map((val, idx) => ({ x: val, y: sc.y[idx] }));
+            const minX = Math.min(...sc.x) - 0.5;
+            const maxX = Math.max(...sc.x) + 1.5;
+
+            regChartInstance.data.datasets[0].data = scatterData;
+            regChartInstance.data.datasets[1].data = [{ x: meanX, y: meanY }];
+            regChartInstance.data.datasets[2].data = [
+                { x: minX, y: a * minX + b },
+                { x: maxX, y: a * maxX + b }
+            ];
+            regChartInstance.update();
+        }
+    </script>
+</body>
+</html>

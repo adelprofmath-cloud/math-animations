@@ -5,18 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculatrice Casio - Guide Interactif & Animations Matrices | Lyceena Books</title>
     <link rel="stylesheet" href="style.css">
+    <!-- KaTeX Math Notation Renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <style>
         :root {
             --casio-bg: #c5cbd3;
-            --casio-body-grad: linear-gradient(175deg, #a2b0c2 0%, #8797ab 35%, #76869b 70%, #5d6c80 100%);
-            --casio-bezel: #242c38;
-            --casio-screen-bg: #cadbb7;
-            --casio-screen-text: #1b2612;
-            --btn-shift: #cda828;
-            --btn-alpha: #c63659;
-            --btn-ac-del: #ce885c;
-            --btn-fn: #3b4756;
-            --btn-num: #eaeef3;
+            --casio-body-grad: linear-gradient(175deg, #a4b3c4 0%, #8798ab 35%, #76869b 70%, #5a697c 100%);
+            --casio-bezel: #1b222c;
+            --casio-screen-bg: #b2c59f;
+            --casio-screen-text: #17240d;
+            --btn-shift: #d8b024;
+            --btn-alpha: #d23a60;
+            --btn-ac-del: #cf7946;
+            --btn-fn: #384554;
+            --btn-num: #f4f7fa;
             --btn-num-text: #111a24;
         }
 
@@ -228,7 +232,7 @@
             cursor: pointer;
         }
 
-        /* Matrix preview / input editor */
+        /* Matrix preview */
         .matrix-config-card {
             background: rgba(11, 20, 38, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -278,7 +282,7 @@
         }
 
         /* ------------------------------------------------------------- */
-        /* CASIO CALCULATOR CONTAINER & GRAPHICS                          */
+        /* REAL CASIO CALCULATOR CONTAINER & GRAPHICS                    */
         /* ------------------------------------------------------------- */
         .calculator-wrapper {
             position: relative;
@@ -288,18 +292,18 @@
         }
 
         .casio-body {
-            width: 360px;
+            width: 380px;
             background: var(--casio-body-grad);
-            border-radius: 28px 28px 45px 45px;
+            border-radius: 28px 28px 42px 42px;
             box-shadow: 
-                0 20px 50px rgba(0, 0, 0, 0.6),
-                inset 0 2px 4px rgba(255, 255, 255, 0.7),
-                inset 0 -5px 10px rgba(0, 0, 0, 0.4),
-                0 0 0 2px #4a5768;
-            padding: 24px 18px 28px 18px;
+                0 22px 55px rgba(0, 0, 0, 0.65),
+                inset 0 2px 3px rgba(255, 255, 255, 0.7),
+                inset 0 -6px 12px rgba(0, 0, 0, 0.45),
+                0 0 0 2px #485666;
+            padding: 22px 16px 26px 16px;
             position: relative;
             box-sizing: border-box;
-            border: 1px solid #7e8fa3;
+            border: 1px solid #738499;
         }
 
         /* Header CASIO Branding */
@@ -307,13 +311,13 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             padding: 0 4px;
         }
 
         .casio-logo {
             font-weight: 900;
-            font-size: 1.4rem;
+            font-size: 1.45rem;
             color: #ffffff;
             letter-spacing: 2px;
             text-shadow: 0 1px 2px rgba(0,0,0,0.6);
@@ -323,7 +327,7 @@
 
         .casio-submodel {
             color: #ffffff;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 700;
             letter-spacing: 0.5px;
             margin-top: 2px;
@@ -338,9 +342,9 @@
         }
 
         .casio-solar {
-            width: 82px;
-            height: 26px;
-            background: linear-gradient(180deg, #1d1414 0%, #2f1d1d 50%, #150f0f 100%);
+            width: 86px;
+            height: 28px;
+            background: linear-gradient(180deg, #1c1313 0%, #2f1d1d 50%, #150f0f 100%);
             border-radius: 4px;
             border: 1px solid #4a3e3e;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
@@ -356,7 +360,7 @@
         }
 
         .casio-edition-label {
-            font-size: 0.6rem;
+            font-size: 0.62rem;
             color: #e5edf5;
             text-align: right;
             margin-top: -6px;
@@ -369,18 +373,18 @@
         .screen-bezel {
             background: #182029;
             border-radius: 12px;
-            padding: 10px;
+            padding: 9px;
             box-shadow: 
-                inset 0 3px 6px rgba(0,0,0,0.8),
+                inset 0 3px 6px rgba(0,0,0,0.85),
                 0 1px 2px rgba(255,255,255,0.4);
             border: 1px solid #334050;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .lcd-screen {
-            background: linear-gradient(180deg, #b2c59f 0%, #9cb189 100%);
+            background: linear-gradient(180deg, #b5c7a1 0%, #9cb188 100%);
             border-radius: 6px;
-            height: 120px;
+            height: 118px;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.35);
             border: 1px solid #7d8f6d;
             padding: 6px 8px;
@@ -504,22 +508,26 @@
             gap: 2px 6px;
         }
 
-        /* KEYPAD AREA */
+        /* ============================================================= */
+        /* KEYPAD STYLING - REALISTIC CASIO FX-991ES BUTTONS             */
+        /* ============================================================= */
         .keypad {
             display: flex;
             flex-direction: column;
-            gap: 9px;
+            gap: 6px;
+            width: 100%;
         }
 
-        /* Top control row */
-        .key-row-top {
+        /* Top cluster: SHIFT, ALPHA, DPAD, MODE, ON */
+        .top-cluster {
             display: grid;
-            grid-template-columns: 1fr 1fr 1.3fr 1fr 1fr;
-            gap: 8px;
+            grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr;
+            gap: 6px;
             align-items: center;
+            margin-bottom: 2px;
         }
 
-        .dpad-center {
+        .dpad-box {
             grid-column: 3;
             grid-row: 1 / span 2;
             display: flex;
@@ -528,16 +536,22 @@
         }
 
         .dpad {
-            width: 72px;
-            height: 54px;
-            background: linear-gradient(135deg, #a4b3c4 0%, #68798d 100%);
-            border-radius: 35%;
+            width: 82px;
+            height: 60px;
+            background: linear-gradient(135deg, #a7b6c7 0%, #68798e 100%);
+            border-radius: 50%;
             box-shadow: 
-                0 3px 5px rgba(0,0,0,0.5),
-                inset 0 1px 2px rgba(255,255,255,0.7);
+                0 4px 6px rgba(0,0,0,0.5),
+                inset 0 2px 3px rgba(255,255,255,0.8),
+                inset 0 -2px 4px rgba(0,0,0,0.4);
             position: relative;
-            border: 1px solid #4a5868;
+            border: 1px solid #4a5969;
             cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .dpad:active {
+            transform: scale(0.96);
         }
 
         .dpad-arrow {
@@ -546,137 +560,177 @@
             height: 0;
             border-style: solid;
         }
-        .dpad-up { top: 4px; left: 30px; border-width: 0 6px 8px 6px; border-color: transparent transparent #263342 transparent; }
-        .dpad-down { bottom: 4px; left: 30px; border-width: 8px 6px 0 6px; border-color: #263342 transparent transparent transparent; }
-        .dpad-left { top: 21px; left: 6px; border-width: 6px 8px 6px 0; border-color: transparent #263342 transparent transparent; }
-        .dpad-right { top: 21px; right: 6px; border-width: 6px 0 6px 8px; border-color: transparent transparent transparent #263342; }
+        .dpad-up { top: 5px; left: 34px; border-width: 0 7px 9px 7px; border-color: transparent transparent #263342 transparent; }
+        .dpad-down { bottom: 5px; left: 34px; border-width: 9px 7px 0 7px; border-color: #263342 transparent transparent transparent; }
+        .dpad-left { top: 24px; left: 7px; border-width: 7px 9px 7px 0; border-color: transparent #263342 transparent transparent; }
+        .dpad-right { top: 24px; right: 7px; border-width: 7px 0 7px 9px; border-color: transparent transparent transparent #263342; }
 
-        /* Function Keypad grid */
-        .func-grid {
+        /* Function sub-row next to Dpad */
+        .sub-row-dpad {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr;
             gap: 6px;
-            margin-top: 4px;
+            align-items: center;
         }
 
-        /* Number Keypad grid */
-        .num-grid {
+        /* 6-Column Function Grid */
+        .func-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            width: 100%;
+        }
+
+        /* 5-Column Numeric Grid */
+        .num-row {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 6px;
-            margin-top: 4px;
+            width: 100%;
         }
 
-        /* Key button styling */
-        .key-btn {
-            position: relative;
-            height: 30px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            box-shadow: 
-                0 3px 0 #283340,
-                0 4px 5px rgba(0,0,0,0.4),
-                inset 0 1px 1px rgba(255,255,255,0.6);
-            transition: all 0.08s ease;
-            outline: none;
-        }
-
-        .key-btn:active, .key-btn.pressed {
-            transform: translateY(2px);
-            box-shadow: 
-                0 1px 0 #283340,
-                0 2px 3px rgba(0,0,0,0.4),
-                inset 0 1px 1px rgba(255,255,255,0.3);
-        }
-
-        .key-btn.highlight {
-            animation: keyGlow 0.9s infinite alternate;
-        }
-
-        @keyframes keyGlow {
-            0% {
-                box-shadow: 0 0 0 2px #f51e65, 0 0 14px #f51e65, 0 3px 0 #283340;
-                transform: scale(1.06);
-            }
-            100% {
-                box-shadow: 0 0 0 3px #39d6c3, 0 0 20px #39d6c3, 0 3px 0 #283340;
-                transform: scale(1.08);
-            }
-        }
-
-        /* Button Colors */
-        .key-shift {
-            background: linear-gradient(180deg, #e4be36 0%, #b8911b 100%);
-            color: #1a1a1a;
-            font-weight: 800;
-            font-size: 0.65rem;
-        }
-        .key-alpha {
-            background: linear-gradient(180deg, #e0456c 0%, #ad2243 100%);
-            color: #fff;
-            font-weight: 800;
-            font-size: 0.65rem;
-        }
-        .key-mode, .key-on {
-            background: linear-gradient(180deg, #4d5c6f 0%, #313d4b 100%);
-            color: #fff;
-            font-weight: 700;
-            font-size: 0.65rem;
-        }
-        .key-func {
-            background: linear-gradient(180deg, #3d4a59 0%, #293440 100%);
-            color: #e6eef7;
-            font-weight: 700;
-            font-size: 0.72rem;
-            height: 26px;
-        }
-        .key-num {
-            background: linear-gradient(180deg, #ffffff 0%, #cfd7e2 100%);
-            color: #101923;
-            font-weight: 800;
-            font-size: 0.95rem;
-            height: 33px;
-        }
-        .key-del, .key-ac {
-            background: linear-gradient(180deg, #e5935f 0%, #b95d24 100%);
-            color: #fff;
-            font-weight: 800;
-            font-size: 0.75rem;
-            height: 33px;
-        }
-        .key-op {
-            background: linear-gradient(180deg, #e5ecf5 0%, #b8c4d4 100%);
-            color: #101923;
-            font-weight: 800;
-            font-size: 0.95rem;
-            height: 33px;
-        }
-
+        /* Key Legend container */
         .key-legend-box {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: stretch;
+            width: 100%;
             position: relative;
         }
 
         .key-sub-label {
             font-size: 0.52rem;
             font-weight: 800;
-            margin-bottom: 1px;
+            margin-bottom: 2px;
             line-height: 1;
-            height: 9px;
+            height: 10px;
             display: flex;
+            justify-content: center;
             gap: 4px;
+            text-align: center;
         }
 
-        .lbl-shift { color: #ffe677; }
-        .lbl-alpha { color: #ff85a1; }
+        .lbl-shift { color: #ffe677; text-shadow: 0 1px 1px rgba(0,0,0,0.5); }
+        .lbl-alpha { color: #ff85a1; text-shadow: 0 1px 1px rgba(0,0,0,0.5); }
+
+        /* Base button style */
+        .key-btn {
+            position: relative;
+            width: 100%;
+            border-radius: 7px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 2px;
+            box-sizing: border-box;
+            box-shadow: 
+                0 3px 0 #202b38,
+                0 4px 5px rgba(0,0,0,0.35),
+                inset 0 1px 1px rgba(255,255,255,0.7);
+            transition: all 0.08s ease;
+            outline: none;
+            user-select: none;
+            font-family: inherit;
+        }
+
+        .key-btn:active, .key-btn.pressed {
+            transform: translateY(2px);
+            box-shadow: 
+                0 1px 0 #202b38,
+                0 2px 3px rgba(0,0,0,0.35),
+                inset 0 1px 1px rgba(255,255,255,0.3);
+        }
+
+        /* Highlight animation when guided */
+        .key-btn.highlight {
+            animation: keyGlow 0.9s infinite alternate;
+        }
+
+        @keyframes keyGlow {
+            0% {
+                box-shadow: 0 0 0 2px #f51e65, 0 0 12px #f51e65, 0 3px 0 #202b38;
+                transform: scale(1.05);
+            }
+            100% {
+                box-shadow: 0 0 0 3px #39d6c3, 0 0 18px #39d6c3, 0 3px 0 #202b38;
+                transform: scale(1.08);
+            }
+        }
+
+        /* Button Types */
+        .key-shift {
+            background: linear-gradient(180deg, #e6bf32 0%, #b89117 100%);
+            color: #1a1a1a;
+            font-weight: 900;
+            font-size: 0.65rem;
+            height: 24px;
+            border-radius: 9px;
+        }
+
+        .key-alpha {
+            background: linear-gradient(180deg, #e4426b 0%, #ab2044 100%);
+            color: #ffffff;
+            font-weight: 900;
+            font-size: 0.65rem;
+            height: 24px;
+            border-radius: 9px;
+        }
+
+        .key-mode, .key-on {
+            background: linear-gradient(180deg, #4d5c6f 0%, #303d4c 100%);
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 0.65rem;
+            height: 24px;
+            border-radius: 9px;
+        }
+
+        .key-func {
+            background: linear-gradient(180deg, #3c4958 0%, #26313d 100%);
+            color: #eaf1f8;
+            font-weight: 700;
+            font-size: 0.75rem;
+            height: 26px;
+            border-radius: 6px;
+        }
+
+        .key-num {
+            background: linear-gradient(180deg, #ffffff 0%, #d2dbe5 100%);
+            color: #0f1822;
+            font-weight: 900;
+            font-size: 1.05rem;
+            height: 34px;
+            border-radius: 8px;
+        }
+
+        .key-del, .key-ac {
+            background: linear-gradient(180deg, #e8874f 0%, #b75720 100%);
+            color: #ffffff;
+            font-weight: 900;
+            font-size: 0.8rem;
+            height: 34px;
+            border-radius: 8px;
+        }
+
+        .key-op {
+            background: linear-gradient(180deg, #f0f4f9 0%, #b9c7d7 100%);
+            color: #0f1822;
+            font-weight: 900;
+            font-size: 1.05rem;
+            height: 34px;
+            border-radius: 8px;
+        }
+
+        .key-equal {
+            background: linear-gradient(180deg, #e5edf7 0%, #a4b4c7 100%);
+            color: #0c1622;
+            font-weight: 900;
+            font-size: 1.2rem;
+            height: 34px;
+            border-radius: 8px;
+        }
 
         /* Virtual Finger Pointer */
         .virtual-finger {
@@ -685,7 +739,7 @@
             height: 44px;
             pointer-events: none;
             z-index: 99;
-            transition: all 0.45s cubic-bezier(0.2, 0.8, 0.25, 1);
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.25, 1);
             transform: translate(-50%, -50%);
             display: none;
         }
@@ -722,10 +776,6 @@
             color: var(--turquoise);
         }
     </style>
-    <!-- KaTeX Math Notation Renderer -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -1018,10 +1068,10 @@
                         </div>
                     </div>
 
-                    <!-- Keypad Area -->
+                    <!-- KEYPAD AREA -->
                     <div class="keypad">
-                        <!-- Top Keys Row: SHIFT, ALPHA, DPAD, MODE, ON -->
-                        <div class="key-row-top">
+                        <!-- Top Cluster: SHIFT, ALPHA, DPAD, MODE, ON -->
+                        <div class="top-cluster">
                             <div class="key-legend-box">
                                 <div class="key-sub-label"></div>
                                 <button class="key-btn key-shift" id="key-shift" onclick="handlePhysicalKey('SHIFT')">SHIFT</button>
@@ -1031,8 +1081,8 @@
                                 <button class="key-btn key-alpha" id="key-alpha" onclick="handlePhysicalKey('ALPHA')">ALPHA</button>
                             </div>
 
-                            <!-- DPAD -->
-                            <div class="dpad-center">
+                            <!-- Central D-PAD -->
+                            <div class="dpad-box">
                                 <div class="dpad" id="key-dpad" onclick="handlePhysicalKey('DPAD')">
                                     <div class="dpad-arrow dpad-up"></div>
                                     <div class="dpad-arrow dpad-down"></div>
@@ -1051,8 +1101,8 @@
                             </div>
                         </div>
 
-                        <!-- Function Row 1 -->
-                        <div class="func-grid">
+                        <!-- Sub-row alongside D-PAD: CALC, ∫dx | x⁻¹, log■□ -->
+                        <div class="sub-row-dpad">
                             <div class="key-legend-box">
                                 <div class="key-sub-label"><span class="lbl-shift">SOLVE</span><span class="lbl-alpha">=</span></div>
                                 <button class="key-btn key-func" id="key-calc" onclick="handlePhysicalKey('CALC')">CALC</button>
@@ -1061,6 +1111,9 @@
                                 <div class="key-sub-label"><span class="lbl-shift">d/dx</span></div>
                                 <button class="key-btn key-func" id="key-integral" onclick="handlePhysicalKey('INT')">∫dx</button>
                             </div>
+
+                            <div><!-- Dpad spacer --></div>
+
                             <div class="key-legend-box">
                                 <div class="key-sub-label"></div>
                                 <button class="key-btn key-func" id="key-xinv" onclick="handlePhysicalKey('XINV')">x⁻¹</button>
@@ -1069,18 +1122,18 @@
                                 <div class="key-sub-label"></div>
                                 <button class="key-btn key-func" id="key-logbox" onclick="handlePhysicalKey('LOGBOX')">log■□</button>
                             </div>
+                        </div>
+
+                        <!-- Function Row 1: ■/□, √■, x², x■, log, ln -->
+                        <div class="func-row">
                             <div class="key-legend-box">
                                 <div class="key-sub-label"></div>
-                                <button class="key-btn key-frac" id="key-frac" onclick="handlePhysicalKey('FRAC')">■/□</button>
+                                <button class="key-btn key-func" id="key-frac" onclick="handlePhysicalKey('FRAC')">■/□</button>
                             </div>
                             <div class="key-legend-box">
                                 <div class="key-sub-label"></div>
                                 <button class="key-btn key-func" id="key-sqrt" onclick="handlePhysicalKey('SQRT')">√■</button>
                             </div>
-                        </div>
-
-                        <!-- Function Row 2 -->
-                        <div class="func-grid">
                             <div class="key-legend-box">
                                 <div class="key-sub-label"><span class="lbl-shift">x³</span></div>
                                 <button class="key-btn key-func" id="key-x2" onclick="handlePhysicalKey('X2')">x²</button>
@@ -1097,6 +1150,10 @@
                                 <div class="key-sub-label"></div>
                                 <button class="key-btn key-func" id="key-ln" onclick="handlePhysicalKey('LN')">ln</button>
                             </div>
+                        </div>
+
+                        <!-- Function Row 2: (-), ° ' '', hyp, sin, cos, tan -->
+                        <div class="func-row">
                             <div class="key-legend-box">
                                 <div class="key-sub-label"><span class="lbl-shift">A</span></div>
                                 <button class="key-btn key-func" id="key-neg" onclick="handlePhysicalKey('NEG')">(-)</button>
@@ -1105,10 +1162,6 @@
                                 <div class="key-sub-label"><span class="lbl-shift">B</span></div>
                                 <button class="key-btn key-deg" id="key-deg" onclick="handlePhysicalKey('DEG')">°' ''</button>
                             </div>
-                        </div>
-
-                        <!-- Function Row 3: hyp, sin, cos, tan, etc. -->
-                        <div class="func-grid">
                             <div class="key-legend-box">
                                 <div class="key-sub-label"><span class="lbl-shift">C</span></div>
                                 <button class="key-btn key-func" id="key-hyp" onclick="handlePhysicalKey('HYP')">hyp</button>
@@ -1125,18 +1178,18 @@
                                 <div class="key-sub-label"><span class="lbl-shift">tan⁻¹</span></div>
                                 <button class="key-btn key-func" id="key-tan" onclick="handlePhysicalKey('TAN')">tan</button>
                             </div>
+                        </div>
+
+                        <!-- Function Row 3: RCL, ENG, (, ), S⇔D, M+ -->
+                        <div class="func-row">
                             <div class="key-legend-box">
-                                <div class="key-sub-label"></div>
+                                <div class="key-sub-label"><span class="lbl-shift">STO</span></div>
                                 <button class="key-btn key-func" id="key-rcl" onclick="handlePhysicalKey('RCL')">RCL</button>
                             </div>
                             <div class="key-legend-box">
-                                <div class="key-sub-label"></div>
+                                <div class="key-sub-label"><span class="lbl-shift">←</span></div>
                                 <button class="key-btn key-func" id="key-eng" onclick="handlePhysicalKey('ENG')">ENG</button>
                             </div>
-                        </div>
-
-                        <!-- Parentheses & Memory Row -->
-                        <div class="func-grid">
                             <div class="key-legend-box">
                                 <div class="key-sub-label"></div>
                                 <button class="key-btn key-func" id="key-lpar" onclick="handlePhysicalKey('(')">(</button>
@@ -1153,19 +1206,10 @@
                                 <div class="key-sub-label"><span class="lbl-shift">M-</span></div>
                                 <button class="key-btn key-func" id="key-mplus" onclick="handlePhysicalKey('M+')">M+</button>
                             </div>
-                            <div class="key-legend-box">
-                                <div class="key-sub-label"></div>
-                                <button class="key-btn key-del" id="key-del" onclick="handlePhysicalKey('DEL')">DEL</button>
-                            </div>
-                            <div class="key-legend-box">
-                                <div class="key-sub-label"><span class="lbl-shift">OFF</span></div>
-                                <button class="key-btn key-ac" id="key-ac" onclick="handlePhysicalKey('AC')">AC</button>
-                            </div>
                         </div>
 
-                        <!-- Numeric Rows -->
-                        <!-- Row 7 8 9 DEL AC -->
-                        <div class="num-grid">
+                        <!-- Numeric Row 1: 7, 8, 9, DEL, AC -->
+                        <div class="num-row" style="margin-top: 4px;">
                             <div class="key-legend-box">
                                 <div class="key-sub-label"><span class="lbl-shift">CONST</span></div>
                                 <button class="key-btn key-num" id="key-7" onclick="handlePhysicalKey('7')">7</button>
@@ -1179,17 +1223,17 @@
                                 <button class="key-btn key-num" id="key-9" onclick="handlePhysicalKey('9')">9</button>
                             </div>
                             <div class="key-legend-box">
-                                <div class="key-sub-label"></div>
-                                <button class="key-btn key-del" id="key-del2" onclick="handlePhysicalKey('DEL')">DEL</button>
+                                <div class="key-sub-label"><span class="lbl-shift">INS</span></div>
+                                <button class="key-btn key-del" id="key-del" onclick="handlePhysicalKey('DEL')">DEL</button>
                             </div>
                             <div class="key-legend-box">
-                                <div class="key-sub-label"></div>
-                                <button class="key-btn key-ac" id="key-ac2" onclick="handlePhysicalKey('AC')">AC</button>
+                                <div class="key-sub-label"><span class="lbl-shift">OFF</span></div>
+                                <button class="key-btn key-ac" id="key-ac" onclick="handlePhysicalKey('AC')">AC</button>
                             </div>
                         </div>
 
-                        <!-- Row 4 5 6 * / -->
-                        <div class="num-grid">
+                        <!-- Numeric Row 2: 4, 5, 6, ×, ÷ -->
+                        <div class="num-row">
                             <div class="key-legend-box">
                                 <div class="key-sub-label"><span class="lbl-shift">MATRIX</span></div>
                                 <button class="key-btn key-num" id="key-4" onclick="handlePhysicalKey('4')">4</button>
@@ -1212,8 +1256,8 @@
                             </div>
                         </div>
 
-                        <!-- Row 1 2 3 + - -->
-                        <div class="num-grid">
+                        <!-- Numeric Row 3: 1, 2, 3, +, - -->
+                        <div class="num-row">
                             <div class="key-legend-box">
                                 <div class="key-sub-label"><span class="lbl-shift">STAT</span></div>
                                 <button class="key-btn key-num" id="key-1" onclick="handlePhysicalKey('1')">1</button>
@@ -1236,8 +1280,8 @@
                             </div>
                         </div>
 
-                        <!-- Row 0 . *10^x Ans = -->
-                        <div class="num-grid">
+                        <!-- Numeric Row 4: 0, ., ×10ˣ, Ans, = -->
+                        <div class="num-row">
                             <div class="key-legend-box">
                                 <div class="key-sub-label"><span class="lbl-shift">Rnd</span></div>
                                 <button class="key-btn key-num" id="key-0" onclick="handlePhysicalKey('0')">0</button>
@@ -1256,7 +1300,7 @@
                             </div>
                             <div class="key-legend-box">
                                 <div class="key-sub-label"></div>
-                                <button class="key-btn key-num" id="key-equal" style="background:linear-gradient(180deg,#e8edf5 0%,#a8b6c8 100%); font-size:1.1rem; font-weight:900;" onclick="handlePhysicalKey('=')">=</button>
+                                <button class="key-btn key-equal" id="key-equal" onclick="handlePhysicalKey('=')">=</button>
                             </div>
                         </div>
                     </div>
@@ -1267,13 +1311,25 @@
 
     <!-- Script logic -->
     <script>
+        function renderMath(target) {
+            var el = target || document.body;
+            if (window.renderMathInElement) {
+                window.renderMathInElement(el, {
+                    delimiters: [
+                        { left: "$$", right: "$$", display: true },
+                        { left: "$", right: "$", display: false },
+                        { left: "\\(", right: "\\)", display: false },
+                        { left: "\\[", right: "\\]", display: true }
+                    ],
+                    throwOnError: false
+                });
+            } else {
+                setTimeout(function() { renderMath(target); }, 100);
+            }
+        }
+        document.addEventListener("DOMContentLoaded", function() { renderMath(); });
+        window.addEventListener("load", function() { renderMath(); });
 
-function renderMath(target = document.body) {
-    if (window.renderMathInElement) {
-        window.renderMathInElement(target, {
-            delimiters: [
-                { left: '$', right: '$', display: true },
-                { left: '
         const audioCtx = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext || window.webkitAudioContext)() : null;
         function playCasioBeep() {
             if (!audioCtx) return;
@@ -1626,1192 +1682,48 @@ function renderMath(target = document.body) {
             }
 
             renderCurrentStep();
+        }
+
+        function renderCurrentStep() {
+            const scenario = scenarios[currentScenarioKey];
+            const totalSteps = scenario.steps.length;
+            const step = scenario.steps[currentStepIndex];
+
+            document.getElementById('stepIndicator').innerText = `Étape ${currentStepIndex + 1} / ${totalSteps}`;
+            document.getElementById('stepTitle').innerText = step.stepTitle;
+            document.getElementById('stepDesc').innerHTML = step.desc;
+            document.getElementById('pedagogicTip').innerHTML = `💡 <strong>Astuce :</strong> ${step.tip}`;
+
+            const keysContainer = document.getElementById('keysSequenceContainer');
+            keysContainer.innerHTML = '';
+            step.keys.forEach((k, idx) => {
+                const badge = document.createElement('span');
+                badge.className = `key-badge ${k.type}`;
+                badge.innerText = k.name;
+                keysContainer.appendChild(badge);
+
+                if (idx < step.keys.length - 1) {
+                    const arrow = document.createElement('span');
+                    arrow.className = 'key-arrow';
+                    arrow.innerText = '➔';
+                    keysContainer.appendChild(arrow);
+                }
+            });
+
+            clearKeyHighlights();
+            const activeKeyObj = step.keys[0];
+            if (activeKeyObj && activeKeyObj.id) {
+                const targetKeyEl = document.getElementById(activeKeyObj.id);
+                if (targetKeyEl) {
+                    targetKeyEl.classList.add('highlight');
+                    moveVirtualFingerTo(targetKeyEl);
+                }
+            } else {
+                hideVirtualFinger();
+            }
+
+            renderLcd(step.screenState);
             renderMath();
-        }
-
-        function renderCurrentStep() {
-            const scenario = scenarios[currentScenarioKey];
-            const totalSteps = scenario.steps.length;
-            const step = scenario.steps[currentStepIndex];
-
-            document.getElementById('stepIndicator').innerText = `Étape ${currentStepIndex + 1} / ${totalSteps}`;
-            document.getElementById('stepTitle').innerText = step.stepTitle;
-            document.getElementById('stepDesc').innerHTML = step.desc;
-            document.getElementById('pedagogicTip').innerHTML = `💡 <strong>Astuce :</strong> ${step.tip}`;
-
-            const keysContainer = document.getElementById('keysSequenceContainer');
-            keysContainer.innerHTML = '';
-            step.keys.forEach((k, idx) => {
-                const badge = document.createElement('span');
-                badge.className = `key-badge ${k.type}`;
-                badge.innerText = k.name;
-                keysContainer.appendChild(badge);
-
-                if (idx < step.keys.length - 1) {
-                    const arrow = document.createElement('span');
-                    arrow.className = 'key-arrow';
-                    arrow.innerText = '➔';
-                    keysContainer.appendChild(arrow);
-                }
-            });
-
-            clearKeyHighlights();
-            const activeKeyObj = step.keys[0];
-            if (activeKeyObj && activeKeyObj.id) {
-                const targetKeyEl = document.getElementById(activeKeyObj.id);
-                if (targetKeyEl) {
-                    targetKeyEl.classList.add('highlight');
-                    moveVirtualFingerTo(targetKeyEl);
-                }
-            } else {
-                hideVirtualFinger();
-            }
-
-            renderLcd(step.screenState);
-            playCasioBeep();
-        }
-
-        function clearKeyHighlights() {
-            document.querySelectorAll('.key-btn').forEach(b => b.classList.remove('highlight', 'pressed'));
-        }
-
-        function moveVirtualFingerTo(targetEl) {
-            const finger = document.getElementById('virtualFinger');
-            const casioRect = document.getElementById('casioBody').getBoundingClientRect();
-            const targetRect = targetEl.getBoundingClientRect();
-
-            const left = targetRect.left - casioRect.left + (targetRect.width / 2);
-            const top = targetRect.top - casioRect.top + (targetRect.height / 2);
-
-            finger.style.display = 'block';
-            finger.style.left = `${left}px`;
-            finger.style.top = `${top}px`;
-        }
-
-        function hideVirtualFinger() {
-            document.getElementById('virtualFinger').style.display = 'none';
-        }
-
-        function renderLcd(state) {
-            document.getElementById('viewNormal').style.display = 'none';
-            document.getElementById('viewModeMenu').style.display = 'none';
-            document.getElementById('viewMatSelect').style.display = 'none';
-            document.getElementById('viewDimSelect').style.display = 'none';
-            document.getElementById('viewMatrixEditor').style.display = 'none';
-            document.getElementById('viewMatShiftMenu').style.display = 'none';
-
-            if (!state) return;
-
-            if (state.view === 'mode') {
-                document.getElementById('viewModeMenu').style.display = 'block';
-            } else if (state.view === 'matSelect') {
-                document.getElementById('viewMatSelect').style.display = 'block';
-            } else if (state.view === 'dimSelect') {
-                document.getElementById('viewDimSelect').style.display = 'block';
-                if (state.title) document.getElementById('dimSelectTitle').innerText = state.title;
-            } else if (state.view === 'matrixEditor' || state.view === 'matrixEditorFilled') {
-                document.getElementById('viewMatrixEditor').style.display = 'flex';
-                document.getElementById('editorMatName').innerText = state.matName || "MatA 3×3";
-                
-                const gridBox = document.getElementById('lcdGridBox');
-                const flatA = matrixA.flat();
-                gridBox.innerHTML = '';
-                flatA.forEach((val, idx) => {
-                    const cell = document.createElement('div');
-                    cell.className = `lcd-cell ${idx === (state.cellIdx || 0) ? 'cursor' : ''}`;
-                    cell.innerText = (state.view === 'matrixEditorFilled' || idx <= (state.cellIdx || 0)) ? val : '0';
-                    gridBox.appendChild(cell);
-                });
-                document.getElementById('editorCellCoord').innerText = `[${Math.floor((state.cellIdx||0)/3)+1},${((state.cellIdx||0)%3)+1}]=`;
-                document.getElementById('lcdEditorBottomVal').innerText = state.val || flatA[state.cellIdx || 0];
-            } else if (state.view === 'matrixEditorB' || state.view === 'matrixEditorBFilled') {
-                document.getElementById('viewMatrixEditor').style.display = 'flex';
-                document.getElementById('editorMatName').innerText = state.matName || "MatB 3×3";
-                
-                const gridBox = document.getElementById('lcdGridBox');
-                const flatB = matrixB.flat();
-                gridBox.innerHTML = '';
-                flatB.forEach((val, idx) => {
-                    const cell = document.createElement('div');
-                    cell.className = `lcd-cell ${idx === (state.cellIdx || 0) ? 'cursor' : ''}`;
-                    cell.innerText = (state.view === 'matrixEditorBFilled' || idx <= (state.cellIdx || 0)) ? val : '0';
-                    gridBox.appendChild(cell);
-                });
-                document.getElementById('editorCellCoord').innerText = `[${Math.floor((state.cellIdx||0)/3)+1},${((state.cellIdx||0)%3)+1}]=`;
-                document.getElementById('lcdEditorBottomVal').innerText = state.val || flatB[state.cellIdx || 0];
-            } else if (state.view === 'matrixResult') {
-                document.getElementById('viewMatrixEditor').style.display = 'flex';
-                document.getElementById('editorMatName').innerText = state.title || "MatAns 3×3";
-                const gridBox = document.getElementById('lcdGridBox');
-                gridBox.innerHTML = '';
-                const flatVals = state.vals.flat();
-                flatVals.forEach((val, idx) => {
-                    const cell = document.createElement('div');
-                    cell.className = `lcd-cell ${idx === 0 ? 'cursor' : ''}`;
-                    cell.innerText = val;
-                    gridBox.appendChild(cell);
-                });
-                document.getElementById('editorCellCoord').innerText = `[1,1]=`;
-                document.getElementById('lcdEditorBottomVal').innerText = flatVals[0];
-            } else if (state.view === 'shift4Menu') {
-                document.getElementById('viewMatShiftMenu').style.display = 'block';
-            } else {
-                document.getElementById('viewNormal').style.display = 'block';
-                document.getElementById('lcdInput').innerText = state.input || '';
-                document.getElementById('lcdResult').innerText = state.result || '';
-            }
-        }
-
-        function nextStep() {
-            const scenario = scenarios[currentScenarioKey];
-            if (currentStepIndex < scenario.steps.length - 1) {
-                currentStepIndex++;
-                renderCurrentStep();
-            } else {
-                pauseAutoPlay();
-            }
-        }
-
-        function prevStep() {
-            if (currentStepIndex > 0) {
-                currentStepIndex--;
-                renderCurrentStep();
-            }
-        }
-
-        function resetCurrentScenario() {
-            currentStepIndex = 0;
-            renderCurrentStep();
-        }
-
-        function togglePlayPause() {
-            if (isPlaying) {
-                pauseAutoPlay();
-            } else {
-                startAutoPlay();
-            }
-        }
-
-        function startAutoPlay() {
-            isPlaying = true;
-            document.getElementById('btnPlayPause').innerHTML = '⏸ Pause';
-            document.getElementById('btnPlayPause').style.background = '#39d6c3';
-            document.getElementById('btnPlayPause').style.color = '#0b1426';
-
-            playInterval = setInterval(() => {
-                const scenario = scenarios[currentScenarioKey];
-                if (currentStepIndex < scenario.steps.length - 1) {
-                    currentStepIndex++;
-                    renderCurrentStep();
-                } else {
-                    pauseAutoPlay();
-                }
-            }, animSpeedMs);
-        }
-
-        function pauseAutoPlay() {
-            isPlaying = false;
-            clearInterval(playInterval);
-            document.getElementById('btnPlayPause').innerHTML = '▶ Lecture Auto';
-            document.getElementById('btnPlayPause').style.background = 'var(--rose)';
-            document.getElementById('btnPlayPause').style.color = 'white';
-        }
-
-        function updateSpeed() {
-            animSpeedMs = parseInt(document.getElementById('animSpeed').value);
-            if (isPlaying) {
-                clearInterval(playInterval);
-                startAutoPlay();
-            }
-        }
-
-        function handlePhysicalKey(keyName) {
-            playCasioBeep();
-            const step = scenarios[currentScenarioKey].steps[currentStepIndex];
-            const targetKey = step.keys.find(k => k.name === keyName || k.id === `key-${keyName.toLowerCase()}`);
-            if (targetKey) {
-                nextStep();
-            }
-        }
-
-        window.addEventListener('load', () => {
-            renderCurrentStep();
-        });
-    </script>
-</body>
-</html>
-, right: '
-        const audioCtx = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext || window.webkitAudioContext)() : null;
-        function playCasioBeep() {
-            if (!audioCtx) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.04);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.04);
-        }
-
-        const matrixA = [
-            [1, 2, 1],
-            [0, 1, 3],
-            [2, 1, 1]
-        ];
-
-        const matrixB = [
-            [2, 0, 1],
-            [1, 3, 0],
-            [0, 2, 1]
-        ];
-
-        const scenarios = {
-            saisieA: {
-                title: "Saisie de la Matrice A (3×3)",
-                steps: [
-                    {
-                        stepTitle: "1. Activer le menu MODE",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[MODE SETUP]</strong> pour accéder à la liste des modes de calcul de la calculatrice.",
-                        keys: [{ name: "MODE", type: "mode", id: "key-mode" }],
-                        tip: "Le mode normal de base est COMP (1). Pour les matrices, il faut choisir MATRIX (6).",
-                        screenState: { view: "mode" }
-                    },
-                    {
-                        stepTitle: "2. Choisir le Mode 6 : MATRIX",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[6]</strong> pour entrer dans le mode de calcul matriciel.",
-                        keys: [{ name: "6", type: "num", id: "key-6" }],
-                        tip: "L'indicateur 'MAT' s'affiche en haut de l'écran LCD pour indiquer que vous êtes en mode Matrice.",
-                        screenState: { view: "matSelect" }
-                    },
-                    {
-                        stepTitle: "3. Sélectionner la Matrice A (1: MatA)",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour définir les dimensions et les coefficients de MatA.",
-                        keys: [{ name: "1", type: "num", id: "key-1" }],
-                        tip: "Vous pouvez choisir entre MatA (1), MatB (2) ou MatC (3).",
-                        screenState: { view: "dimSelect", title: "MatA(m×n)" }
-                    },
-                    {
-                        stepTitle: "4. Choisir la dimension 3×3 (Touche 1)",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour sélectionner une matrice carrée d'ordre 3 (3 lignes, 3 colonnes).",
-                        keys: [{ name: "1", type: "num", id: "key-1" }],
-                        tip: "Pour une matrice d'ordre 2 (2×2), on aurait appuyé sur [5].",
-                        screenState: { view: "matrixEditor", matName: "MatA 3×3", cellIdx: 0, val: 1 }
-                    },
-                    {
-                        stepTitle: "5. Remplir les coefficients avec [ = ]",
-                        desc: "Tapez chaque coefficient puis validez avec la touche <strong style=\"color:var(--turquoise);\">[ = ]</strong>. Entrez successivement : 1= 2= 1= 0= 1= 3= 2= 1= 1=",
-                        keys: [
-                            { name: "1", type: "num", id: "key-1" }, { name: "=", type: "equal", id: "key-equal" },
-                            { name: "2", type: "num", id: "key-2" }, { name: "=", type: "equal", id: "key-equal" },
-                            { name: "...", type: "num" }
-                        ],
-                        tip: "La calculatrice avance automatiquement cellule par cellule de gauche à droite, puis ligne par ligne.",
-                        screenState: { view: "matrixEditorFilled", matName: "MatA 3×3", cellIdx: 8, val: 1 }
-                    },
-                    {
-                        stepTitle: "6. Mémoriser et Quitter l'éditeur avec [AC]",
-                        desc: "Appuyez sur la touche orange <strong style=\"color:var(--rose);\">[AC]</strong>. Vos données sont enregistrées dans la mémoire MatA !",
-                        keys: [{ name: "AC", type: "ac", id: "key-ac" }],
-                        tip: "Ne vous inquiétez pas, appuyer sur [AC] n'efface pas la matrice ! Elle reste bien en mémoire dans MatA.",
-                        screenState: { view: "normal", input: "", result: "0" }
-                    }
-                ]
-            },
-
-            saisieB: {
-                title: "Saisie de la Matrice B (3×3)",
-                steps: [
-                    {
-                        stepTitle: "1. Ouvrir le Menu MATRIX (SHIFT + 4)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[4]</strong> (au-dessus de laquelle est inscrit MATRIX en jaune).",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" }
-                        ],
-                        tip: "Le menu MATRIX vous donne accès à la dimension (1:Dim), aux données (2:Data) et aux matrices mémoires.",
-                        screenState: { view: "shift4Menu" }
-                    },
-                    {
-                        stepTitle: "2. Choisir 1 : Dim (Dimension)",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour définir la dimension d'une nouvelle matrice.",
-                        keys: [{ name: "1", type: "num", id: "key-1" }],
-                        tip: "Si vous vouliez juste modifier une valeur existante sans changer la dimension, vous auriez choisi [2:Data].",
-                        screenState: { view: "matSelect" }
-                    },
-                    {
-                        stepTitle: "3. Sélectionner 2 : MatB",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[2]</strong> pour configurer la Matrice B.",
-                        keys: [{ name: "2", type: "num", id: "key-2" }],
-                        tip: "MatB est la 2ème matrice mémoire disponible.",
-                        screenState: { view: "dimSelect", title: "MatB(m×n)" }
-                    },
-                    {
-                        stepTitle: "4. Choisir la dimension 3×3 (Touche 1)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[1]</strong> pour choisir le format 3×3 pour la Matrice B.",
-                        keys: [{ name: "1", type: "num", id: "key-1" }],
-                        tip: "La grille d'édition de MatB apparaît à l'écran.",
-                        screenState: { view: "matrixEditorB", matName: "MatB 3×3", cellIdx: 0, val: 2 }
-                    },
-                    {
-                        stepTitle: "5. Saisir les valeurs de MatB",
-                        desc: "Entrez les coefficients de B suivis de <strong style=\"color:var(--turquoise);\">[ = ]</strong> : 2= 0= 1= 1= 3= 0= 0= 2= 1=",
-                        keys: [
-                            { name: "2", type: "num", id: "key-2" }, { name: "=", type: "equal", id: "key-equal" },
-                            { name: "0", type: "num", id: "key-0" }, { name: "=", type: "equal", id: "key-equal" },
-                            { name: "...", type: "num" }
-                        ],
-                        tip: "Toutes les 9 cases de la matrice B sont maintenant renseignées.",
-                        screenState: { view: "matrixEditorBFilled", matName: "MatB 3×3", cellIdx: 8, val: 1 }
-                    },
-                    {
-                        stepTitle: "6. Sauvegarder dans MatB avec [AC]",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--rose);\">[AC]</strong> pour valider et revenir à l'écran principal.",
-                        keys: [{ name: "AC", type: "ac", id: "key-ac" }],
-                        tip: "MatA et MatB sont désormais prêtes pour toutes vos opérations !",
-                        screenState: { view: "normal", input: "", result: "0" }
-                    }
-                ]
-            },
-
-            det: {
-                title: "Calcul du Déterminant : det(MatA)",
-                steps: [
-                    {
-                        stepTitle: "1. Ouvrir le Menu MATRIX",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[4]</strong> (MATRIX).",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" }
-                        ],
-                        tip: "Repérez l'option 7: Det dans le menu.",
-                        screenState: { view: "shift4Menu" }
-                    },
-                    {
-                        stepTitle: "2. Sélectionner la fonction 7 : Det",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[7]</strong>. L'écran affiche l'instruction 'det(' en attente de la matrice.",
-                        keys: [{ name: "7", type: "num", id: "key-7" }],
-                        tip: "Det calcule le déterminant d'une matrice carrée 2×2 ou 3×3.",
-                        screenState: { view: "normal", input: "det(", result: "" }
-                    },
-                    {
-                        stepTitle: "3. Insérer la Matrice A : SHIFT + 4 puis 3",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong>, puis choisissez <strong style=\"color:var(--turquoise);\">[3]</strong> pour insérer MatA.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "3", type: "num", id: "key-3" }
-                        ],
-                        tip: "L'écran affiche maintenant : det(MatA",
-                        screenState: { view: "normal", input: "det(MatA", result: "" }
-                    },
-                    {
-                        stepTitle: "4. Fermer la parenthèse et Calculer avec [ = ]",
-                        desc: "Appuyez sur la parenthèse fermante <strong style=\"color:var(--turquoise);\">[ ) ]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[ = ]</strong>.",
-                        keys: [
-                            { name: ")", type: "fn", id: "key-rpar" },
-                            { name: "=", type: "equal", id: "key-equal" }
-                        ],
-                        tip: "Résultat : det(A) = -8. Comme det(A) ≠ 0, la matrice A est inversible !",
-                        screenState: { view: "normal", input: "det(MatA)", result: "-8" }
-                    }
-                ]
-            },
-
-            scal: {
-                title: "Multiplication d'une Matrice par un Réel (3 × MatA)",
-                steps: [
-                    {
-                        stepTitle: "1. Taper le coefficient réel (Exemple : 3)",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[3]</strong> puis sur la touche de multiplication <strong style=\"color:var(--turquoise);\">[ × ]</strong>.",
-                        keys: [
-                            { name: "3", type: "num", id: "key-3" },
-                            { name: "×", type: "op", id: "key-mul" }
-                        ],
-                        tip: "Vous pouvez multiplier par n'importe quel réel, positif, négatif (avec (-)) ou fractionnaire (avec ■/□).",
-                        screenState: { view: "normal", input: "3×", result: "" }
-                    },
-                    {
-                        stepTitle: "2. Insérer MatA : SHIFT + 4 puis 3",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong>, et tapez <strong style=\"color:var(--turquoise);\">[3]</strong> pour appeler MatA.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "3", type: "num", id: "key-3" }
-                        ],
-                        tip: "La formule affichée est : 3×MatA",
-                        screenState: { view: "normal", input: "3×MatA", result: "" }
-                    },
-                    {
-                        stepTitle: "3. Calculer avec [ = ] et Naviguer dans MatAns",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. Le résultat est stocké dans la matrice réponse 'MatAns'. Chaque terme est multiplié par 3 !",
-                        keys: [{ name: "=", type: "equal", id: "key-equal" }],
-                        tip: "Utilisez le pavé directionnel circulaire (flèches droite/gauche/haut/bas) pour faire défiler tous les coefficients.",
-                        screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[3,6,3],[0,3,9],[6,3,3]] }
-                    }
-                ]
-            },
-
-            somme: {
-                title: "Somme de deux Matrices : MatA + MatB",
-                steps: [
-                    {
-                        stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour écrire MatA.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "3", type: "num", id: "key-3" }
-                        ],
-                        tip: "Rappel : L'addition n'est possible que si les deux matrices ont exactement la même dimension !",
-                        screenState: { view: "normal", input: "MatA", result: "" }
-                    },
-                    {
-                        stepTitle: "2. Ajouter le signe [ + ]",
-                        desc: "Appuyez sur la touche d'addition <strong style=\"color:var(--turquoise);\">[ + ]</strong>.",
-                        keys: [{ name: "+", type: "op", id: "key-plus" }],
-                        tip: "L'écran affiche : MatA+",
-                        screenState: { view: "normal", input: "MatA+", result: "" }
-                    },
-                    {
-                        stepTitle: "3. Insérer MatB (SHIFT + 4 puis 4)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> pour insérer MatB.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "4", type: "num", id: "key-4" }
-                        ],
-                        tip: "L'écran affiche l'opération complète : MatA+MatB",
-                        screenState: { view: "normal", input: "MatA+MatB", result: "" }
-                    },
-                    {
-                        stepTitle: "4. Afficher la Matrice Somme avec [ = ]",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La Casio calcule terme à terme la somme des deux matrices dans MatAns.",
-                        keys: [{ name: "=", type: "equal", id: "key-equal" }],
-                        tip: "Terme (1,1) = 1 + 2 = 3. Naviguez avec les flèches pour voir tous les termes.",
-                        screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[3,2,2],[1,4,3],[2,3,2]] }
-                    }
-                ]
-            },
-
-            produit: {
-                title: "Produit de deux Matrices : MatA × MatB",
-                steps: [
-                    {
-                        stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour afficher MatA.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "3", type: "num", id: "key-3" }
-                        ],
-                        tip: "Pour multiplier deux matrices, le nombre de colonnes de A doit être égal au nombre de lignes de B.",
-                        screenState: { view: "normal", input: "MatA", result: "" }
-                    },
-                    {
-                        stepTitle: "2. Ajouter le signe de Multiplication [ × ]",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[ × ]</strong>.",
-                        keys: [{ name: "×", type: "op", id: "key-mul" }],
-                        tip: "L'écran affiche : MatA×",
-                        screenState: { view: "normal", input: "MatA×", result: "" }
-                    },
-                    {
-                        stepTitle: "3. Insérer MatB (SHIFT + 4 puis 4)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> pour sélectionner MatB.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "4", type: "num", id: "key-4" }
-                        ],
-                        tip: "L'opération complète est : MatA×MatB",
-                        screenState: { view: "normal", input: "MatA×MatB", result: "" }
-                    },
-                    {
-                        stepTitle: "4. Exécuter le Produit Matriciel avec [ = ]",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La Casio effectue le produit scalaire (ligne par colonne) et donne la matrice résultante MatAns.",
-                        keys: [{ name: "=", type: "equal", id: "key-equal" }],
-                        tip: "Attention : Le produit matriciel n'est généralement PAS commutatif : MatA × MatB ≠ MatB × MatA !",
-                        screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[4,8,2],[1,9,3],[5,5,3]] }
-                    }
-                ]
-            },
-
-            inverse: {
-                title: "Calcul de la Matrice Inverse : MatA⁻¹",
-                steps: [
-                    {
-                        stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour appeler MatA.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "3", type: "num", id: "key-3" }
-                        ],
-                        tip: "La matrice doit être carrée et son déterminant doit être non nul (det(A) ≠ 0).",
-                        screenState: { view: "normal", input: "MatA", result: "" }
-                    },
-                    {
-                        stepTitle: "2. Appuyer sur la Touche [ x⁻¹ ]",
-                        desc: "Appuyez directement sur la touche <strong style=\"color:var(--turquoise);\">[ x⁻¹ ]</strong> située juste en dessous de la touche de mise sous tension.",
-                        keys: [{ name: "x⁻¹", type: "fn", id: "key-xinv" }],
-                        tip: "Ne faites PAS de puissance ^(-1), utilisez toujours la touche dédiée [ x⁻¹ ] !",
-                        screenState: { view: "normal", input: "MatA⁻¹", result: "" }
-                    },
-                    {
-                        stepTitle: "3. Calculer l'Inverse avec [ = ]",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La calculatrice affiche les coefficients de la matrice inverse A⁻¹.",
-                        keys: [{ name: "=", type: "equal", id: "key-equal" }],
-                        tip: "Appuyez sur la touche [S⇔D] pour basculer l'affichage d'un coefficient entre fraction et nombre décimal !",
-                        screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [["-0.25","0.125","0.625"],["-0.75","0.125","-0.375"],["0.25","-0.375","-0.125"]] }
-                    }
-                ]
-            }
-        };
-
-        let currentScenarioKey = 'saisieA';
-        let currentStepIndex = 0;
-        let isPlaying = false;
-        let playInterval = null;
-        let animSpeedMs = 1800;
-
-        function loadScenario(key) {
-            pauseAutoPlay();
-            currentScenarioKey = key;
-            currentStepIndex = 0;
-
-            document.querySelectorAll('.scenario-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            if (window.event && window.event.currentTarget) {
-                window.event.currentTarget.classList.add('active');
-            } else {
-                const idx = Object.keys(scenarios).indexOf(key);
-                if (idx >= 0) document.querySelectorAll('.scenario-btn')[idx].classList.add('active');
-            }
-
-            renderCurrentStep();
-        }
-
-        function renderCurrentStep() {
-            const scenario = scenarios[currentScenarioKey];
-            const totalSteps = scenario.steps.length;
-            const step = scenario.steps[currentStepIndex];
-
-            document.getElementById('stepIndicator').innerText = `Étape ${currentStepIndex + 1} / ${totalSteps}`;
-            document.getElementById('stepTitle').innerText = step.stepTitle;
-            document.getElementById('stepDesc').innerHTML = step.desc;
-            document.getElementById('pedagogicTip').innerHTML = `💡 <strong>Astuce :</strong> ${step.tip}`;
-
-            const keysContainer = document.getElementById('keysSequenceContainer');
-            keysContainer.innerHTML = '';
-            step.keys.forEach((k, idx) => {
-                const badge = document.createElement('span');
-                badge.className = `key-badge ${k.type}`;
-                badge.innerText = k.name;
-                keysContainer.appendChild(badge);
-
-                if (idx < step.keys.length - 1) {
-                    const arrow = document.createElement('span');
-                    arrow.className = 'key-arrow';
-                    arrow.innerText = '➔';
-                    keysContainer.appendChild(arrow);
-                }
-            });
-
-            clearKeyHighlights();
-            const activeKeyObj = step.keys[0];
-            if (activeKeyObj && activeKeyObj.id) {
-                const targetKeyEl = document.getElementById(activeKeyObj.id);
-                if (targetKeyEl) {
-                    targetKeyEl.classList.add('highlight');
-                    moveVirtualFingerTo(targetKeyEl);
-                }
-            } else {
-                hideVirtualFinger();
-            }
-
-            renderLcd(step.screenState);
-            playCasioBeep();
-        }
-
-        function clearKeyHighlights() {
-            document.querySelectorAll('.key-btn').forEach(b => b.classList.remove('highlight', 'pressed'));
-        }
-
-        function moveVirtualFingerTo(targetEl) {
-            const finger = document.getElementById('virtualFinger');
-            const casioRect = document.getElementById('casioBody').getBoundingClientRect();
-            const targetRect = targetEl.getBoundingClientRect();
-
-            const left = targetRect.left - casioRect.left + (targetRect.width / 2);
-            const top = targetRect.top - casioRect.top + (targetRect.height / 2);
-
-            finger.style.display = 'block';
-            finger.style.left = `${left}px`;
-            finger.style.top = `${top}px`;
-        }
-
-        function hideVirtualFinger() {
-            document.getElementById('virtualFinger').style.display = 'none';
-        }
-
-        function renderLcd(state) {
-            document.getElementById('viewNormal').style.display = 'none';
-            document.getElementById('viewModeMenu').style.display = 'none';
-            document.getElementById('viewMatSelect').style.display = 'none';
-            document.getElementById('viewDimSelect').style.display = 'none';
-            document.getElementById('viewMatrixEditor').style.display = 'none';
-            document.getElementById('viewMatShiftMenu').style.display = 'none';
-
-            if (!state) return;
-
-            if (state.view === 'mode') {
-                document.getElementById('viewModeMenu').style.display = 'block';
-            } else if (state.view === 'matSelect') {
-                document.getElementById('viewMatSelect').style.display = 'block';
-            } else if (state.view === 'dimSelect') {
-                document.getElementById('viewDimSelect').style.display = 'block';
-                if (state.title) document.getElementById('dimSelectTitle').innerText = state.title;
-            } else if (state.view === 'matrixEditor' || state.view === 'matrixEditorFilled') {
-                document.getElementById('viewMatrixEditor').style.display = 'flex';
-                document.getElementById('editorMatName').innerText = state.matName || "MatA 3×3";
-                
-                const gridBox = document.getElementById('lcdGridBox');
-                const flatA = matrixA.flat();
-                gridBox.innerHTML = '';
-                flatA.forEach((val, idx) => {
-                    const cell = document.createElement('div');
-                    cell.className = `lcd-cell ${idx === (state.cellIdx || 0) ? 'cursor' : ''}`;
-                    cell.innerText = (state.view === 'matrixEditorFilled' || idx <= (state.cellIdx || 0)) ? val : '0';
-                    gridBox.appendChild(cell);
-                });
-                document.getElementById('editorCellCoord').innerText = `[${Math.floor((state.cellIdx||0)/3)+1},${((state.cellIdx||0)%3)+1}]=`;
-                document.getElementById('lcdEditorBottomVal').innerText = state.val || flatA[state.cellIdx || 0];
-            } else if (state.view === 'matrixEditorB' || state.view === 'matrixEditorBFilled') {
-                document.getElementById('viewMatrixEditor').style.display = 'flex';
-                document.getElementById('editorMatName').innerText = state.matName || "MatB 3×3";
-                
-                const gridBox = document.getElementById('lcdGridBox');
-                const flatB = matrixB.flat();
-                gridBox.innerHTML = '';
-                flatB.forEach((val, idx) => {
-                    const cell = document.createElement('div');
-                    cell.className = `lcd-cell ${idx === (state.cellIdx || 0) ? 'cursor' : ''}`;
-                    cell.innerText = (state.view === 'matrixEditorBFilled' || idx <= (state.cellIdx || 0)) ? val : '0';
-                    gridBox.appendChild(cell);
-                });
-                document.getElementById('editorCellCoord').innerText = `[${Math.floor((state.cellIdx||0)/3)+1},${((state.cellIdx||0)%3)+1}]=`;
-                document.getElementById('lcdEditorBottomVal').innerText = state.val || flatB[state.cellIdx || 0];
-            } else if (state.view === 'matrixResult') {
-                document.getElementById('viewMatrixEditor').style.display = 'flex';
-                document.getElementById('editorMatName').innerText = state.title || "MatAns 3×3";
-                const gridBox = document.getElementById('lcdGridBox');
-                gridBox.innerHTML = '';
-                const flatVals = state.vals.flat();
-                flatVals.forEach((val, idx) => {
-                    const cell = document.createElement('div');
-                    cell.className = `lcd-cell ${idx === 0 ? 'cursor' : ''}`;
-                    cell.innerText = val;
-                    gridBox.appendChild(cell);
-                });
-                document.getElementById('editorCellCoord').innerText = `[1,1]=`;
-                document.getElementById('lcdEditorBottomVal').innerText = flatVals[0];
-            } else if (state.view === 'shift4Menu') {
-                document.getElementById('viewMatShiftMenu').style.display = 'block';
-            } else {
-                document.getElementById('viewNormal').style.display = 'block';
-                document.getElementById('lcdInput').innerText = state.input || '';
-                document.getElementById('lcdResult').innerText = state.result || '';
-            }
-        }
-
-        function nextStep() {
-            const scenario = scenarios[currentScenarioKey];
-            if (currentStepIndex < scenario.steps.length - 1) {
-                currentStepIndex++;
-                renderCurrentStep();
-            } else {
-                pauseAutoPlay();
-            }
-        }
-
-        function prevStep() {
-            if (currentStepIndex > 0) {
-                currentStepIndex--;
-                renderCurrentStep();
-            }
-        }
-
-        function resetCurrentScenario() {
-            currentStepIndex = 0;
-            renderCurrentStep();
-        }
-
-        function togglePlayPause() {
-            if (isPlaying) {
-                pauseAutoPlay();
-            } else {
-                startAutoPlay();
-            }
-        }
-
-        function startAutoPlay() {
-            isPlaying = true;
-            document.getElementById('btnPlayPause').innerHTML = '⏸ Pause';
-            document.getElementById('btnPlayPause').style.background = '#39d6c3';
-            document.getElementById('btnPlayPause').style.color = '#0b1426';
-
-            playInterval = setInterval(() => {
-                const scenario = scenarios[currentScenarioKey];
-                if (currentStepIndex < scenario.steps.length - 1) {
-                    currentStepIndex++;
-                    renderCurrentStep();
-                } else {
-                    pauseAutoPlay();
-                }
-            }, animSpeedMs);
-        }
-
-        function pauseAutoPlay() {
-            isPlaying = false;
-            clearInterval(playInterval);
-            document.getElementById('btnPlayPause').innerHTML = '▶ Lecture Auto';
-            document.getElementById('btnPlayPause').style.background = 'var(--rose)';
-            document.getElementById('btnPlayPause').style.color = 'white';
-        }
-
-        function updateSpeed() {
-            animSpeedMs = parseInt(document.getElementById('animSpeed').value);
-            if (isPlaying) {
-                clearInterval(playInterval);
-                startAutoPlay();
-            }
-        }
-
-        function handlePhysicalKey(keyName) {
-            playCasioBeep();
-            const step = scenarios[currentScenarioKey].steps[currentStepIndex];
-            const targetKey = step.keys.find(k => k.name === keyName || k.id === `key-${keyName.toLowerCase()}`);
-            if (targetKey) {
-                nextStep();
-            }
-        }
-
-        window.addEventListener('load', () => {
-            renderCurrentStep();
-        });
-    </script>
-</body>
-</html>
-, display: false },
-                { left: '\\(', right: '\\)', display: false },
-                { left: '\\[', right: '\\]', display: true }
-            ],
-            throwOnError: false
-        });
-    } else {
-        setTimeout(() => renderMath(target), 100);
-    }
-}
-window.addEventListener('DOMContentLoaded', () => renderMath());
-window.addEventListener('load', () => renderMath());
-
-        const audioCtx = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext || window.webkitAudioContext)() : null;
-        function playCasioBeep() {
-            if (!audioCtx) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.04);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.04);
-        }
-
-        const matrixA = [
-            [1, 2, 1],
-            [0, 1, 3],
-            [2, 1, 1]
-        ];
-
-        const matrixB = [
-            [2, 0, 1],
-            [1, 3, 0],
-            [0, 2, 1]
-        ];
-
-        const scenarios = {
-            saisieA: {
-                title: "Saisie de la Matrice A (3×3)",
-                steps: [
-                    {
-                        stepTitle: "1. Activer le menu MODE",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[MODE SETUP]</strong> pour accéder à la liste des modes de calcul de la calculatrice.",
-                        keys: [{ name: "MODE", type: "mode", id: "key-mode" }],
-                        tip: "Le mode normal de base est COMP (1). Pour les matrices, il faut choisir MATRIX (6).",
-                        screenState: { view: "mode" }
-                    },
-                    {
-                        stepTitle: "2. Choisir le Mode 6 : MATRIX",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[6]</strong> pour entrer dans le mode de calcul matriciel.",
-                        keys: [{ name: "6", type: "num", id: "key-6" }],
-                        tip: "L'indicateur 'MAT' s'affiche en haut de l'écran LCD pour indiquer que vous êtes en mode Matrice.",
-                        screenState: { view: "matSelect" }
-                    },
-                    {
-                        stepTitle: "3. Sélectionner la Matrice A (1: MatA)",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour définir les dimensions et les coefficients de MatA.",
-                        keys: [{ name: "1", type: "num", id: "key-1" }],
-                        tip: "Vous pouvez choisir entre MatA (1), MatB (2) ou MatC (3).",
-                        screenState: { view: "dimSelect", title: "MatA(m×n)" }
-                    },
-                    {
-                        stepTitle: "4. Choisir la dimension 3×3 (Touche 1)",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour sélectionner une matrice carrée d'ordre 3 (3 lignes, 3 colonnes).",
-                        keys: [{ name: "1", type: "num", id: "key-1" }],
-                        tip: "Pour une matrice d'ordre 2 (2×2), on aurait appuyé sur [5].",
-                        screenState: { view: "matrixEditor", matName: "MatA 3×3", cellIdx: 0, val: 1 }
-                    },
-                    {
-                        stepTitle: "5. Remplir les coefficients avec [ = ]",
-                        desc: "Tapez chaque coefficient puis validez avec la touche <strong style=\"color:var(--turquoise);\">[ = ]</strong>. Entrez successivement : 1= 2= 1= 0= 1= 3= 2= 1= 1=",
-                        keys: [
-                            { name: "1", type: "num", id: "key-1" }, { name: "=", type: "equal", id: "key-equal" },
-                            { name: "2", type: "num", id: "key-2" }, { name: "=", type: "equal", id: "key-equal" },
-                            { name: "...", type: "num" }
-                        ],
-                        tip: "La calculatrice avance automatiquement cellule par cellule de gauche à droite, puis ligne par ligne.",
-                        screenState: { view: "matrixEditorFilled", matName: "MatA 3×3", cellIdx: 8, val: 1 }
-                    },
-                    {
-                        stepTitle: "6. Mémoriser et Quitter l'éditeur avec [AC]",
-                        desc: "Appuyez sur la touche orange <strong style=\"color:var(--rose);\">[AC]</strong>. Vos données sont enregistrées dans la mémoire MatA !",
-                        keys: [{ name: "AC", type: "ac", id: "key-ac" }],
-                        tip: "Ne vous inquiétez pas, appuyer sur [AC] n'efface pas la matrice ! Elle reste bien en mémoire dans MatA.",
-                        screenState: { view: "normal", input: "", result: "0" }
-                    }
-                ]
-            },
-
-            saisieB: {
-                title: "Saisie de la Matrice B (3×3)",
-                steps: [
-                    {
-                        stepTitle: "1. Ouvrir le Menu MATRIX (SHIFT + 4)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[4]</strong> (au-dessus de laquelle est inscrit MATRIX en jaune).",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" }
-                        ],
-                        tip: "Le menu MATRIX vous donne accès à la dimension (1:Dim), aux données (2:Data) et aux matrices mémoires.",
-                        screenState: { view: "shift4Menu" }
-                    },
-                    {
-                        stepTitle: "2. Choisir 1 : Dim (Dimension)",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour définir la dimension d'une nouvelle matrice.",
-                        keys: [{ name: "1", type: "num", id: "key-1" }],
-                        tip: "Si vous vouliez juste modifier une valeur existante sans changer la dimension, vous auriez choisi [2:Data].",
-                        screenState: { view: "matSelect" }
-                    },
-                    {
-                        stepTitle: "3. Sélectionner 2 : MatB",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[2]</strong> pour configurer la Matrice B.",
-                        keys: [{ name: "2", type: "num", id: "key-2" }],
-                        tip: "MatB est la 2ème matrice mémoire disponible.",
-                        screenState: { view: "dimSelect", title: "MatB(m×n)" }
-                    },
-                    {
-                        stepTitle: "4. Choisir la dimension 3×3 (Touche 1)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[1]</strong> pour choisir le format 3×3 pour la Matrice B.",
-                        keys: [{ name: "1", type: "num", id: "key-1" }],
-                        tip: "La grille d'édition de MatB apparaît à l'écran.",
-                        screenState: { view: "matrixEditorB", matName: "MatB 3×3", cellIdx: 0, val: 2 }
-                    },
-                    {
-                        stepTitle: "5. Saisir les valeurs de MatB",
-                        desc: "Entrez les coefficients de B suivis de <strong style=\"color:var(--turquoise);\">[ = ]</strong> : 2= 0= 1= 1= 3= 0= 0= 2= 1=",
-                        keys: [
-                            { name: "2", type: "num", id: "key-2" }, { name: "=", type: "equal", id: "key-equal" },
-                            { name: "0", type: "num", id: "key-0" }, { name: "=", type: "equal", id: "key-equal" },
-                            { name: "...", type: "num" }
-                        ],
-                        tip: "Toutes les 9 cases de la matrice B sont maintenant renseignées.",
-                        screenState: { view: "matrixEditorBFilled", matName: "MatB 3×3", cellIdx: 8, val: 1 }
-                    },
-                    {
-                        stepTitle: "6. Sauvegarder dans MatB avec [AC]",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--rose);\">[AC]</strong> pour valider et revenir à l'écran principal.",
-                        keys: [{ name: "AC", type: "ac", id: "key-ac" }],
-                        tip: "MatA et MatB sont désormais prêtes pour toutes vos opérations !",
-                        screenState: { view: "normal", input: "", result: "0" }
-                    }
-                ]
-            },
-
-            det: {
-                title: "Calcul du Déterminant : det(MatA)",
-                steps: [
-                    {
-                        stepTitle: "1. Ouvrir le Menu MATRIX",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[4]</strong> (MATRIX).",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" }
-                        ],
-                        tip: "Repérez l'option 7: Det dans le menu.",
-                        screenState: { view: "shift4Menu" }
-                    },
-                    {
-                        stepTitle: "2. Sélectionner la fonction 7 : Det",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[7]</strong>. L'écran affiche l'instruction 'det(' en attente de la matrice.",
-                        keys: [{ name: "7", type: "num", id: "key-7" }],
-                        tip: "Det calcule le déterminant d'une matrice carrée 2×2 ou 3×3.",
-                        screenState: { view: "normal", input: "det(", result: "" }
-                    },
-                    {
-                        stepTitle: "3. Insérer la Matrice A : SHIFT + 4 puis 3",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong>, puis choisissez <strong style=\"color:var(--turquoise);\">[3]</strong> pour insérer MatA.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "3", type: "num", id: "key-3" }
-                        ],
-                        tip: "L'écran affiche maintenant : det(MatA",
-                        screenState: { view: "normal", input: "det(MatA", result: "" }
-                    },
-                    {
-                        stepTitle: "4. Fermer la parenthèse et Calculer avec [ = ]",
-                        desc: "Appuyez sur la parenthèse fermante <strong style=\"color:var(--turquoise);\">[ ) ]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[ = ]</strong>.",
-                        keys: [
-                            { name: ")", type: "fn", id: "key-rpar" },
-                            { name: "=", type: "equal", id: "key-equal" }
-                        ],
-                        tip: "Résultat : det(A) = -8. Comme det(A) ≠ 0, la matrice A est inversible !",
-                        screenState: { view: "normal", input: "det(MatA)", result: "-8" }
-                    }
-                ]
-            },
-
-            scal: {
-                title: "Multiplication d'une Matrice par un Réel (3 × MatA)",
-                steps: [
-                    {
-                        stepTitle: "1. Taper le coefficient réel (Exemple : 3)",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[3]</strong> puis sur la touche de multiplication <strong style=\"color:var(--turquoise);\">[ × ]</strong>.",
-                        keys: [
-                            { name: "3", type: "num", id: "key-3" },
-                            { name: "×", type: "op", id: "key-mul" }
-                        ],
-                        tip: "Vous pouvez multiplier par n'importe quel réel, positif, négatif (avec (-)) ou fractionnaire (avec ■/□).",
-                        screenState: { view: "normal", input: "3×", result: "" }
-                    },
-                    {
-                        stepTitle: "2. Insérer MatA : SHIFT + 4 puis 3",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong>, et tapez <strong style=\"color:var(--turquoise);\">[3]</strong> pour appeler MatA.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "3", type: "num", id: "key-3" }
-                        ],
-                        tip: "La formule affichée est : 3×MatA",
-                        screenState: { view: "normal", input: "3×MatA", result: "" }
-                    },
-                    {
-                        stepTitle: "3. Calculer avec [ = ] et Naviguer dans MatAns",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. Le résultat est stocké dans la matrice réponse 'MatAns'. Chaque terme est multiplié par 3 !",
-                        keys: [{ name: "=", type: "equal", id: "key-equal" }],
-                        tip: "Utilisez le pavé directionnel circulaire (flèches droite/gauche/haut/bas) pour faire défiler tous les coefficients.",
-                        screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[3,6,3],[0,3,9],[6,3,3]] }
-                    }
-                ]
-            },
-
-            somme: {
-                title: "Somme de deux Matrices : MatA + MatB",
-                steps: [
-                    {
-                        stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour écrire MatA.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "3", type: "num", id: "key-3" }
-                        ],
-                        tip: "Rappel : L'addition n'est possible que si les deux matrices ont exactement la même dimension !",
-                        screenState: { view: "normal", input: "MatA", result: "" }
-                    },
-                    {
-                        stepTitle: "2. Ajouter le signe [ + ]",
-                        desc: "Appuyez sur la touche d'addition <strong style=\"color:var(--turquoise);\">[ + ]</strong>.",
-                        keys: [{ name: "+", type: "op", id: "key-plus" }],
-                        tip: "L'écran affiche : MatA+",
-                        screenState: { view: "normal", input: "MatA+", result: "" }
-                    },
-                    {
-                        stepTitle: "3. Insérer MatB (SHIFT + 4 puis 4)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> pour insérer MatB.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "4", type: "num", id: "key-4" }
-                        ],
-                        tip: "L'écran affiche l'opération complète : MatA+MatB",
-                        screenState: { view: "normal", input: "MatA+MatB", result: "" }
-                    },
-                    {
-                        stepTitle: "4. Afficher la Matrice Somme avec [ = ]",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La Casio calcule terme à terme la somme des deux matrices dans MatAns.",
-                        keys: [{ name: "=", type: "equal", id: "key-equal" }],
-                        tip: "Terme (1,1) = 1 + 2 = 3. Naviguez avec les flèches pour voir tous les termes.",
-                        screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[3,2,2],[1,4,3],[2,3,2]] }
-                    }
-                ]
-            },
-
-            produit: {
-                title: "Produit de deux Matrices : MatA × MatB",
-                steps: [
-                    {
-                        stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour afficher MatA.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "3", type: "num", id: "key-3" }
-                        ],
-                        tip: "Pour multiplier deux matrices, le nombre de colonnes de A doit être égal au nombre de lignes de B.",
-                        screenState: { view: "normal", input: "MatA", result: "" }
-                    },
-                    {
-                        stepTitle: "2. Ajouter le signe de Multiplication [ × ]",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[ × ]</strong>.",
-                        keys: [{ name: "×", type: "op", id: "key-mul" }],
-                        tip: "L'écran affiche : MatA×",
-                        screenState: { view: "normal", input: "MatA×", result: "" }
-                    },
-                    {
-                        stepTitle: "3. Insérer MatB (SHIFT + 4 puis 4)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> pour sélectionner MatB.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "4", type: "num", id: "key-4" }
-                        ],
-                        tip: "L'opération complète est : MatA×MatB",
-                        screenState: { view: "normal", input: "MatA×MatB", result: "" }
-                    },
-                    {
-                        stepTitle: "4. Exécuter le Produit Matriciel avec [ = ]",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La Casio effectue le produit scalaire (ligne par colonne) et donne la matrice résultante MatAns.",
-                        keys: [{ name: "=", type: "equal", id: "key-equal" }],
-                        tip: "Attention : Le produit matriciel n'est généralement PAS commutatif : MatA × MatB ≠ MatB × MatA !",
-                        screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[4,8,2],[1,9,3],[5,5,3]] }
-                    }
-                ]
-            },
-
-            inverse: {
-                title: "Calcul de la Matrice Inverse : MatA⁻¹",
-                steps: [
-                    {
-                        stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour appeler MatA.",
-                        keys: [
-                            { name: "SHIFT", type: "shift", id: "key-shift" },
-                            { name: "4", type: "num", id: "key-4" },
-                            { name: "3", type: "num", id: "key-3" }
-                        ],
-                        tip: "La matrice doit être carrée et son déterminant doit être non nul (det(A) ≠ 0).",
-                        screenState: { view: "normal", input: "MatA", result: "" }
-                    },
-                    {
-                        stepTitle: "2. Appuyer sur la Touche [ x⁻¹ ]",
-                        desc: "Appuyez directement sur la touche <strong style=\"color:var(--turquoise);\">[ x⁻¹ ]</strong> située juste en dessous de la touche de mise sous tension.",
-                        keys: [{ name: "x⁻¹", type: "fn", id: "key-xinv" }],
-                        tip: "Ne faites PAS de puissance ^(-1), utilisez toujours la touche dédiée [ x⁻¹ ] !",
-                        screenState: { view: "normal", input: "MatA⁻¹", result: "" }
-                    },
-                    {
-                        stepTitle: "3. Calculer l'Inverse avec [ = ]",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La calculatrice affiche les coefficients de la matrice inverse A⁻¹.",
-                        keys: [{ name: "=", type: "equal", id: "key-equal" }],
-                        tip: "Appuyez sur la touche [S⇔D] pour basculer l'affichage d'un coefficient entre fraction et nombre décimal !",
-                        screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [["-0.25","0.125","0.625"],["-0.75","0.125","-0.375"],["0.25","-0.375","-0.125"]] }
-                    }
-                ]
-            }
-        };
-
-        let currentScenarioKey = 'saisieA';
-        let currentStepIndex = 0;
-        let isPlaying = false;
-        let playInterval = null;
-        let animSpeedMs = 1800;
-
-        function loadScenario(key) {
-            pauseAutoPlay();
-            currentScenarioKey = key;
-            currentStepIndex = 0;
-
-            document.querySelectorAll('.scenario-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            if (window.event && window.event.currentTarget) {
-                window.event.currentTarget.classList.add('active');
-            } else {
-                const idx = Object.keys(scenarios).indexOf(key);
-                if (idx >= 0) document.querySelectorAll('.scenario-btn')[idx].classList.add('active');
-            }
-
-            renderCurrentStep();
-        }
-
-        function renderCurrentStep() {
-            const scenario = scenarios[currentScenarioKey];
-            const totalSteps = scenario.steps.length;
-            const step = scenario.steps[currentStepIndex];
-
-            document.getElementById('stepIndicator').innerText = `Étape ${currentStepIndex + 1} / ${totalSteps}`;
-            document.getElementById('stepTitle').innerText = step.stepTitle;
-            document.getElementById('stepDesc').innerHTML = step.desc;
-            document.getElementById('pedagogicTip').innerHTML = `💡 <strong>Astuce :</strong> ${step.tip}`;
-
-            const keysContainer = document.getElementById('keysSequenceContainer');
-            keysContainer.innerHTML = '';
-            step.keys.forEach((k, idx) => {
-                const badge = document.createElement('span');
-                badge.className = `key-badge ${k.type}`;
-                badge.innerText = k.name;
-                keysContainer.appendChild(badge);
-
-                if (idx < step.keys.length - 1) {
-                    const arrow = document.createElement('span');
-                    arrow.className = 'key-arrow';
-                    arrow.innerText = '➔';
-                    keysContainer.appendChild(arrow);
-                }
-            });
-
-            clearKeyHighlights();
-            const activeKeyObj = step.keys[0];
-            if (activeKeyObj && activeKeyObj.id) {
-                const targetKeyEl = document.getElementById(activeKeyObj.id);
-                if (targetKeyEl) {
-                    targetKeyEl.classList.add('highlight');
-                    moveVirtualFingerTo(targetKeyEl);
-                }
-            } else {
-                hideVirtualFinger();
-            }
-
-            renderLcd(step.screenState);
             playCasioBeep();
         }
 

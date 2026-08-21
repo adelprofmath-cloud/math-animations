@@ -1965,6 +1965,67 @@
             if (statusText) statusText.innerText = isVoiceEnabled ? "Prêt à expliquer" : "Voix coupée";
         }
 
+        // Pareil que speakTeacher mais appelle onDoneCallback quand la phrase est FINIE
+        // → utilisé par l'auto-play pour ne pas couper la voix
+        function speakTeacherWithCallback(text, onDoneCallback) {
+            const indicator = document.getElementById('voiceStatusIndicator');
+            const statusText = document.getElementById('voiceStatusText');
+
+            if (!isVoiceEnabled || !text) {
+                if (indicator) indicator.classList.remove('speaking');
+                if (statusText) statusText.innerText = "Prêt à expliquer";
+                if (onDoneCallback) onDoneCallback();
+                return;
+            }
+
+            if (indicator) indicator.classList.add('speaking');
+            if (statusText) statusText.innerText = "Le prof vous explique...";
+
+            const onDone = () => {
+                if (indicator) indicator.classList.remove('speaking');
+                if (statusText) statusText.innerText = "Prêt à expliquer";
+                if (onDoneCallback) onDoneCallback();
+            };
+
+            // ── ResponsiveVoice (voix masculine française) ──
+            if (typeof responsiveVoice !== 'undefined' && responsiveVoice.voiceSupport()) {
+                try {
+                    responsiveVoice.cancel();
+                    responsiveVoice.speak(text, "French Male", {
+                        rate: 0.9,
+                        pitch: 0.85,
+                        volume: 1,
+                        onend: onDone,
+                        onerror: onDone
+                    });
+                    return;
+                } catch(e) {
+                    console.warn('ResponsiveVoice error, falling back:', e);
+                }
+            }
+
+            // ── Fallback : Web Speech API ──
+            if (!('speechSynthesis' in window)) { onDone(); return; }
+            try { window.speechSynthesis.cancel(); } catch(e) {}
+
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'fr-FR';
+            u.rate = 0.92;
+            u.pitch = 0.78;
+            u.volume = 1.0;
+            if (teacherVoice) u.voice = teacherVoice;
+            u.onend = onDone;
+            u.onerror = onDone;
+            window._activeUtterance = u;
+            try {
+                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+                window.speechSynthesis.speak(u);
+            } catch(err) {
+                console.warn('Speech error:', err);
+                onDone();
+            }
+        }
+
         function toggleTeacherVoice() {
             isVoiceEnabled = !isVoiceEnabled;
             const btn = document.getElementById('btnVoiceToggle');
@@ -2074,25 +2135,40 @@
                 voiceTextEl.innerText = '"' + textToSpeak + '"';
             }
 
-            if (shouldSpeak && isVoiceEnabled) {
-                speakTeacher(textToSpeak);
-            }
-
-            // Handle Auto-Play Progress and Next Step Timer
+            // Handle Auto-Play: advance to next step only AFTER voice finishes
             if (isPlaying) {
-                animateProgressBar(animSpeedMs);
-                autoPlayTimer = setTimeout(() => {
-                    if (isPlaying) {
-                        const scen = scenarios[currentScenarioKey];
-                        if (currentStepIndex < scen.steps.length - 1) {
-                            currentStepIndex++;
-                            renderCurrentStep(true);
-                        } else {
-                            pauseAutoPlay();
+                // Estimate speech duration: ~80ms per character, min 3s, max 15s
+                const estimatedMs = Math.min(Math.max(textToSpeak.length * 80, 3000), 15000);
+                animateProgressBar(estimatedMs);
+
+                // Callback called when voice ends (or if voice is disabled)
+                const advanceToNext = () => {
+                    if (!isPlaying) return;
+                    // Small pause after voice before moving to next step
+                    autoPlayTimer = setTimeout(() => {
+                        if (isPlaying) {
+                            const scen = scenarios[currentScenarioKey];
+                            if (currentStepIndex < scen.steps.length - 1) {
+                                currentStepIndex++;
+                                renderCurrentStep(true);
+                            } else {
+                                pauseAutoPlay();
+                            }
                         }
-                    }
-                }, animSpeedMs);
+                    }, 800); // 0.8s pause after voice ends before next step
+                };
+
+                if (shouldSpeak && isVoiceEnabled) {
+                    speakTeacherWithCallback(textToSpeak, advanceToNext);
+                } else {
+                    // No voice: use fixed timer
+                    autoPlayTimer = setTimeout(advanceToNext, animSpeedMs);
+                }
             } else {
+                // Manual mode: just speak, no auto-advance
+                if (shouldSpeak && isVoiceEnabled) {
+                    speakTeacher(textToSpeak);
+                }
                 resetProgressBar();
             }
         }

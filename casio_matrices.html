@@ -744,6 +744,159 @@
             0% { transform: scale(0.92); opacity: 0.85; box-shadow: 0 0 10px #ff175e; }
             100% { transform: scale(1.18); opacity: 1; box-shadow: 0 0 22px #ff175e, 0 0 35px rgba(255, 23, 94, 0.6); }
         }
+    
+        /* ------------------------------------------------------------- */
+        /* TEACHER VOICE & PEDAGOGICAL NARRATION SYSTEM                  */
+        /* ------------------------------------------------------------- */
+        .teacher-voice-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            background: rgba(14, 26, 53, 0.75);
+            border: 1px solid rgba(57, 214, 195, 0.35);
+            border-radius: 12px;
+            padding: 0.65rem 1rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+        }
+
+        .voice-toggle-btn {
+            background: linear-gradient(135deg, #0e8c7f 0%, #15b8a6 100%);
+            border: 1px solid #39d6c3;
+            color: #ffffff;
+            padding: 0.5rem 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 14px rgba(21, 184, 166, 0.4);
+        }
+
+        .voice-toggle-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 20px rgba(57, 214, 195, 0.6);
+        }
+
+        .voice-toggle-btn.muted {
+            background: rgba(35, 46, 68, 0.8);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #94a3b8;
+            box-shadow: none;
+        }
+
+        .voice-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-size: 0.85rem;
+            color: var(--turquoise);
+            font-weight: 600;
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #39d6c3;
+            box-shadow: 0 0 8px #39d6c3;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .voice-status-indicator.speaking .pulse-dot {
+            background: #ff175e;
+            box-shadow: 0 0 14px #ff175e;
+            animation: speakBlink 0.65s infinite alternate;
+        }
+
+        .voice-status-indicator.speaking {
+            color: #ff4071;
+        }
+
+        @keyframes speakBlink {
+            0% { transform: scale(0.8); opacity: 0.6; }
+            100% { transform: scale(1.35); opacity: 1; }
+        }
+
+        .teacher-speech-bubble {
+            background: linear-gradient(135deg, rgba(20, 36, 74, 0.9) 0%, rgba(11, 20, 38, 0.95) 100%);
+            border: 1.5px solid rgba(57, 214, 195, 0.4);
+            border-left: 5px solid var(--turquoise);
+            border-radius: 12px;
+            padding: 0.95rem 1.15rem;
+            margin: 1.1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        .teacher-avatar {
+            font-size: 1.9rem;
+            line-height: 1;
+            background: rgba(57, 214, 195, 0.15);
+            border-radius: 50%;
+            padding: 7px;
+            border: 1px solid rgba(57, 214, 195, 0.35);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .speech-content {
+            flex: 1;
+        }
+
+        .speech-speaker {
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--turquoise);
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .speech-text {
+            font-size: 0.97rem;
+            color: #ffffff;
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .speech-replay-btn {
+            background: rgba(57, 214, 195, 0.15);
+            border: 1px solid rgba(57, 214, 195, 0.45);
+            color: var(--turquoise);
+            border-radius: 8px;
+            padding: 0.45rem 0.75rem;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-weight: 700;
+            align-self: center;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .speech-replay-btn:hover {
+            background: var(--turquoise);
+            color: var(--navy-dark);
+            box-shadow: 0 0 10px rgba(57, 214, 195, 0.5);
+        }
+
     </style>
 </head>
 <body>
@@ -868,6 +1021,18 @@
                         </button>
                         <button class="ctrl-btn" onclick="resetCurrentScenario()">
                             🔄 Recommencer
+                        </button>
+                    </div>
+
+                    <!-- Teacher Voice Explanation Bubble -->
+                    <div class="teacher-speech-bubble" id="teacherSpeechBubble">
+                        <div class="teacher-avatar">👨‍🏫</div>
+                        <div class="speech-content">
+                            <div class="speech-speaker">🎙️ Explication Vocale du Professeur :</div>
+                            <div class="speech-text" id="teacherVoiceText">Écoutez attentivement l'explication...</div>
+                        </div>
+                        <button class="speech-replay-btn" title="Réécouter l'explication du professeur" onclick="replayTeacherVoice()">
+                            🔄 Réécouter
                         </button>
                     </div>
 
@@ -1320,41 +1485,46 @@
             [0, 2, 1]
         ];
 
-        const scenarios = {
+                const scenarios = {
             saisieA: {
                 title: "Saisie de la Matrice A (3×3)",
                 steps: [
                     {
                         stepTitle: "1. Activer le menu MODE",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[MODE SETUP]</strong> pour afficher la liste des modes de calcul.",
+                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[MODE SETUP]</strong> pour afficher la liste des modes de calcul.",
+                        voiceText: "Bonjour ! Pour commencer, appuyez sur la touche Mode Setup pour afficher les différents modes de calcul de votre calculatrice.",
                         keys: [{ name: "MODE", type: "mode", id: "key-mode" }],
                         tip: "Le mode normal de base est COMP (1). Pour les matrices, il faut choisir MATRIX (6).",
                         screenState: { view: "mode" }
                     },
                     {
                         stepTitle: "2. Choisir le Mode 6 : MATRIX",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[6]</strong> pour entrer dans le mode de calcul matriciel.",
+                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[6]</strong> pour entrer dans le mode de calcul matriciel.",
+                        voiceText: "Appuyez maintenant sur le chiffre 6 pour sélectionner le mode Matrice. Remarquez l'indicateur MAT qui s'allume en haut de l'écran.",
                         keys: [{ name: "6", type: "num", id: "key-6" }],
                         tip: "L'indicateur 'MAT' s'affiche en haut de l'écran LCD pour indiquer que vous êtes en mode Matrice.",
                         screenState: { view: "matSelect" }
                     },
                     {
                         stepTitle: "3. Sélectionner la Matrice A (1: MatA)",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour définir les dimensions et les coefficients de MatA.",
+                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[1]</strong> pour définir les dimensions et les coefficients de MatA.",
+                        voiceText: "Choisissez la matrice A en appuyant sur la touche 1. C'est ici que nous allons configurer notre première matrice.",
                         keys: [{ name: "1", type: "num", id: "key-1" }],
                         tip: "Vous pouvez choisir entre MatA (1), MatB (2) ou MatC (3).",
                         screenState: { view: "dimSelect", title: "MatA(m×n)" }
                     },
                     {
                         stepTitle: "4. Choisir la dimension 3×3 (Touche 1)",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour sélectionner une matrice carrée d'ordre 3 (3 lignes, 3 colonnes).",
+                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[1]</strong> pour sélectionner une matrice carrée d'ordre 3 (3 lignes, 3 colonnes).",
+                        voiceText: "Appuyez sur 1 pour définir le format 3 lignes par 3 colonnes. La grille d'édition s'ouvre alors à l'écran.",
                         keys: [{ name: "1", type: "num", id: "key-1" }],
                         tip: "Pour une matrice d'ordre 2 (2×2), on aurait appuyé sur [5].",
                         screenState: { view: "matrixEditor", matName: "MatA 3×3", cellIdx: 0, val: 1 }
                     },
                     {
                         stepTitle: "5. Remplir les coefficients avec [ = ]",
-                        desc: "Tapez chaque coefficient puis validez avec la touche <strong style=\"color:var(--turquoise);\">[ = ]</strong>. Entrez successivement : 1= 2= 1= 0= 1= 3= 2= 1= 1=",
+                        desc: "Tapez chaque coefficient puis validez avec la touche <strong style="color:var(--turquoise);">[ = ]</strong>. Entrez successivement : 1= 2= 1= 0= 1= 3= 2= 1= 1=",
+                        voiceText: "Entrez un à un les coefficients de la matrice A en appuyant sur la touche égale après chaque nombre. La calculatrice passe automatiquement à la case suivante.",
                         keys: [
                             { name: "1", type: "num", id: "key-1" }, { name: "=", type: "equal", id: "key-equal" },
                             { name: "2", type: "num", id: "key-2" }, { name: "=", type: "equal", id: "key-equal" },
@@ -1365,7 +1535,8 @@
                     },
                     {
                         stepTitle: "6. Mémoriser et Quitter l'éditeur avec [AC]",
-                        desc: "Appuyez sur la touche orange <strong style=\"color:var(--rose);\">[AC]</strong>. Vos données sont enregistrées dans la mémoire MatA !",
+                        desc: "Appuyez sur la touche orange <strong style="color:var(--rose);">[AC]</strong>. Vos données sont enregistrées dans la mémoire MatA !",
+                        voiceText: "Appuyez sur la touche A C pour valider. Rassurez-vous, la touche A C ne supprime rien, votre matrice A est parfaitement enregistrée en mémoire.",
                         keys: [{ name: "AC", type: "ac", id: "key-ac" }],
                         tip: "Ne vous inquiétez pas, appuyer sur [AC] n'efface pas la matrice ! Elle reste bien en mémoire dans MatA.",
                         screenState: { view: "normal", input: "", result: "0" }
@@ -1378,7 +1549,8 @@
                 steps: [
                     {
                         stepTitle: "1. Ouvrir le Menu MATRIX (SHIFT + 4)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[4]</strong> (au-dessus de laquelle est inscrit MATRIX en jaune).",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis sur la touche <strong style="color:var(--turquoise);">[4]</strong> (au-dessus de laquelle est inscrit MATRIX en jaune).",
+                        voiceText: "Pour saisir la deuxième matrice, ouvrez le menu Matrix en appuyant sur Shift puis sur la touche 4.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" }
@@ -1388,28 +1560,32 @@
                     },
                     {
                         stepTitle: "2. Choisir 1 : Dim (Dimension)",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[1]</strong> pour définir la dimension d'une nouvelle matrice.",
+                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[1]</strong> pour définir la dimension d'une nouvelle matrice.",
+                        voiceText: "Appuyez sur 1 pour accéder au réglage de la dimension.",
                         keys: [{ name: "1", type: "num", id: "key-1" }],
                         tip: "Si vous vouliez juste modifier une valeur existante sans changer la dimension, vous auriez choisi [2:Data].",
                         screenState: { view: "matSelect" }
                     },
                     {
                         stepTitle: "3. Sélectionner 2 : MatB",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[2]</strong> pour configurer la Matrice B.",
+                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[2]</strong> pour configurer la Matrice B.",
+                        voiceText: "Appuyez sur 2 pour sélectionner la Matrice B.",
                         keys: [{ name: "2", type: "num", id: "key-2" }],
                         tip: "MatB est la 2ème matrice mémoire disponible.",
                         screenState: { view: "dimSelect", title: "MatB(m×n)" }
                     },
                     {
                         stepTitle: "4. Choisir la dimension 3×3 (Touche 1)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[1]</strong> pour choisir le format 3×3 pour la Matrice B.",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[1]</strong> pour choisir le format 3×3 pour la Matrice B.",
+                        voiceText: "Appuyez sur 1 pour choisir la dimension 3 par 3.",
                         keys: [{ name: "1", type: "num", id: "key-1" }],
                         tip: "La grille d'édition de MatB apparaît à l'écran.",
                         screenState: { view: "matrixEditorB", matName: "MatB 3×3", cellIdx: 0, val: 2 }
                     },
                     {
                         stepTitle: "5. Saisir les valeurs de MatB",
-                        desc: "Entrez les coefficients de B suivis de <strong style=\"color:var(--turquoise);\">[ = ]</strong> : 2= 0= 1= 1= 3= 0= 0= 2= 1=",
+                        desc: "Entrez les coefficients de B suivis de <strong style="color:var(--turquoise);">[ = ]</strong> : 2= 0= 1= 1= 3= 0= 0= 2= 1=",
+                        voiceText: "Entrez les 9 valeurs de la matrice B en validant chaque case avec la touche égale.",
                         keys: [
                             { name: "2", type: "num", id: "key-2" }, { name: "=", type: "equal", id: "key-equal" },
                             { name: "0", type: "num", id: "key-0" }, { name: "=", type: "equal", id: "key-equal" },
@@ -1420,7 +1596,8 @@
                     },
                     {
                         stepTitle: "6. Sauvegarder dans MatB avec [AC]",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--rose);\">[AC]</strong> pour valider et revenir à l'écran principal.",
+                        desc: "Appuyez sur la touche <strong style="color:var(--rose);">[AC]</strong> pour valider et revenir à l'écran principal.",
+                        voiceText: "Appuyez sur A C. Vos deux matrices A et B sont maintenant mémorisées et prêtes pour les calculs.",
                         keys: [{ name: "AC", type: "ac", id: "key-ac" }],
                         tip: "MatA et MatB sont désormais prêtes pour toutes vos opérations !",
                         screenState: { view: "normal", input: "", result: "0" }
@@ -1433,7 +1610,8 @@
                 steps: [
                     {
                         stepTitle: "1. Ouvrir le Menu MATRIX",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[4]</strong> (MATRIX).",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis sur la touche <strong style="color:var(--turquoise);">[4]</strong> (MATRIX).",
+                        voiceText: "Pour calculer le déterminant, ouvrez le menu Matrix en faisant Shift puis 4.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" }
@@ -1443,14 +1621,16 @@
                     },
                     {
                         stepTitle: "2. Sélectionner la fonction 7 : Det",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[7]</strong>. L'écran affiche l'instruction 'det(' en attente de la matrice.",
+                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[7]</strong>. L'écran affiche l'instruction 'det(' en attente de la matrice.",
+                        voiceText: "Appuyez sur la touche 7 pour choisir la fonction Déterminant.",
                         keys: [{ name: "7", type: "num", id: "key-7" }],
                         tip: "Det calcule le déterminant d'une matrice carrée 2×2 ou 3×3.",
                         screenState: { view: "normal", input: "det(", result: "" }
                     },
                     {
                         stepTitle: "3. Insérer la Matrice A : SHIFT + 4 puis 3",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong>, puis choisissez <strong style=\"color:var(--turquoise);\">[3]</strong> pour insérer MatA.",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong>, puis choisissez <strong style="color:var(--turquoise);">[3]</strong> pour insérer MatA.",
+                        voiceText: "Insérez la matrice A en faisant la combinaison Shift, 4, puis en appuyant sur 3.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1461,7 +1641,8 @@
                     },
                     {
                         stepTitle: "4. Fermer la parenthèse et Calculer avec [ = ]",
-                        desc: "Appuyez sur la parenthèse fermante <strong style=\"color:var(--turquoise);\">[ ) ]</strong> puis sur la touche <strong style=\"color:var(--turquoise);\">[ = ]</strong>.",
+                        desc: "Appuyez sur la parenthèse fermante <strong style="color:var(--turquoise);">[ ) ]</strong> puis sur la touche <strong style="color:var(--turquoise);">[ = ]</strong>.",
+                        voiceText: "Fermez la parenthèse et appuyez sur égale. Le déterminant vaut moins 8. Comme il est non nul, la matrice A est bien inversible.",
                         keys: [
                             { name: ")", type: "fn", id: "key-rpar" },
                             { name: "=", type: "equal", id: "key-equal" }
@@ -1477,7 +1658,8 @@
                 steps: [
                     {
                         stepTitle: "1. Taper le coefficient réel (Exemple : 3)",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[3]</strong> puis sur la touche de multiplication <strong style=\"color:var(--turquoise);\">[ × ]</strong>.",
+                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[3]</strong> puis sur la touche de multiplication <strong style="color:var(--turquoise);">[ × ]</strong>.",
+                        voiceText: "Pour multiplier une matrice par un réel, tapez d'abord le nombre 3, puis appuyez sur la touche de multiplication.",
                         keys: [
                             { name: "3", type: "num", id: "key-3" },
                             { name: "×", type: "op", id: "key-mul" }
@@ -1487,7 +1669,8 @@
                     },
                     {
                         stepTitle: "2. Insérer MatA : SHIFT + 4 puis 3",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong>, et tapez <strong style=\"color:var(--turquoise);\">[3]</strong> pour appeler MatA.",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong>, et tapez <strong style="color:var(--turquoise);">[3]</strong> pour appeler MatA.",
+                        voiceText: "Appelez la matrice A en faisant Shift, 4, puis 3.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1498,7 +1681,8 @@
                     },
                     {
                         stepTitle: "3. Calculer avec [ = ] et Naviguer dans MatAns",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. Le résultat est stocké dans la matrice réponse 'MatAns'. Chaque terme est multiplié par 3 !",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[ = ]</strong>. Le résultat est stocké dans la matrice réponse 'MatAns'. Chaque terme est multiplié par 3 !",
+                        voiceText: "Appuyez sur la touche égale. La calculatrice affiche la matrice résultat où chaque coefficient est multiplié par 3. Vous pouvez naviguer dans la matrice avec les flèches du pavé directionnel.",
                         keys: [{ name: "=", type: "equal", id: "key-equal" }],
                         tip: "Utilisez le pavé directionnel circulaire (flèches droite/gauche/haut/bas) pour faire défiler tous les coefficients.",
                         screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[3,6,3],[0,3,9],[6,3,3]] }
@@ -1511,7 +1695,8 @@
                 steps: [
                     {
                         stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour écrire MatA.",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> puis <strong style="color:var(--turquoise);">[3]</strong> pour écrire MatA.",
+                        voiceText: "Pour additionner deux matrices, appelez d'abord la matrice A avec Shift, 4, puis 3.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1522,14 +1707,16 @@
                     },
                     {
                         stepTitle: "2. Ajouter le signe [ + ]",
-                        desc: "Appuyez sur la touche d'addition <strong style=\"color:var(--turquoise);\">[ + ]</strong>.",
+                        desc: "Appuyez sur la touche d'addition <strong style="color:var(--turquoise);">[ + ]</strong>.",
+                        voiceText: "Appuyez sur la touche plus.",
                         keys: [{ name: "+", type: "op", id: "key-plus" }],
                         tip: "L'écran affiche : MatA+",
                         screenState: { view: "normal", input: "MatA+", result: "" }
                     },
                     {
                         stepTitle: "3. Insérer MatB (SHIFT + 4 puis 4)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> pour insérer MatB.",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> pour insérer MatB.",
+                        voiceText: "Appelez maintenant la matrice B en faisant Shift, 4, puis 4.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1540,7 +1727,8 @@
                     },
                     {
                         stepTitle: "4. Afficher la Matrice Somme avec [ = ]",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La Casio calcule terme à terme la somme des deux matrices dans MatAns.",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[ = ]</strong>. La Casio calcule terme à terme la somme des deux matrices dans MatAns.",
+                        voiceText: "Appuyez sur la touche égale. La calculatrice effectue l'addition terme à terme et affiche la matrice somme résultante.",
                         keys: [{ name: "=", type: "equal", id: "key-equal" }],
                         tip: "Terme (1,1) = 1 + 2 = 3. Naviguez avec les flèches pour voir tous les termes.",
                         screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[3,2,2],[1,4,3],[2,3,2]] }
@@ -1553,7 +1741,8 @@
                 steps: [
                     {
                         stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour afficher MatA.",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> puis <strong style="color:var(--turquoise);">[3]</strong> pour afficher MatA.",
+                        voiceText: "Pour multiplier deux matrices, insérez d'abord la matrice A avec Shift, 4, puis 3.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1564,14 +1753,16 @@
                     },
                     {
                         stepTitle: "2. Ajouter le signe de Multiplication [ × ]",
-                        desc: "Appuyez sur la touche <strong style=\"color:var(--turquoise);\">[ × ]</strong>.",
+                        desc: "Appuyez sur la touche <strong style="color:var(--turquoise);">[ × ]</strong>.",
+                        voiceText: "Appuyez sur le signe de multiplication.",
                         keys: [{ name: "×", type: "op", id: "key-mul" }],
                         tip: "L'écran affiche : MatA×",
                         screenState: { view: "normal", input: "MatA×", result: "" }
                     },
                     {
                         stepTitle: "3. Insérer MatB (SHIFT + 4 puis 4)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> pour sélectionner MatB.",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> pour sélectionner MatB.",
+                        voiceText: "Insérez la matrice B en faisant Shift, 4, puis 4.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1582,7 +1773,8 @@
                     },
                     {
                         stepTitle: "4. Exécuter le Produit Matriciel avec [ = ]",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La Casio effectue le produit scalaire (ligne par colonne) et donne la matrice résultante MatAns.",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[ = ]</strong>. La Casio effectue le produit scalaire (ligne par colonne) et donne la matrice résultante MatAns.",
+                        voiceText: "Appuyez sur la touche égale. La Casio calcule le produit matriciel ligne par colonne et affiche la matrice résultat. Rappelez-vous que le produit matriciel n'est pas commutatif.",
                         keys: [{ name: "=", type: "equal", id: "key-equal" }],
                         tip: "Attention : Le produit matriciel n'est généralement PAS commutatif : MatA × MatB ≠ MatB × MatA !",
                         screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [[4,8,2],[1,9,3],[5,5,3]] }
@@ -1595,7 +1787,8 @@
                 steps: [
                     {
                         stepTitle: "1. Insérer MatA (SHIFT + 4 puis 3)",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[SHIFT]</strong> puis <strong style=\"color:var(--turquoise);\">[4]</strong> puis <strong style=\"color:var(--turquoise);\">[3]</strong> pour appeler MatA.",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[SHIFT]</strong> puis <strong style="color:var(--turquoise);">[4]</strong> puis <strong style="color:var(--turquoise);">[3]</strong> pour appeler MatA.",
+                        voiceText: "Pour calculer la matrice inverse, commencez par insérer la matrice A en faisant Shift, 4, puis 3.",
                         keys: [
                             { name: "SHIFT", type: "shift", id: "key-shift" },
                             { name: "4", type: "num", id: "key-4" },
@@ -1606,14 +1799,16 @@
                     },
                     {
                         stepTitle: "2. Appuyer sur la Touche [ x⁻¹ ]",
-                        desc: "Appuyez directement sur la touche <strong style=\"color:var(--turquoise);\">[ x⁻¹ ]</strong> située juste en dessous de la touche de mise sous tension.",
+                        desc: "Appuyez directement sur la touche <strong style="color:var(--turquoise);">[ x⁻¹ ]</strong> située juste en dessous de la touche de mise sous tension.",
+                        voiceText: "Appuyez sur la touche x puissance moins un, située juste en dessous de la touche marche arrêt.",
                         keys: [{ name: "x⁻¹", type: "fn", id: "key-xinv" }],
                         tip: "Ne faites PAS de puissance ^(-1), utilisez toujours la touche dédiée [ x⁻¹ ] !",
                         screenState: { view: "normal", input: "MatA⁻¹", result: "" }
                     },
                     {
                         stepTitle: "3. Calculer l'Inverse avec [ = ]",
-                        desc: "Appuyez sur <strong style=\"color:var(--turquoise);\">[ = ]</strong>. La calculatrice affiche les coefficients de la matrice inverse A⁻¹.",
+                        desc: "Appuyez sur <strong style="color:var(--turquoise);">[ = ]</strong>. La calculatrice affiche les coefficients de la matrice inverse A⁻¹.",
+                        voiceText: "Appuyez sur la touche égale. Les coefficients de la matrice inverse apparaissent. Vous pouvez appuyer sur la touche S D pour basculer chaque coefficient entre écriture décimale et fraction exacte.",
                         keys: [{ name: "=", type: "equal", id: "key-equal" }],
                         tip: "Appuyez sur la touche [S⇔D] pour basculer l'affichage d'un coefficient entre fraction et nombre décimal !",
                         screenState: { view: "matrixResult", title: "MatAns 3×3", vals: [["-0.25","0.125","0.625"],["-0.75","0.125","-0.375"],["0.25","-0.375","-0.125"]] }
@@ -1627,6 +1822,118 @@
         let isPlaying = false;
         let playInterval = null;
         let animSpeedMs = 1800;
+
+        
+        /* ------------------------------------------------------------- */
+        /* TEACHER VOICE ENGINE (Web Speech API)                         */
+        /* ------------------------------------------------------------- */
+        let isVoiceEnabled = true;
+        let teacherVoice = null;
+        let autoPlayTimer = null;
+
+        function initTeacherVoice() {
+            if ('speechSynthesis' in window) {
+                function pickBestFrenchVoice() {
+                    const voices = window.speechSynthesis.getVoices();
+                    const frVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
+                    if (frVoices.length > 0) {
+                        // Prioritize natural teacher voices (Paul, Thomas, Henri, Google français, etc.)
+                        teacherVoice = frVoices.find(v => /paul|thomas|henri|natural|google|guy|hortense/i.test(v.name)) || frVoices[0];
+                    }
+                }
+                pickBestFrenchVoice();
+                if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                    window.speechSynthesis.onvoiceschanged = pickBestFrenchVoice;
+                }
+            }
+        }
+
+        function speakTeacher(text, onEnd) {
+            if (!('speechSynthesis' in window)) {
+                if (onEnd) onEnd();
+                return;
+            }
+            window.speechSynthesis.cancel();
+
+            const indicator = document.getElementById('voiceStatusIndicator');
+            const statusText = document.getElementById('voiceStatusText');
+
+            if (!isVoiceEnabled || !text) {
+                if (indicator) indicator.classList.remove('speaking');
+                if (statusText) statusText.innerText = isVoiceEnabled ? "Prêt à expliquer" : "Voix coupée";
+                if (onEnd) onEnd();
+                return;
+            }
+
+            if (indicator) indicator.classList.add('speaking');
+            if (statusText) statusText.innerText = "Le prof vous explique...";
+
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'fr-FR';
+            u.rate = 0.98; // Natural, clear pedagogical pacing
+            u.pitch = 1.0;
+            if (teacherVoice) u.voice = teacherVoice;
+
+            let finished = false;
+            const finish = () => {
+                if (finished) return;
+                finished = true;
+                if (indicator) indicator.classList.remove('speaking');
+                if (statusText) statusText.innerText = "Prêt à expliquer";
+                if (onEnd) onEnd();
+            };
+
+            u.onend = finish;
+            u.onerror = finish;
+
+            // Safety timeout in case speech synth hangs
+            setTimeout(() => {
+                if (!finished && window.speechSynthesis.speaking) {
+                    // Let it continue or wrap up
+                }
+            }, 10000);
+
+            window.speechSynthesis.speak(u);
+        }
+
+        function stopTeacherVoice() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            const indicator = document.getElementById('voiceStatusIndicator');
+            const statusText = document.getElementById('voiceStatusText');
+            if (indicator) indicator.classList.remove('speaking');
+            if (statusText) statusText.innerText = isVoiceEnabled ? "Prêt à expliquer" : "Voix coupée";
+        }
+
+        function toggleTeacherVoice() {
+            isVoiceEnabled = !isVoiceEnabled;
+            const btn = document.getElementById('btnVoiceToggle');
+            const icon = document.getElementById('voiceToggleIcon');
+            const label = document.getElementById('voiceToggleLabel');
+            const statusText = document.getElementById('voiceStatusText');
+
+            if (isVoiceEnabled) {
+                btn.className = "voice-toggle-btn";
+                icon.innerText = "🔊";
+                label.innerText = "Voix du Professeur : ACTIVÉE";
+                if (statusText) statusText.innerText = "Prêt à expliquer";
+                replayTeacherVoice();
+            } else {
+                btn.className = "voice-toggle-btn muted";
+                icon.innerText = "🔇";
+                label.innerText = "Voix du Professeur : COUPÉE";
+                stopTeacherVoice();
+            }
+        }
+
+        function replayTeacherVoice() {
+            const scenario = scenarios[currentScenarioKey];
+            if (scenario && scenario.steps[currentStepIndex]) {
+                const step = scenario.steps[currentStepIndex];
+                speakTeacher(step.voiceText || step.desc.replace(/<[^>]*>/g, ''));
+            }
+        }
 
         function loadScenario(key) {
             pauseAutoPlay();
@@ -1690,6 +1997,33 @@
             renderLcd(step.screenState);
             renderMath();
             playCasioBeep();
+
+            // Update Teacher Voice Speech Bubble & Speak
+            const voiceTextEl = document.getElementById('teacherVoiceText');
+            const textToSpeak = step.voiceText || step.desc.replace(/<[^>]*>/g, '');
+            if (voiceTextEl) {
+                voiceTextEl.innerText = '"' + textToSpeak + '"';
+            }
+
+            if (isPlaying) {
+                // Auto-Play synchronization: wait for teacher voice to finish + 1.2s pause
+                speakTeacher(textToSpeak, () => {
+                    if (isPlaying) {
+                        clearTimeout(autoPlayTimer);
+                        autoPlayTimer = setTimeout(() => {
+                            const scen = scenarios[currentScenarioKey];
+                            if (currentStepIndex < scen.steps.length - 1) {
+                                currentStepIndex++;
+                                renderCurrentStep();
+                            } else {
+                                pauseAutoPlay();
+                            }
+                        }, 1200);
+                    }
+                });
+            } else {
+                speakTeacher(textToSpeak);
+            }
         }
 
         let keySequenceTimer = null;
@@ -1826,6 +2160,7 @@
         }
 
         function nextStep() {
+            clearTimeout(autoPlayTimer);
             const scenario = scenarios[currentScenarioKey];
             if (currentStepIndex < scenario.steps.length - 1) {
                 currentStepIndex++;
@@ -1836,6 +2171,7 @@
         }
 
         function prevStep() {
+            clearTimeout(autoPlayTimer);
             if (currentStepIndex > 0) {
                 currentStepIndex--;
                 renderCurrentStep();
@@ -1868,22 +2204,14 @@
                 btn.style.background = '#39d6c3';
                 btn.style.color = '#0b1426';
             }
-
-            clearInterval(playInterval);
-            playInterval = setInterval(() => {
-                const scen = scenarios[currentScenarioKey];
-                if (currentStepIndex < scen.steps.length - 1) {
-                    currentStepIndex++;
-                    renderCurrentStep();
-                } else {
-                    pauseAutoPlay();
-                }
-            }, animSpeedMs);
+            renderCurrentStep();
         }
 
         function pauseAutoPlay() {
             isPlaying = false;
+            clearTimeout(autoPlayTimer);
             clearInterval(playInterval);
+            stopTeacherVoice();
             const btn = document.getElementById('btnPlayPause');
             if (btn) {
                 btn.innerHTML = '▶ Lancer l\'Animation Auto';
@@ -1907,6 +2235,7 @@
 
         // Initialize immediately
         document.addEventListener('DOMContentLoaded', () => {
+            initTeacherVoice();
             renderCurrentStep();
         });
         window.addEventListener('load', () => {

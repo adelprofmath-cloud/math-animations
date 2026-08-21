@@ -1031,11 +1031,11 @@
                     <div class="tutorial-header">
                         <span class="step-tag" id="stepIndicator">Étape 1 / 6</span>
                         <div class="speed-box">
-                            <span>Vitesse :</span>
+                            <span>Vitesse voix :</span>
                             <select id="animSpeed" onchange="updateSpeed()">
-                                <option value="1800">Normale (1x)</option>
-                                <option value="2600">Lente (0.7x)</option>
-                                <option value="1100">Rapide (1.5x)</option>
+                                <option value="0.75" selected>🐢 Lente (Prof débutants)</option>
+                                <option value="0.9">🎯 Normale (Recommandée)</option>
+                                <option value="1.1">⚡ Rapide (Révision)</option>
                             </select>
                         </div>
                     </div>
@@ -1870,6 +1870,7 @@
         let currentStepIndex = 0;
         let isPlaying = false;
         let animSpeedMs = 2800;
+        let voiceRate = 0.75; // Débit vocal par défaut : Lente (prof débutants)
 
         function initTeacherVoice() {
             // ResponsiveVoice is loaded via CDN in <head>
@@ -1992,7 +1993,7 @@
                 try {
                     responsiveVoice.cancel();
                     responsiveVoice.speak(text, "French Male", {
-                        rate: 0.9,
+                        rate: voiceRate,   // Contrôlé par le sélecteur de vitesse
                         pitch: 0.85,
                         volume: 1,
                         onend: onDone,
@@ -2137,14 +2138,22 @@
 
             // Handle Auto-Play: advance to next step only AFTER voice finishes
             if (isPlaying) {
-                // Estimate speech duration: ~80ms per character, min 3s, max 15s
-                const estimatedMs = Math.min(Math.max(textToSpeak.length * 80, 3000), 15000);
-                animateProgressBar(estimatedMs);
+                // ── Calcul du temps de parole réel ──
+                // Base: ~90ms/char à débit 0.9 normal. On divise par voiceRate pour adapter.
+                const charRate = Math.round(90 / voiceRate); // ms par caractère
+                const estimatedSpeechMs = Math.min(Math.max(textToSpeak.length * charRate, 4000), 30000);
+                const totalWaitMs = estimatedSpeechMs + 2000; // +2s de marge de sécurité
+                animateProgressBar(totalWaitMs);
 
-                // Callback called when voice ends (or if voice is disabled)
+                // Variable de protection : on n'avance qu'une seule fois
+                let alreadyAdvanced = false;
+                let safetyTimer = null;
+
                 const advanceToNext = () => {
-                    if (!isPlaying) return;
-                    // Small pause after voice before moving to next step
+                    if (alreadyAdvanced || !isPlaying) return;
+                    alreadyAdvanced = true;
+                    if (safetyTimer) clearTimeout(safetyTimer);
+                    // Petite pause naturelle après la fin de la voix
                     autoPlayTimer = setTimeout(() => {
                         if (isPlaying) {
                             const scen = scenarios[currentScenarioKey];
@@ -2155,13 +2164,16 @@
                                 pauseAutoPlay();
                             }
                         }
-                    }, 800); // 0.8s pause after voice ends before next step
+                    }, 1200); // 1.2s de pause naturelle après chaque phrase
                 };
 
                 if (shouldSpeak && isVoiceEnabled) {
+                    // Lancer la voix avec callback onend
                     speakTeacherWithCallback(textToSpeak, advanceToNext);
+                    // Timer de sécurité large : si onend ne se déclenche pas, on avance quand même
+                    safetyTimer = setTimeout(advanceToNext, totalWaitMs);
                 } else {
-                    // No voice: use fixed timer
+                    // Pas de voix : timer fixe basé sur vitesse choisie
                     autoPlayTimer = setTimeout(advanceToNext, animSpeedMs);
                 }
             } else {
@@ -2388,19 +2400,11 @@
         }
 
         function updateSpeed() {
-            animSpeedMs = parseInt(document.getElementById('animSpeed').value) || 2800;
-            if (isPlaying) {
-                clearTimeout(autoPlayTimer);
-                autoPlayTimer = setTimeout(() => {
-                    const scen = scenarios[currentScenarioKey];
-                    if (currentStepIndex < scen.steps.length - 1) {
-                        currentStepIndex++;
-                        renderCurrentStep(true);
-                    } else {
-                        pauseAutoPlay();
-                    }
-                }, animSpeedMs);
-            }
+            // La valeur est maintenant un débit vocal (ex: 0.75, 0.9, 1.1)
+            voiceRate = parseFloat(document.getElementById('animSpeed').value) || 0.9;
+            // Recalibrer le charRate en fonction du débit
+            // débit 0.75 → ~145ms/char, débit 0.9 → ~110ms/char, débit 1.1 → ~90ms/char
+            animSpeedMs = Math.round(110 / voiceRate * 100); // garde une ref pour sans-voix
         }
 
         function handlePhysicalKey(keyName) {

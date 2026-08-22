@@ -971,48 +971,66 @@
         }
 
         function speakTeacher(text) {
-            if (!isVoiceEnabled) return;
+            if (!isVoiceEnabled || !text) { setSpeaking(false); return; }
             cancelSpeech();
-
             setSpeaking(true);
 
             // Clean latex math text for speech
             const cleanText = text
-                .replace(/\gamma(G)/g, "gamma de G")
-                .replace(/\Delta(G)/g, "delta de G")
-                .replace(/\omega(G)/g, "oméga de G")
-                .replace(/\le/g, "inférieur ou égal à")
-                .replace(/\implies/g, "donc")
-                .replace(/$/g, "");
+                .replace(/\\gamma\(G\)/g, "gamma de G")
+                .replace(/\\Delta\(G\)/g, "delta de G")
+                .replace(/\\omega\(G\)/g, "oméga de G")
+                .replace(/\\le/g, "inférieur ou égal à")
+                .replace(/\\implies/g, "donc")
+                .replace(/\\\$/g, "")
+                .replace(/\$[^$]*\$/g, "");
 
-            // 1. ResponsiveVoice Priority
+            const onDone = () => setSpeaking(false);
+
+            // ── Priorité 1 : ResponsiveVoice — voix masculine française grave ──
             if (typeof responsiveVoice !== 'undefined' && responsiveVoice.voiceSupport()) {
-                responsiveVoice.speak(cleanText, "French Male", {
-                    rate: 0.98,
-                    pitch: 1.0,
-                    onend: () => setSpeaking(false),
-                    onerror: () => fallbackSpeech(cleanText)
-                });
-            } else {
-                fallbackSpeech(cleanText);
+                try {
+                    responsiveVoice.cancel();
+                    responsiveVoice.speak(cleanText, "French Male", {
+                        rate:   0.9,    // Même rythme que casio_matrices : prof qui explique
+                        pitch:  0.85,   // Ton grave masculin
+                        volume: 1,
+                        onend:  onDone,
+                        onerror: () => fallbackSpeech(cleanText)
+                    });
+                    return;
+                } catch(e) {
+                    console.warn('ResponsiveVoice error, falling back:', e);
+                }
             }
+            fallbackSpeech(cleanText);
         }
 
         function fallbackSpeech(text) {
-            if ('speechSynthesis' in window) {
-                const utter = new SpeechSynthesisUtterance(text);
-                utter.lang = 'fr-FR';
-                utter.rate = 0.95;
+            if (!('speechSynthesis' in window)) { setSpeaking(false); return; }
+            try { window.speechSynthesis.cancel(); } catch(e) {}
 
-                const voices = window.speechSynthesis.getVoices();
-                const frVoice = voices.find(v => v.lang.startsWith('fr') && (v.name.includes('Thomas') || v.name.includes('Paul') || v.name.includes('Male') || v.name.includes('Google')));
-                if (frVoice) utter.voice = frVoice;
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang   = 'fr-FR';
+            utter.rate   = 0.92;
+            utter.pitch  = 0.78;   // Ton grave masculin
+            utter.volume = 1.0;
 
-                utter.onend = () => setSpeaking(false);
-                utter.onerror = () => setSpeaking(false);
+            const voices = window.speechSynthesis.getVoices();
+            const frVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
+            const maleNames   = /thomas|paul|henri|pierre|guy|nicolas|jean|arnaud|mathieu|yannick|david|raphael/i;
+            const femaleNames = /marie|claire|julie|hortense|virginie|amelie|lea|lucie|juliette|female|femme/i;
+            let male = frVoices.find(v => maleNames.test(v.name) && !femaleNames.test(v.name));
+            if (!male) male = frVoices.find(v => !femaleNames.test(v.name));
+            if (male) utter.voice = male;
 
+            utter.onend  = () => setSpeaking(false);
+            utter.onerror = () => setSpeaking(false);
+            window._activeUtterance = utter;
+            try {
+                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
                 window.speechSynthesis.speak(utter);
-            } else {
+            } catch(err) {
                 setSpeaking(false);
             }
         }

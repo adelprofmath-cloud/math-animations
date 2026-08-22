@@ -1880,9 +1880,10 @@
                     try {
                         const voices = window.speechSynthesis.getVoices();
                         const frVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
-                        const maleNames = /thomas|paul|henri|pierre|guy|nicolas|jean|arnaud|mathieu|yannick|david|raphael/i;
-                        const femaleNames = /marie|claire|julie|hortense|virginie|amelie|lea|lucie|juliette|female|femme/i;
+                        const maleNames = /thomas|paul|claude|henri|pierre|guy|nicolas|jean|arnaud|mathieu|yannick|david|raphael|jerome|alain|male|homme|frd|frb|b-network|d-network|male_1/i;
+                        const femaleNames = /google|hortense|julie|marie|claire|virginie|amelie|lea|lucie|juliette|celia|audrey|denise|eloise|corinne|siwis|margaux|charlotte|female|femme|woman|girl|fra|frc/i;
                         let male = frVoices.find(v => maleNames.test(v.name) && !femaleNames.test(v.name));
+                        if (!male) male = frVoices.find(v => maleNames.test(v.name));
                         if (!male) male = frVoices.find(v => !femaleNames.test(v.name));
                         teacherVoice = male || (frVoices.length > 0 ? frVoices[0] : null);
                     } catch(e) {}
@@ -1917,8 +1918,8 @@
                 try {
                     responsiveVoice.cancel();
                     responsiveVoice.speak(text, "French Male", {
-                        rate: 0.9,      // Débit naturel, prof qui explique
-                        pitch: 0.85,    // Ton grave masculin
+                        rate: 0.90,     // Débit naturel, prof qui explique
+                        pitch: 0.80,    // Ton grave masculin
                         volume: 1,
                         onend: onDone,
                         onerror: onDone
@@ -1929,14 +1930,15 @@
                 }
             }
 
-            // ── Fallback : Web Speech API ──
+            // ── Fallback : Web Speech API avec transposition grave masculine ──
             if (!('speechSynthesis' in window)) { onDone(); return; }
             try { window.speechSynthesis.cancel(); } catch(e) {}
 
             const u = new SpeechSynthesisUtterance(text);
             u.lang = 'fr-FR';
-            u.rate = 0.92;
-            u.pitch = 0.78;
+            u.rate = 0.88;
+            const isConfirmedMale = teacherVoice && /thomas|paul|claude|henri|nicolas|male|homme|frd|frb|b-network|d-network/i.test(teacherVoice.name);
+            u.pitch = isConfirmedMale ? 0.75 : 0.65; // Ton grave masculin (0.65 assure une voix d'homme)
             u.volume = 1.0;
             if (teacherVoice) u.voice = teacherVoice;
             u.onend = onDone;
@@ -1993,8 +1995,8 @@
                 try {
                     responsiveVoice.cancel();
                     responsiveVoice.speak(text, "French Male", {
-                        rate: voiceRate,   // Contrôlé par le sélecteur de vitesse
-                        pitch: 0.85,
+                        rate: voiceRate || 0.90,
+                        pitch: 0.80,
                         volume: 1,
                         onend: onDone,
                         onerror: onDone
@@ -2011,8 +2013,9 @@
 
             const u = new SpeechSynthesisUtterance(text);
             u.lang = 'fr-FR';
-            u.rate = 0.92;
-            u.pitch = 0.78;
+            u.rate = voiceRate || 0.88;
+            const isConfirmedMale = teacherVoice && /thomas|paul|claude|henri|nicolas|male|homme|frd|frb|b-network|d-network/i.test(teacherVoice.name);
+            u.pitch = isConfirmedMale ? 0.75 : 0.65;
             u.volume = 1.0;
             if (teacherVoice) u.voice = teacherVoice;
             u.onend = onDone;
@@ -2022,7 +2025,6 @@
                 if (window.speechSynthesis.paused) window.speechSynthesis.resume();
                 window.speechSynthesis.speak(u);
             } catch(err) {
-                console.warn('Speech error:', err);
                 onDone();
             }
         }

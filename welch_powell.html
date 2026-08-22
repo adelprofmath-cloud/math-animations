@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithme de Welch-Powell — Coloriage & Nombre Chromatique | Lyceena Books</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- KaTeX Math Notation Renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <!-- ResponsiveVoice TTS — Voix française naturelle -->
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=free"></script>
+    <style>
+        :root {
+            --navy-dark: #0b1426;
+            --navy-card: #14223d;
+            --navy-light: #1e335a;
+            --turquoise: #39d6c3;
+            --rose: #f51e65;
+            --yellow: #fadb14;
+            --green: #52c41a;
+            --white: #f8fafc;
+            --gray-text: #94a3b8;
+
+            /* Colors for coloring */
+            --c1-bg: #e11d48; /* Rouge */
+            --c1-border: #fb7185;
+            --c2-bg: #2563eb; /* Bleu */
+            --c2-border: #60a5fa;
+            --c3-bg: #16a34a; /* Vert */
+            --c3-border: #4ade80;
+            --c4-bg: #d97706; /* Jaune/Ambre */
+            --c4-border: #fcd34d;
+            --c5-bg: #9333ea; /* Violet */
+            --c5-border: #c084fc;
+        }
+
+        body {
+            background: #070d19;
+            color: var(--white);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .back-link {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--turquoise);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            background: rgba(57, 214, 195, 0.1);
+            border: 1px solid rgba(57, 214, 195, 0.3);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            background: rgba(57, 214, 195, 0.25);
+            transform: translateY(-50%) translateX(-3px);
+        }
+
+        .subtitle {
+            color: var(--rose);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+        }
+
+        h1 {
+            color: var(--white);
+            font-size: 2rem;
+            margin: 0;
+            font-weight: 800;
+        }
+
+        /* Scenarios Selector */
+        .scenarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .scenario-btn {
+            background: var(--navy-card);
+            border: 1px solid rgba(57, 214, 195, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            color: var(--white);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .scenario-btn:hover {
+            border-color: var(--turquoise);
+            background: var(--navy-light);
+            transform: translateY(-2px);
+        }
+
+        .scenario-btn.active {
+            border-color: var(--rose);
+            background: linear-gradient(135deg, rgba(245, 30, 101, 0.2) 0%, rgba(26, 45, 89, 0.9) 100%);
+            box-shadow: 0 0 15px rgba(245, 30, 101, 0.3);
+        }
+
+        .scenario-badge {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--navy-dark);
+            border: 2px solid var(--turquoise);
+            color: var(--turquoise);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .scenario-btn.active .scenario-badge {
+            border-color: var(--rose);
+            background: var(--rose);
+            color: white;
+        }
+
+        /* Main Grid */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel-card {
+            background: var(--navy-card);
+            border: 1px solid rgba(57, 214, 195, 0.25);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .panel-title {
+            color: var(--turquoise);
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Graph SVG */
+        .graph-container {
+            background: #091120;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        svg {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .edge-line {
+            stroke: #334155;
+            stroke-width: 2.5;
+            transition: all 0.3s ease;
+        }
+
+        .edge-line.conflict {
+            stroke: #e11d48;
+            stroke-width: 3.5;
+            stroke-dasharray: 4 4;
+        }
+
+        .node-circle {
+            fill: #1e293b;
+            stroke: #64748b;
+            stroke-width: 2.5;
+            transition: all 0.4s ease;
+        }
+
+        .node-circle.color-1 { fill: var(--c1-bg); stroke: var(--c1-border); stroke-width: 3.5; }
+        .node-circle.color-2 { fill: var(--c2-bg); stroke: var(--c2-border); stroke-width: 3.5; }
+        .node-circle.color-3 { fill: var(--c3-bg); stroke: var(--c3-border); stroke-width: 3.5; }
+        .node-circle.color-4 { fill: var(--c4-bg); stroke: var(--c4-border); stroke-width: 3.5; }
+        .node-circle.color-5 { fill: var(--c5-bg); stroke: var(--c5-border); stroke-width: 3.5; }
+
+        .node-circle.testing {
+            stroke: var(--yellow);
+            stroke-width: 4;
+            filter: drop-shadow(0 0 10px rgba(250, 219, 20, 0.9));
+        }
+
+        .node-text {
+            fill: var(--white);
+            font-weight: 800;
+            font-size: 15px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+
+        .node-deg-badge {
+            fill: #0f172a;
+            stroke: var(--turquoise);
+            stroke-width: 1;
+            rx: 4;
+        }
+
+        .node-deg-text {
+            fill: var(--turquoise);
+            font-size: 11px;
+            font-weight: 700;
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+
+        /* Welch-Powell Table */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        .wp-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .wp-table th, .wp-table td {
+            padding: 0.8rem 0.6rem;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .wp-table th {
+            background: var(--navy-light);
+            color: var(--turquoise);
+            font-weight: 700;
+        }
+
+        .wp-table th.row-header {
+            text-align: left;
+            background: #0f172a;
+            color: var(--turquoise);
+            width: 120px;
+        }
+
+        .col-testing {
+            background: rgba(250, 219, 20, 0.15) !important;
+            border: 2px solid var(--yellow) !important;
+        }
+
+        .tag-color {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0.35rem 0.7rem;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: white;
+        }
+
+        .tag-color-1 { background: var(--c1-bg); border: 1px solid var(--c1-border); }
+        .tag-color-2 { background: var(--c2-bg); border: 1px solid var(--c2-border); }
+        .tag-color-3 { background: var(--c3-bg); border: 1px solid var(--c3-border); }
+        .tag-color-4 { background: var(--c4-bg); border: 1px solid var(--c4-border); }
+        .tag-color-5 { background: var(--c5-bg); border: 1px solid var(--c5-border); }
+
+        /* Speech & Voice Box */
+        .speech-box {
+            background: linear-gradient(135deg, rgba(26, 45, 89, 0.8) 0%, rgba(11, 20, 38, 0.95) 100%);
+            border: 1px solid var(--turquoise);
+            border-radius: 14px;
+            padding: 1.1rem;
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+
+        .speech-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .speaker-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            color: var(--turquoise);
+            font-size: 0.95rem;
+        }
+
+        .voice-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .voice-indicator.speaking {
+            color: var(--rose);
+        }
+
+        .voice-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #64748b;
+        }
+
+        .voice-indicator.speaking .voice-dot {
+            background: var(--rose);
+            animation: blink 0.6s infinite alternate;
+        }
+
+        @keyframes blink {
+            from { opacity: 0.3; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1.2); }
+        }
+
+        .speech-content {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--white);
+        }
+
+        /* Controls */
+        .controls-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1.2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn {
+            background: var(--navy-light);
+            border: 1px solid rgba(57, 214, 195, 0.4);
+            color: var(--white);
+            border-radius: 8px;
+            padding: 0.6rem 1.1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--turquoise);
+            color: var(--navy-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--rose) 0%, #d01450 100%);
+            border-color: var(--rose);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #ff3377 0%, var(--rose) 100%);
+            color: white;
+            box-shadow: 0 0 12px rgba(245, 30, 101, 0.5);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .sound-toggle {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #94a3b8;
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        .sound-toggle.active {
+            color: var(--turquoise);
+            border-color: var(--turquoise);
+            background: rgba(57, 214, 195, 0.1);
+        }
+
+        /* Result summary box */
+        .result-box {
+            margin-top: 1rem;
+            padding: 1.1rem;
+            border-radius: 12px;
+            background: rgba(82, 196, 26, 0.12);
+            border: 1px solid var(--green);
+            display: none;
+        }
+
+        .result-box.visible {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .result-title {
+            color: #6ee7b7;
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 0.4rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="back-link">← Sommaire</a>
+            <div class="subtitle">Chapitre 10 • Coloriage de Graphes</div>
+            <h1>Algorithme de Welch-Powell</h1>
+            <p style="color: var(--turquoise); margin-top: 0.5rem; font-size: 0.95rem;">
+                Détermination pas-à-pas du nombre chromatique $gamma(G)$ avec tableau officiel et narration vocale.
+            </p>
+        </header>
+
+        <!-- Scenario Selector -->
+        <div class="scenarios-grid">
+            <button class="scenario-btn active" onclick="loadScenario(0)">
+                <div class="scenario-badge">1</div>
+                <div>
+                    <div style="font-weight:700;">Graphe à 6 sommets (Clique d'ordre 4)</div>
+                    <div style="font-size:0.8rem; color:#94a3b8;">Exercice type Bac : A, B, C, D, E, F</div>
+                </div>
+            </button>
+            <button class="scenario-btn" onclick="loadScenario(1)">
+                <div class="scenario-badge">2</div>
+                <div>
+                    <div style="font-weight:700;">Éclairage d'un Parc (5 sommets)</div>
+                    <div style="font-size:0.8rem; color:#94a3b8;">A, B, C, D, E</div>
+                </div>
+            </button>
+            <button class="scenario-btn" onclick="loadScenario(2)">
+                <div class="scenario-badge">3</div>
+                <div>
+                    <div style="font-weight:700;">Réseau de Fréquences Radio (7 sommets)</div>
+                    <div style="font-size:0.8rem; color:#94a3b8;">1, 2, 3, 4, 5, 6, 7</div>
+                </div>
+            </button>
+        </div>
+
+        <!-- Main Workspace -->
+        <div class="main-layout">
+            <!-- Left Panel: Graph Visualizer -->
+            <div class="panel-card">
+                <div class="panel-title">
+                    <span>🎨 Graphe Coloré en Direct</span>
+                    <span id="step-indicator" style="font-size:0.85rem; color:#94a3b8;">Étape 0 / 6</span>
+                </div>
+
+                <div class="graph-container">
+                    <svg id="graph-svg" viewBox="0 0 540 380"></svg>
+                </div>
+
+                <!-- Color Palette Legend -->
+                <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:1rem; font-size:0.82rem;">
+                    <div style="display:flex; align-items:center; gap:0.35rem;">
+                        <span style="width:14px; height:14px; border-radius:4px; background:var(--c1-bg);"></span>
+                        Couleur 1 (Rouge)
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.35rem;">
+                        <span style="width:14px; height:14px; border-radius:4px; background:var(--c2-bg);"></span>
+                        Couleur 2 (Bleu)
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.35rem;">
+                        <span style="width:14px; height:14px; border-radius:4px; background:var(--c3-bg);"></span>
+                        Couleur 3 (Vert)
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.35rem;">
+                        <span style="width:14px; height:14px; border-radius:4px; background:var(--c4-bg);"></span>
+                        Couleur 4 (Jaune)
+                    </div>
+                </div>
+
+                <!-- Result Box -->
+                <div id="result-box" class="result-box">
+                    <div class="result-title">🎯 Bilan & Nombre Chromatique :</div>
+                    <div id="result-text" style="font-size:1rem; line-height:1.5; color:var(--white);"></div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Tableau de Welch-Powell & Speech -->
+            <div class="panel-card">
+                <!-- Teacher Speech Box -->
+                <div class="speech-box">
+                    <div class="speech-header">
+                        <div class="speaker-tag">
+                            <span>🎙️</span>
+                            <span>Prof. Soltani — Explication :</span>
+                        </div>
+                        <div class="voice-indicator" id="voice-indicator">
+                            <span class="voice-dot"></span>
+                            <span id="voice-status-text">Audio prêt</span>
+                        </div>
+                    </div>
+                    <div class="speech-content" id="speech-text">
+                        Bienvenue dans l'explication de l'algorithme de Welch-Powell. Cliquez sur « Étape Suivante » pour trier les sommets par ordre décroissant de leurs degrés.
+                    </div>
+                </div>
+
+                <div class="panel-title">
+                    <span>📋 Tableau Officiel de Welch-Powell</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="wp-table" id="wp-table">
+                        <!-- Filled by JS -->
+                    </table>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls-bar">
+                    <div style="display:flex; gap:0.5rem;">
+                        <button class="btn" id="btn-prev" onclick="prevStep()" disabled>← Précédent</button>
+                        <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Suivant →</button>
+                        <button class="btn" id="btn-auto" onclick="toggleAutoPlay()">▶ Auto</button>
+                        <button class="btn" onclick="resetAlgorithm()">↺ Réinitialiser</button>
+                    </div>
+
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <button class="sound-toggle active" id="btn-voice" onclick="toggleVoice()">
+                            <span id="sound-icon">🔊</span> Voix active
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── SCENARIOS DATA ──────────────────────────────────────────
+        const scenarios = [
+            {
+                name: "Graphe à 6 sommets (Clique d'ordre 4)",
+                nodes: [
+                    { id: "A", x: 110, y: 75  },
+                    { id: "B", x: 430, y: 75  },
+                    { id: "C", x: 430, y: 290 },
+                    { id: "D", x: 270, y: 340 },
+                    { id: "E", x: 110, y: 290 },
+                    { id: "F", x: 195, y: 175 }
+                ],
+                edges: [
+                    { u: "F", v: "A" }, { u: "F", v: "B" }, { u: "F", v: "C" }, { u: "F", v: "D" }, { u: "F", v: "E" },
+                    { u: "A", v: "B" }, { u: "A", v: "C" },
+                    { u: "B", v: "C" }, { u: "B", v: "E" },
+                    { u: "D", v: "E" }, { u: "E", v: "C" }
+                ],
+                clique: { nodes: ["A", "B", "C", "F"], size: 4 }
+            },
+            {
+                name: "Éclairage d'un Parc (5 sommets)",
+                nodes: [
+                    { id: "A", x: 270, y: 70  },
+                    { id: "B", x: 120, y: 180 },
+                    { id: "C", x: 170, y: 310 },
+                    { id: "D", x: 370, y: 310 },
+                    { id: "E", x: 420, y: 180 }
+                ],
+                edges: [
+                    { u: "A", v: "B" }, { u: "A", v: "E" }, { u: "A", v: "C" },
+                    { u: "B", v: "C" }, { u: "B", v: "D" },
+                    { u: "C", v: "D" }, { u: "C", v: "E" },
+                    { u: "D", v: "E" }
+                ],
+                clique: { nodes: ["A", "B", "C"], size: 3 }
+            },
+            {
+                name: "Réseau de Fréquences Radio (7 sommets)",
+                nodes: [
+                    { id: "1", x: 100, y: 100 },
+                    { id: "2", x: 270, y: 70  },
+                    { id: "3", x: 440, y: 100 },
+                    { id: "4", x: 440, y: 280 },
+                    { id: "5", x: 270, y: 330 },
+                    { id: "6", x: 100, y: 280 },
+                    { id: "7", x: 270, y: 195 }
+                ],
+                edges: [
+                    { u: "1", v: "2" }, { u: "1", v: "6" }, { u: "1", v: "7" }, { u: "1", v: "5" },
+                    { u: "2", v: "3" }, { u: "2", v: "4" }, { u: "2", v: "7" },
+                    { u: "3", v: "4" }, { u: "4", v: "5" }, { u: "4", v: "7" },
+                    { u: "5", v: "6" }, { u: "5", v: "7" }
+                ],
+                clique: { nodes: ["1", "5", "7"], size: 3 }
+            }
+        ];
+
+        // ── STATE VARIABLES ─────────────────────────────────────────
+        let currentScenarioIdx = 0;
+        let stepsData = [];
+        let currentStep = 0;
+        let autoPlayTimer = null;
+        let isVoiceEnabled = true;
+
+        const colorNames = ["Rouge", "Bleu", "Vert", "Jaune", "Violet"];
+
+        // ── WELCH-POWELL ALGORITHM SOLVER ───────────────────────────
+        function computeWelchPowellSteps(sc) {
+            const adj = {};
+            sc.nodes.forEach(n => adj[n.id] = new Set());
+            sc.edges.forEach(e => {
+                adj[e.u].add(e.v);
+                adj[e.v].add(e.u);
+            });
+
+            // 1. Calculate degrees and sort descending
+            const sortedNodes = sc.nodes.map(n => ({
+                id: n.id,
+                deg: adj[n.id].size
+            })).sort((a, b) => b.deg - a.deg || a.id.localeCompare(b.id));
+
+            const maxDeg = sortedNodes[0].deg;
+            const cliqueSize = sc.clique ? sc.clique.size : 3;
+
+            const steps = [];
+
+            // Step 0: Initial Sorting
+            steps.push({
+                stepNum: 0,
+                sortedNodes: sortedNodes,
+                assignedColors: {},
+                testingNode: null,
+                currentColor: 1,
+                voiceText: `Étape 1 : On classe les sommets par ordre décroissant de leurs degrés. Le sommet de plus grand degré est ${sortedNodes[0].id} avec un degré de ${sortedNodes[0].deg}.`,
+                actionDesc: "Tri des sommets par degré décroissant."
+            });
+
+            const assignedColors = {};
+            let colorIdx = 1;
+
+            while (Object.keys(assignedColors).length < sortedNodes.length) {
+                const nodesInThisColor = [];
+                const colorName = colorNames[colorIdx - 1] || `Couleur ${colorIdx}`;
+
+                for (let i = 0; i < sortedNodes.length; i++) {
+                    const node = sortedNodes[i].id;
+                    if (assignedColors[node] !== undefined) continue;
+
+                    // Check if node is adjacent to any node already having this color
+                    let isAdjacentToColor = false;
+                    for (const cn of nodesInThisColor) {
+                        if (adj[node].has(cn)) {
+                            isAdjacentToColor = true;
+                            break;
+                        }
+                    }
+
+                    if (!isAdjacentToColor) {
+                        // Assign color
+                        assignedColors[node] = colorIdx;
+                        nodesInThisColor.push(node);
+
+                        const colorState = JSON.parse(JSON.stringify(assignedColors));
+                        let voiceMsg = "";
+                        if (nodesInThisColor.length === 1) {
+                            voiceMsg = `On attribue la couleur ${colorIdx} (${colorName}) au premier sommet non coloré ${node}.`;
+                        } else {
+                            voiceMsg = `Le sommet ${node} n'étant pas adjacent aux sommets déjà colorés en ${colorName}, on lui attribue également la couleur ${colorIdx}.`;
+                        }
+
+                        steps.push({
+                            stepNum: steps.length,
+                            sortedNodes: sortedNodes,
+                            assignedColors: colorState,
+                            testingNode: node,
+                            currentColor: colorIdx,
+                            voiceText: voiceMsg,
+                            actionDesc: `Attribution de la Couleur ${colorIdx} (${colorName}) au sommet ${node}.`
+                        });
+                    }
+                }
+
+                colorIdx++;
+            }
+
+            const chromaticNumber = colorIdx - 1;
+
+            // Final Summary Step
+            steps.push({
+                stepNum: steps.length,
+                isFinal: true,
+                sortedNodes: sortedNodes,
+                assignedColors: JSON.parse(JSON.stringify(assignedColors)),
+                chromaticNumber: chromaticNumber,
+                maxDeg: maxDeg,
+                cliqueSize: cliqueSize,
+                voiceText: `Coloriage terminé ! Tous les sommets sont colorés avec ${chromaticNumber} couleurs sans que deux sommets adjacents n'aient la même couleur. Le nombre chromatique de ce graphe est donc gamma de G = ${chromaticNumber}.`,
+                actionDesc: `Nombre chromatique : gamma(G) = ${chromaticNumber}.`
+            });
+
+            return steps;
+        }
+
+        // ── RENDER FUNCTIONS ────────────────────────────────────────
+        function renderGraph() {
+            const sc = scenarios[currentScenarioIdx];
+            const svg = document.getElementById('graph-svg');
+            svg.innerHTML = '';
+
+            const stepObj = stepsData[currentStep] || stepsData[0];
+            const nodeMap = {};
+            sc.nodes.forEach(n => nodeMap[n.id] = n);
+
+            // Draw Edges
+            sc.edges.forEach(e => {
+                const u = nodeMap[e.u];
+                const v = nodeMap[e.v];
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', u.x);
+                line.setAttribute('y1', u.y);
+                line.setAttribute('x2', v.x);
+                line.setAttribute('y2', v.y);
+                line.setAttribute('class', 'edge-line');
+                svg.appendChild(line);
+            });
+
+            // Draw Nodes
+            sc.nodes.forEach(n => {
+                const colorVal = stepObj.assignedColors ? stepObj.assignedColors[n.id] : undefined;
+                const isTesting = stepObj.testingNode === n.id;
+
+                let circleClass = 'node-circle';
+                if (colorVal) {
+                    circleClass += ` color-${colorVal}`;
+                }
+                if (isTesting) {
+                    circleClass += ' testing';
+                }
+
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', n.x);
+                circle.setAttribute('cy', n.y);
+                circle.setAttribute('r', '19');
+                circle.setAttribute('class', circleClass);
+                g.appendChild(circle);
+
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', n.x);
+                label.setAttribute('y', n.y);
+                label.setAttribute('class', 'node-text');
+                label.textContent = n.id;
+                g.appendChild(label);
+
+                svg.appendChild(g);
+            });
+        }
+
+        function renderTable() {
+            const stepObj = stepsData[currentStep] || stepsData[0];
+            const sorted = stepObj.sortedNodes || [];
+            const table = document.getElementById('wp-table');
+
+            let html = `
+                <tbody>
+                    <tr>
+                        <th class="row-header">Sommet</th>
+                        ${sorted.map(n => `<th class="${stepObj.testingNode === n.id ? 'col-testing' : ''}">${n.id}</th>`).join('')}
+                    </tr>
+                    <tr>
+                        <th class="row-header">Degré $d(v)$</th>
+                        ${sorted.map(n => `<td style="font-weight:700; color:var(--turquoise);">${n.deg}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <th class="row-header">Couleur</th>
+                        ${sorted.map(n => {
+                            const c = stepObj.assignedColors ? stepObj.assignedColors[n.id] : undefined;
+                            if (c) {
+                                return `<td><span class="tag-color tag-color-${c}">C${c}</span></td>`;
+                            } else {
+                                return `<td style="color:#64748b;">--</td>`;
+                            }
+                        }).join('')}
+                    </tr>
+                </tbody>
+            `;
+
+            table.innerHTML = html;
+        }
+
+        function updateUI() {
+            const stepObj = stepsData[currentStep];
+            document.getElementById('step-indicator').textContent = `Étape ${currentStep} / ${stepsData.length - 1}`;
+            document.getElementById('speech-text').textContent = stepObj.voiceText;
+
+            renderGraph();
+            renderTable();
+
+            // Button states
+            document.getElementById('btn-prev').disabled = (currentStep === 0);
+            document.getElementById('btn-next').disabled = (currentStep >= stepsData.length - 1);
+
+            // Result Box
+            const resBox = document.getElementById('result-box');
+            if (stepObj.isFinal) {
+                resBox.classList.add('visible');
+                document.getElementById('result-text').innerHTML = `
+                    <div>• <strong>Nombre chromatique :</strong> <span style="color:var(--rose); font-size:1.15rem; font-weight:800;">$\\gamma(G) = ${stepObj.chromaticNumber}$</span></div>
+                    <div style="margin-top:0.4rem; color:#94a3b8; font-size:0.92rem;">
+                        • <strong>Encadrement vérifié :</strong> $\\omega(G) \\le \\gamma(G) \\le \\Delta(G) + 1 \\implies ${stepObj.cliqueSize} \\le ${stepObj.chromaticNumber} \\le ${stepObj.maxDeg + 1}$
+                    </div>
+                `;
+                if (window.renderMathInElement) {
+                    renderMathInElement(resBox, { delimiters: [{left: "$", right: "$", display: false}] });
+                }
+            } else {
+                resBox.classList.remove('visible');
+            }
+
+            // Trigger Voice
+            speakTeacher(stepObj.voiceText);
+        }
+
+        // ── STEP CONTROLS ───────────────────────────────────────────
+        function nextStep() {
+            if (currentStep < stepsData.length - 1) {
+                currentStep++;
+                updateUI();
+            } else {
+                stopAutoPlay();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateUI();
+            }
+        }
+
+        function resetAlgorithm() {
+            stopAutoPlay();
+            currentStep = 0;
+            updateUI();
+        }
+
+        function toggleAutoPlay() {
+            if (autoPlayTimer) {
+                stopAutoPlay();
+            } else {
+                document.getElementById('btn-auto').textContent = '⏸ Pause';
+                document.getElementById('btn-auto').classList.add('btn-primary');
+                autoPlayTimer = setInterval(() => {
+                    if (currentStep < stepsData.length - 1) {
+                        nextStep();
+                    } else {
+                        stopAutoPlay();
+                    }
+                }, 4500);
+            }
+        }
+
+        function stopAutoPlay() {
+            if (autoPlayTimer) {
+                clearInterval(autoPlayTimer);
+                autoPlayTimer = null;
+                document.getElementById('btn-auto').textContent = '▶ Auto';
+                document.getElementById('btn-auto').classList.remove('btn-primary');
+            }
+        }
+
+        function loadScenario(idx) {
+            stopAutoPlay();
+            currentScenarioIdx = idx;
+            document.querySelectorAll('.scenario-btn').forEach((b, i) => {
+                b.classList.toggle('active', i === idx);
+            });
+            stepsData = computeWelchPowellSteps(scenarios[idx]);
+            currentStep = 0;
+            updateUI();
+        }
+
+        // ── VOICE SPEECH SYSTEM ─────────────────────────────────────
+        function toggleVoice() {
+            isVoiceEnabled = !isVoiceEnabled;
+            const btn = document.getElementById('btn-voice');
+            if (isVoiceEnabled) {
+                btn.classList.add('active');
+                btn.innerHTML = `<span id="sound-icon">🔊</span> Voix active`;
+                speakTeacher(stepsData[currentStep].voiceText);
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = `<span id="sound-icon">🔇</span> Voix coupée`;
+                cancelSpeech();
+            }
+        }
+
+        function cancelSpeech() {
+            if (typeof responsiveVoice !== 'undefined') {
+                responsiveVoice.cancel();
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            setSpeaking(false);
+        }
+
+        function setSpeaking(isSpeaking) {
+            const ind = document.getElementById('voice-indicator');
+            const txt = document.getElementById('voice-status-text');
+            if (isSpeaking) {
+                ind.classList.add('speaking');
+                txt.textContent = 'En train de parler...';
+            } else {
+                ind.classList.remove('speaking');
+                txt.textContent = 'Audio prêt';
+            }
+        }
+
+        function speakTeacher(text) {
+            if (!isVoiceEnabled) return;
+            cancelSpeech();
+
+            setSpeaking(true);
+
+            // Clean latex math text for speech
+            const cleanText = text
+                .replace(/\gamma(G)/g, "gamma de G")
+                .replace(/\Delta(G)/g, "delta de G")
+                .replace(/\omega(G)/g, "oméga de G")
+                .replace(/\le/g, "inférieur ou égal à")
+                .replace(/\implies/g, "donc")
+                .replace(/$/g, "");
+
+            // 1. ResponsiveVoice Priority
+            if (typeof responsiveVoice !== 'undefined' && responsiveVoice.voiceSupport()) {
+                responsiveVoice.speak(cleanText, "French Male", {
+                    rate: 0.98,
+                    pitch: 1.0,
+                    onend: () => setSpeaking(false),
+                    onerror: () => fallbackSpeech(cleanText)
+                });
+            } else {
+                fallbackSpeech(cleanText);
+            }
+        }
+
+        function fallbackSpeech(text) {
+            if ('speechSynthesis' in window) {
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'fr-FR';
+                utter.rate = 0.95;
+
+                const voices = window.speechSynthesis.getVoices();
+                const frVoice = voices.find(v => v.lang.startsWith('fr') && (v.name.includes('Thomas') || v.name.includes('Paul') || v.name.includes('Male') || v.name.includes('Google')));
+                if (frVoice) utter.voice = frVoice;
+
+                utter.onend = () => setSpeaking(false);
+                utter.onerror = () => setSpeaking(false);
+
+                window.speechSynthesis.speak(utter);
+            } else {
+                setSpeaking(false);
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadScenario(0);
+        });
+    </script>
+</body>
+</html>
